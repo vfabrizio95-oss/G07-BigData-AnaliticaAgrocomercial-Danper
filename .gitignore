@@ -1,0 +1,27 @@
+# Datasets originales y procesados
+datasets/
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.zip
+
+# Entornos virtuales
+venv/
+.venv/
+bigdata_env/
+
+# Archivos temporales
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+
+# Credenciales
+.env
+.env.*
+*.pem
+*.key
+
+# Resultados pesados
+resultados/datos/
