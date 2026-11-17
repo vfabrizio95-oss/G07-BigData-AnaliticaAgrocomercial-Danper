@@ -9,6 +9,7 @@ El script no ha sido ejecutado en el cluster del usuario: probar --check primero
 import argparse
 from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.window import Window
+import config
 
 EXPECTED = {
  'produccion_mensual': (561,13), 'exportaciones_regionales': (720,7),
@@ -33,7 +34,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--check', action='store_true', help='Verificar HDFS sin escribir (predeterminado)')
     ap.add_argument('--build-missing', action='store_true', help='Crear SOLO componentes ausentes')
-    ap.add_argument('--hdfs', default='hdfs://localhost:9000')
+    ap.add_argument('--hdfs', default=config.HDFS_URI)
     ap.add_argument('--partitions', type=int, default=2)
     ap.add_argument('--silver-root', default=None)
     ap.add_argument('--gold-root', default=None)
@@ -43,7 +44,7 @@ def main():
     if args.build_missing:
         if not args.silver_root or not args.gold_root:
             ap.error('Las pruebas requieren --silver-root y --gold-root')
-        raiz = 'hdfs://localhost:9000/danper/pruebas_escalabilidad'
+        raiz = config.hdfs(config.PRUEBAS_ESCALABILIDAD)
         rutas_validas = {
             factor: (
                 f'{raiz}/silver_x{factor}',
@@ -74,13 +75,13 @@ def main():
             )
 
     spark = (SparkSession.builder.appName('Danper_ETL_Gold')
-             .master('local[2]')
+             .config(map=config.SPARK_CONF)
              .config('spark.hadoop.fs.defaultFS', args.hdfs)
              .config('spark.sql.shuffle.partitions',str(args.partitions))
              .getOrCreate())
     spark.sparkContext.setLogLevel('ERROR')
-    silver = args.silver_root or args.hdfs.rstrip('/')+'/danper/silver'
-    gold = args.gold_root or args.hdfs.rstrip('/')+'/danper/gold'
+    silver = args.silver_root or args.hdfs.rstrip('/')+config.SILVER
+    gold = args.gold_root or args.hdfs.rstrip('/')+config.GOLD
     hconf = spark.sparkContext._jsc.hadoopConfiguration()
     Path = spark._jvm.org.apache.hadoop.fs.Path
 

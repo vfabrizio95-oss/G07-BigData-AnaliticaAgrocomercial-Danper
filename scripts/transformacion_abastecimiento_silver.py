@@ -12,15 +12,16 @@ from pyspark.sql.types import (
     StructType, StructField,
     StringType, DoubleType
 )
+import config
 
 
 # ==========================================
 # CONFIGURACION
 # ==========================================
 
-BRONZE = "/danper/bronze/abastecimiento"
-SILVER = "/danper/silver/abastecimiento"
-CALIDAD = "/danper/calidad/abastecimiento/incidencias"
+BRONZE = f"{config.BRONZE}/abastecimiento"
+SILVER = f"{config.SILVER}/abastecimiento"
+CALIDAD = f"{config.CALIDAD}/abastecimiento/incidencias"
 
 FUENTES_GMML = [
     f"{BRONZE}/gmml_2024/*.pdf",
@@ -472,7 +473,7 @@ def crear_spark():
         .appName(
             "Danper_Abastecimiento_GMML_Silver"
         )
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
 

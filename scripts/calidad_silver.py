@@ -4,13 +4,14 @@ from pyspark.sql.functions import (
     min as spark_min, max as spark_max,
     sum as spark_sum
 )
+import config
 
-RUTA = "/danper/silver/produccion/"
+RUTA = f"{config.SILVER}/produccion/"
 
 spark = (
     SparkSession.builder
     .appName("Danper_Calidad_Silver")
-    .master("local[2]")
+    .config(map=config.SPARK_CONF)
     .getOrCreate()
 )
 

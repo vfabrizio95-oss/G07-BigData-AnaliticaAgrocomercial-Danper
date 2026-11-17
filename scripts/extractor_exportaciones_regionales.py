@@ -1,7 +1,8 @@
 from pathlib import Path
 import pandas as pd
+import config
 
-RUTA_DATOS = Path.home() / "proyecto_danper/datasets/exportaciones"
+RUTA_DATOS = config.DATASETS / "exportaciones"
 
 MESES = [
     "ENE", "FEB", "MAR", "ABR", "MAY", "JUN",

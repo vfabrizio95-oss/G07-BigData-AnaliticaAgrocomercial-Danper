@@ -14,14 +14,15 @@ from pyspark.sql.types import (
     StructType, StructField, StringType,
     IntegerType, DoubleType, DateType
 )
+import config
 
 
 # ==========================================
 # CONFIGURACION
 # ==========================================
 
-BRONZE = "/danper/bronze/exportaciones/danper"
-SILVER = "/danper/silver/exportaciones/danper"
+BRONZE = f"{config.BRONZE}/exportaciones/danper"
+SILVER = f"{config.SILVER}/exportaciones/danper"
 
 MESES = {
     "ENERO": 1,
@@ -430,7 +431,7 @@ def main():
     spark = (
         SparkSession.builder
         .appName("Danper_Exportaciones_Silver")
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
 

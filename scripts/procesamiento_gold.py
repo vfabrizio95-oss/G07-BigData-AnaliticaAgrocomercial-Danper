@@ -9,6 +9,7 @@ El script no ha sido ejecutado en el cluster del usuario: probar --check primero
 import argparse
 from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.window import Window
+import config
 
 EXPECTED = {
  'produccion_mensual': (561,13), 'exportaciones_regionales': (720,7),
@@ -33,19 +34,19 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--check', action='store_true', help='Verificar HDFS sin escribir (predeterminado)')
     ap.add_argument('--build-missing', action='store_true', help='Crear SOLO componentes ausentes')
-    ap.add_argument('--hdfs', default='hdfs://localhost:9000')
+    ap.add_argument('--hdfs', default=config.HDFS_URI)
     ap.add_argument('--partitions', type=int, default=2)
     args = ap.parse_args()
     if args.check and args.build_missing:
         ap.error('Selecciona solo un modo')
     spark = (SparkSession.builder.appName('Danper_ETL_Gold')
-             .master('local[2]')
+             .config(map=config.SPARK_CONF)
              .config('spark.hadoop.fs.defaultFS', args.hdfs)
              .config('spark.sql.shuffle.partitions',str(args.partitions))
              .getOrCreate())
     spark.sparkContext.setLogLevel('ERROR')
-    silver = args.hdfs.rstrip('/')+'/danper/silver'
-    gold = args.hdfs.rstrip('/')+'/danper/gold'
+    silver = args.hdfs.rstrip('/')+config.SILVER
+    gold = args.hdfs.rstrip('/')+config.GOLD
     hconf = spark.sparkContext._jsc.hadoopConfiguration()
     Path = spark._jvm.org.apache.hadoop.fs.Path
 
