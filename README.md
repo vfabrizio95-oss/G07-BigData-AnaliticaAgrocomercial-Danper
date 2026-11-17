@@ -18,18 +18,18 @@ Desarrollar una plataforma de Big Data y Analítica de Datos que permita recopil
 
 | Tecnología | Versión | Función |
 |---|---|---|
-| Debian GNU/Linux | 12 | Sistema operativo |
+| Debian 12 / Ubuntu 24.04 | — | Sistema operativo (entornos probados) |
+| OpenJDK | 11 | Ejecución de Hadoop y Spark |
 | Apache Hadoop HDFS | 3.3.6 | Almacenamiento de datos |
 | Apache Spark / PySpark | 3.5.1 | Procesamiento y transformación |
 | Spark SQL | 3.5.1 | Consultas y agregaciones |
-| Python | 3.11.2 | Scripts y análisis de datos |
-| JupyterLab | 4.6.3 | Desarrollo y ejecución de notebooks |
-| Git | 2.39.5 | Control de versiones |
+| Python | 3.11 | Scripts y análisis de datos |
+| poppler-utils (`pdftotext`) | 24.02 | Lectura de los reportes PDF |
 | Apache Parquet | Formato columnar | Almacenamiento de datos procesados |
 
-Se utilizaron también bibliotecas de Python como Pandas, Openpyxl y Scikit-learn para tareas de lectura, preparación y modelado. Las versiones específicas de estas bibliotecas deberán verificarse en el entorno utilizado.
+Las bibliotecas de Python y sus versiones están en `requirements.txt`.
 
-El procesamiento Gold se ha ejecutado con Spark configurado en modo local. Aunque Hadoop YARN forma parte de las tecnologías consideradas, su utilización efectiva como gestor de recursos del pipeline todavía requiere verificación.
+Los scripts no fijan el master de Spark: se define con `spark-submit --master` o con la variable `DANPER_SPARK_MASTER` (ver sección 7). Al ejecutarlos con `python`, PySpark usa `local[*]`.
 
 ## 4. Arquitectura del pipeline
 
@@ -45,13 +45,12 @@ La plataforma adopta una arquitectura Data Lake basada en tres capas:
 
 | Capa | Ruta | Estado |
 |---|---|---|
-| Bronze | Pendiente de confirmar | Ubicación definitiva no verificada en HDFS |
-| Silver | `/danper/silver` | Verificada |
-| Gold | `/danper/gold` | Verificada |
+| Bronze | `/danper/bronze` | Verificada: 180 archivos, `fsck` HEALTHY |
+| Silver | `/danper/silver` | Verificada: 11 tablas, 79 498 filas |
+| Gold | `/danper/gold` | Verificada: 26/26 componentes |
+| Calidad | `/danper/calidad` | Incidencias de agroindustria, costos, regionales y abastecimiento |
 
-Las rutas se utilizan sobre el sistema HDFS configurado en `hdfs://localhost:9000`.
-
-**Importante:** la arquitectura de tres capas describe el diseño del proyecto. La existencia y el funcionamiento de Bronze deben acreditarse con la evidencia de ingesta correspondiente.
+La URI de HDFS (por defecto `hdfs://localhost:9000`) y la carpeta raíz (`/danper`) se configuran en `scripts/config.py` mediante variables de entorno.
 
 ## 5. Fuentes de datos
 
@@ -79,11 +78,22 @@ El repositorio contiene archivos de código y documentación organizados princip
 
 ### Scripts
 
-- `scripts/procesamiento_gold.py`: construcción y verificación de componentes analíticos Gold.
-- `scripts/procesamiento_gold_escalabilidad.py`: procesamiento experimental Gold utilizado en escenarios de escalabilidad.
+| Script | Función |
+|---|---|
+| `scripts/config.py` | Configuración central: rutas HDFS, carpeta de datasets y master de Spark |
+| `scripts/inventario_bronze.py` | Genera `reportes/inventario_bronze.csv` (ruta, tamaño y SHA-256 de cada archivo) |
+| `scripts/ingesta_bronze.py` | Carga los datasets locales en `/danper/bronze` verificando SHA-256 |
+| `scripts/extractor_*.py` | Lectura de los Excel de producción, agroindustria y exportaciones regionales (los importan los scripts Silver) |
+| `scripts/transformacion_*_silver.py` | Bronze → Silver, uno por fuente (9 scripts) |
+| `scripts/calidad_silver.py` | Controles básicos sobre la producción Silver |
+| `scripts/generar_documentacion_silver.py` | Genera `docs/silver/*.md` desde HDFS |
+| `scripts/procesamiento_gold.py` | Silver → Gold: construcción (`--build-missing`) y auditoría (`--check`) |
+| `scripts/procesamiento_gold_escalabilidad.py` | Variante de Gold para los escenarios de escalabilidad |
 
 ### Notebooks
 
+- `notebooks/01_ingesta_bronze.ipynb`: evidencia de la ingesta Bronze (180 archivos locales = 180 en HDFS, SHA-256 y `fsck`).
+- `notebooks/01_pipeline_danper.ipynb`: exploración de los Excel de producción.
 - `notebooks/procesamiento_gold.ipynb`: documentación y comprobación del procesamiento Gold.
 - `notebooks/Optimizacion_Rendimiento.ipynb`: comparación de rendimiento de Spark sin caché y con caché.
 - `notebooks/prueba_escalabilidad.ipynb`: pruebas experimentales de escalabilidad.
@@ -96,50 +106,80 @@ El repositorio contiene archivos de código y documentación organizados princip
 - `docs/reporte_escalabilidad_gold.md`: mediciones de tiempos y recursos.
 - `docs/reporte_seguridad_plataforma.md`: diagnóstico de controles de seguridad.
 
-No todos los archivos de configuración o dependencias están todavía centralizados en un procedimiento único de instalación.
+## 7. Requisitos previos e instalación
 
-## 7. Requisitos previos
+1. Java (OpenJDK 11), Hadoop 3.3.6 con HDFS en funcionamiento y Spark 3.5.1.
+2. `pdftotext`: `sudo apt install poppler-utils`.
+3. Python 3.11 con las dependencias de `requirements.txt`.
+4. Los datasets originales (no se incluyen en el repositorio) en `~/proyecto_danper/datasets`, con la estructura de `reportes/inventario_bronze.csv`.
 
-Para ejecutar la etapa de procesamiento Silver→Gold, se requiere:
+Las variables `JAVA_HOME`, `HADOOP_HOME`, `HADOOP_CONF_DIR`, `SPARK_HOME` y el `PATH` de Hadoop y Spark deben definirse en `~/.profile` (no al final de `~/.bashrc`, que no se lee en shells no interactivos).
 
-1. Un sistema compatible con las herramientas utilizadas en el proyecto.
-2. Apache Hadoop HDFS configurado y en funcionamiento.
-3. Apache Spark con soporte para Hadoop.
-4. Python y PySpark compatibles con la instalación de Spark.
-5. Acceso a los conjuntos Silver almacenados en HDFS.
-6. Recursos suficientes de CPU, memoria y almacenamiento.
+### Obtener el repositorio y el entorno
 
-Las pruebas documentadas se realizaron sobre Debian 12, utilizando Spark 3.5.1 y Hadoop 3.3.6.
+```bash
+git clone https://github.com/vfabrizio95-oss/G07-BigData-AnaliticaAgrocomercial-Danper.git
+cd G07-BigData-AnaliticaAgrocomercial-Danper
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-### Obtener el repositorio
+### Configuración
 
-Clonar el proyecto:
+Todos los scripts leen `scripts/config.py`. Los valores por defecto sirven para la instalación local; para otro entorno se cambian variables, no código:
 
-`git clone https://github.com/vfabrizio95-oss/G07-BigData-AnaliticaAgrocomercial-Danper.git`
-
-Ingresar al directorio:
-
-`cd G07-BigData-AnaliticaAgrocomercial-Danper`
-
-Seleccionar la rama de integración:
-
-`git checkout develop`
+| Variable | Por defecto | Uso |
+|---|---|---|
+| `DANPER_HDFS_URI` | `hdfs://localhost:9000` | NameNode de HDFS |
+| `DANPER_HDFS_BASE` | `/danper` | Carpeta raíz del proyecto en HDFS |
+| `DANPER_DATASETS` | `~/proyecto_danper/datasets` | Datasets locales de entrada |
+| `DANPER_SPARK_MASTER` | (sin definir) | Master de Spark, p. ej. `yarn` o `spark://host:7077` |
 
 ### Comprobar las herramientas
 
-Consultar las versiones instaladas:
+```bash
+java -version
+hadoop version
+spark-submit --version
+pdftotext -v
+```
 
-`hadoop version`
+### Iniciar HDFS
 
-`python3 --version`
+```bash
+start-dfs.sh
+hdfs dfsadmin -safemode wait
+```
 
-`git --version`
+## 7.1 Ejecución completa Bronze → Silver → Gold
 
-`/opt/spark-3.5.1-bin-hadoop3/bin/spark-submit --version`
+Desde la raíz del repositorio, con el entorno activado. Los scripts que admiten `--ejecutar` funcionan sin él en modo simulación (validan sin escribir).
 
-La ruta de Spark corresponde a la instalación identificada durante el desarrollo. Si se utiliza otra instalación, debe adaptarse al entorno disponible.
+```bash
+# Bronze (simulación y carga)
+python scripts/ingesta_bronze.py
+python scripts/ingesta_bronze.py --ejecutar
 
-Las bibliotecas adicionales de Python deberán instalarse según las dependencias reales de cada notebook. Se encuentra pendiente publicar un archivo de dependencias con sus versiones verificadas.
+# Silver
+python scripts/transformacion_silver.py --ejecutar
+python scripts/transformacion_exportaciones_danper_silver.py --ejecutar
+python scripts/transformacion_exportaciones_regionales_silver.py
+python scripts/transformacion_agroindustria_silver.py
+python scripts/transformacion_costos_silver.py
+python scripts/transformacion_abastecimiento_silver.py --ejecutar
+python scripts/transformacion_mercado_productores_silver.py --ejecutar
+python scripts/transformacion_ena_2025_silver.py --ejecutar
+python scripts/transformacion_sostenibilidad_silver.py --ejecutar
+
+# Gold
+spark-submit scripts/procesamiento_gold.py --build-missing
+spark-submit scripts/procesamiento_gold.py --check
+```
+
+Los scripts de exportaciones regionales, agroindustria y costos no tienen modo simulación: escriben (sobrescriben) su tabla Silver al ejecutarse. ENA y sostenibilidad no sobrescriben destinos existentes.
+
+Tiempos de referencia medidos el 17/11/2026 en un equipo de 8 CPU y 15 GiB (Ubuntu 24.04, HDFS pseudodistribuido): Bronze ≈ 20 min (180 archivos, uno por uno), Silver 4,9 min, Gold 59 s (`--build-missing`) y 19 s (`--check`).
 
 ## 8. Verificación del almacenamiento HDFS
 
@@ -183,9 +223,9 @@ Este script admite dos modos principales: verificación y construcción de compo
 
 Desde la raíz del repositorio, ejecutar:
 
-`/opt/spark-3.5.1-bin-hadoop3/bin/spark-submit scripts/procesamiento_gold.py --check`
+`spark-submit scripts/procesamiento_gold.py --check`
 
-Este modo comprueba las rutas existentes y sus cantidades de filas y columnas esperadas.
+Este modo comprueba que existan las 26 rutas, que cada componente tenga exactamente las columnas esperadas y al menos las filas de la carga base (se admiten más filas cuando ingresan datos nuevos).
 
 No realiza escrituras en HDFS.
 
@@ -197,11 +237,11 @@ Si todos los componentes se encuentran correctamente, el programa muestra:
 
 Cuando se dispone de los conjuntos Silver correctos y se necesita generar componentes Gold ausentes, se puede utilizar:
 
-`/opt/spark-3.5.1-bin-hadoop3/bin/spark-submit scripts/procesamiento_gold.py --build-missing`
+`spark-submit scripts/procesamiento_gold.py --build-missing`
 
 Este modo crea únicamente los componentes ausentes y no sobrescribe las rutas Gold existentes.
 
-**Precaución:** antes de utilizar `--build-missing`, comprobar que las entradas Silver, sus esquemas y los permisos de escritura correspondan al entorno previsto. Los conteos esperados están definidos en el código y corresponden al conjunto utilizado durante las pruebas del proyecto.
+**Precaución:** antes de utilizar `--build-missing`, comprobar que las entradas Silver, sus esquemas y los permisos de escritura correspondan al entorno previsto. Los conteos de referencia definidos en el código son mínimos de la carga base: una cantidad menor se considera pérdida de datos y detiene el proceso.
 
 ## 10. Resultados del procesamiento Gold
 
@@ -310,18 +350,13 @@ Para una implementación productiva se recomienda fortalecer los controles de ac
 
 El repositorio permite consultar los scripts, notebooks y reportes técnicos del proyecto.
 
-Actualmente se ha documentado la verificación del procesamiento Gold a partir de conjuntos Silver ya preparados.
+El 17/11/2026 se reconstruyó el pipeline completo desde los datasets originales en un entorno nuevo (Ubuntu 24.04): los 180 archivos coincidieron con el inventario por SHA-256 y se obtuvieron los mismos resultados documentados en Bronze (180 archivos), Silver (11 tablas, 79 498 filas) y Gold (26/26).
 
-Para garantizar la reproducción integral desde los datos originales, todavía se requiere completar o verificar:
+Pendiente:
 
-1. El procedimiento de obtención de todos los datasets originales.
-2. La ubicación efectiva de la capa Bronze.
-3. Los scripts y el orden de ejecución de Bronze→Silver.
-4. Las instrucciones de instalación con versiones verificadas de las dependencias Python.
-5. Una prueba de reproducción completa en un entorno limpio.
-6. Las condiciones de acceso y reutilización de cada fuente original.
-
-Hasta completar estas verificaciones, la reproducibilidad debe considerarse **parcial y documentada principalmente para Silver→Gold**.
+1. Procedimiento de obtención de los datasets originales y condiciones de reutilización de cada fuente.
+2. Carga incremental (datos nuevos sin reprocesar todo) y orquestación de punta a punta.
+3. Despliegue en un cluster distribuido.
 
 ## 18. Repositorio y documentación
 
@@ -329,11 +364,7 @@ Repositorio:
 
 https://github.com/vfabrizio95-oss/G07-BigData-AnaliticaAgrocomercial-Danper
 
-Rama de integración:
-
-`develop`
-
-Los resultados del proyecto deben contrastarse con los notebooks, los scripts y la documentación técnica incluidos en esta rama.
+Rama principal: `main`. El desarrollo se integra en `develop` y desde ahí se pasa a `main`.
 
 El proyecto se encuentra en desarrollo académico y sus resultados tienen fines de investigación y aprendizaje.
 
