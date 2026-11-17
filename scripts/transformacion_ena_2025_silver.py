@@ -209,7 +209,7 @@ def extraer(nombre_tabla, config, archivo, ruta_bronze):
             f"{int(repetidas.sum())}"
         )
 
-    if len(seleccion) != config["esperados"]:
+    if len(seleccion) < config["esperados"]:
         raise ValueError(
             f"Cantidad inesperada en {nombre_tabla}: "
             f"{len(seleccion)}; "
@@ -413,7 +413,7 @@ def main():
 
             cantidad = df.count()
 
-            if cantidad != CONFIG[nombre]["esperados"]:
+            if cantidad != len(registros):
                 raise ValueError(
                     f"Cantidad distinta en Spark: {nombre}"
                 )

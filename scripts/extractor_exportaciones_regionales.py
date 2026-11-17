@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 import pandas as pd
 import config
@@ -119,7 +120,7 @@ def extraer_exportaciones_regionales(ruta=None):
                     if (
                         anio is None
                         or not anio.is_integer()
-                        or not 2012 <= anio <= 2023
+                        or not 2012 <= anio <= date.today().year
                     ):
                         continue
 

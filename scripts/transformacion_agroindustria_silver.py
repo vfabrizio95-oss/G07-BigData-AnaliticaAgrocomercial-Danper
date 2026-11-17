@@ -145,7 +145,7 @@ def main():
         print("Cuadros:", len(cuadros))
         print("Valores no numericos:", len(incidencias))
 
-        if len(cuadros) != 18 or datos.empty:
+        if len(cuadros) < 18 or datos.empty:
             raise ValueError(
                 "La extraccion no tiene la cobertura esperada"
             )

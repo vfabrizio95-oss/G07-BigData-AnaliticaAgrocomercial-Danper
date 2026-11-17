@@ -209,10 +209,10 @@ def extraer_desde_bronze():
             len(archivos)
         )
 
-        if len(archivos) != 3:
+        if len(archivos) < 3:
             raise ValueError(
-                "Se esperaban 3 archivos CSV "
-                "correspondientes a 2024, 2025 y 2026."
+                "Se esperaban al menos 3 archivos CSV "
+                "(2024, 2025 y 2026)."
             )
 
         datos = pd.concat(
@@ -321,7 +321,7 @@ def validar_datos(datos):
             "Existen importes FOB o meses invalidos."
         )
 
-    if anios != ANIOS_ESPERADOS:
+    if not ANIOS_ESPERADOS <= anios:
         raise ValueError(
             f"Anios inesperados: {sorted(anios)}"
         )

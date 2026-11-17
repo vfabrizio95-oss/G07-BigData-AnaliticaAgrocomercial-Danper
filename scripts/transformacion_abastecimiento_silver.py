@@ -309,17 +309,17 @@ def descargar_pdf_bronze(directorio):
         ruta_destino.glob("*.pdf")
     )
 
-    if len(archivos) != PDF_ESPERADOS:
+    if len(archivos) < PDF_ESPERADOS:
         raise ValueError(
-            f"Se esperaban {PDF_ESPERADOS} PDF GMML "
+            f"Se esperaban al menos {PDF_ESPERADOS} PDF GMML "
             f"y se encontraron {len(archivos)}. "
             "Revise las rutas o posibles nombres repetidos."
         )
 
-    if len(archivos_descargados) != PDF_ESPERADOS:
+    if len(archivos_descargados) != len(archivos):
         raise ValueError(
-            "No se recuperaron 33 nombres de archivo "
-            "distintos desde las fuentes configuradas."
+            "Hay nombres de archivo repetidos "
+            "entre las fuentes configuradas."
         )
 
     return archivos
@@ -382,12 +382,12 @@ def extraer_desde_bronze():
 # ==========================================
 
 def validar_datos(archivos, registros, incidencias):
-    if len(archivos) != PDF_ESPERADOS:
+    if len(archivos) < PDF_ESPERADOS:
         raise ValueError(
-            "Cantidad incorrecta de reportes PDF."
+            "Hay menos reportes PDF que en la carga base."
         )
 
-    if len(registros) != PDF_ESPERADOS * 2:
+    if len(registros) != len(archivos) * 2:
         raise ValueError(
             "Cantidad inesperada de registros."
         )
