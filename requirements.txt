@@ -1,0 +1,15 @@
+# Dependencias Python del proyecto Danper (Python 3.11).
+# Instalar con:  pip install -r requirements.txt   (o: uv pip install -r requirements.txt)
+#
+# Requisitos del sistema que NO se instalan con pip (ver README):
+#   - Java (OpenJDK 11), Hadoop 3.3.6 (HDFS) y Spark 3.5.1
+#   - poppler-utils (comando pdftotext, usado para leer los PDF de GMML,
+#     Mercado de Productores y sostenibilidad):  sudo apt install poppler-utils
+
+pyspark==3.5.1
+pandas==2.3.3
+numpy==2.4.6
+openpyxl==3.1.5
+psutil==7.2.2
+matplotlib==3.11.2
+jupyterlab==4.6.6
