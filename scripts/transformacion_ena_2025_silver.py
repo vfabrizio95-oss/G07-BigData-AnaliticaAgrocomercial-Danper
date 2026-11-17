@@ -13,11 +13,11 @@ from pyspark.sql.types import (
     StructType, StructField,
     StringType, DoubleType, IntegerType
 )
-import config
+import config as cfg
 
 
-BRONZE = f"{config.BRONZE}/costos/ena_2025/ENA_2025"
-SILVER = f"{config.SILVER}/ena_2025"
+BRONZE = f"{cfg.BRONZE}/costos/ena_2025/ENA_2025"
+SILVER = f"{cfg.SILVER}/ena_2025"
 
 COMUNES = [
     "ANIO", "NSEGM", "ID_PROD", "UA",
@@ -395,7 +395,7 @@ def main():
     spark = (
         SparkSession.builder
         .appName("Danper_ENA_2025_Silver")
-        .config(map=config.SPARK_CONF)
+        .config(map=cfg.SPARK_CONF)
         .getOrCreate()
     )
 
