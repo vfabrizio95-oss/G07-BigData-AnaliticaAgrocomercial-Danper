@@ -230,7 +230,7 @@ def descargar_pdf(directorio):
             flush=True
         )
 
-        if len(encontrados) != 12:
+        if not encontrados:
             raise ValueError(
                 f"Cantidad inesperada de PDF "
                 f"para {anio}: {len(encontrados)}"
@@ -242,9 +242,9 @@ def descargar_pdf(directorio):
                 f"{BRONZE}/{anio}/{archivo.name}"
             ))
 
-    if len(archivos) != PDF_ESPERADOS:
+    if len(archivos) < PDF_ESPERADOS:
         raise ValueError(
-            f"Se esperaban {PDF_ESPERADOS} PDF, "
+            f"Se esperaban al menos {PDF_ESPERADOS} PDF, "
             f"pero se encontraron {len(archivos)}."
         )
 
@@ -346,14 +346,14 @@ def validar_registros(registros, archivos):
             "Se encontraron precios negativos."
         )
 
-    if len(archivos_con_datos) != PDF_ESPERADOS:
+    if len(archivos_con_datos) != len(archivos):
         raise ValueError(
             "Existen PDF sin datos extraidos."
         )
 
-    if len(periodos) != 24:
+    if len(periodos) < 24:
         raise ValueError(
-            "No se identificaron los 24 periodos."
+            "Se identificaron menos de 24 periodos."
         )
 
     if set(categorias) != CATEGORIAS:
@@ -362,7 +362,7 @@ def validar_registros(registros, archivos):
             "no coinciden con las esperadas."
         )
 
-    if total != REGISTROS_REFERENCIA:
+    if total < REGISTROS_REFERENCIA:
         raise ValueError(
             "La cantidad de filas difiere "
             "de la validacion exploratoria: "

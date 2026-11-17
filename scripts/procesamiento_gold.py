@@ -11,6 +11,8 @@ from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.window import Window
 import config
 
+# Referencia (filas_minimas, columnas) de la carga base. Las columnas deben
+# coincidir exactamente (esquema); las filas solo no pueden ser menos (datos nuevos si).
 EXPECTED = {
  'produccion_mensual': (561,13), 'exportaciones_regionales': (720,7),
  'exportaciones_danper': (495,6), 'agroindustria_mensual': (3134,7),
@@ -57,26 +59,31 @@ def main():
     def read(name):
         return spark.read.parquet(f'{gold}/{name}')
 
+    conteos={}
+
     def valid(name, df):
         rows,cols=EXPECTED[name]
         actual=df.count()
-        if (actual,len(df.columns)) != (rows,cols):
-            raise ValueError(f'{name}: esperado {(rows,cols)}, obtenido {(actual,len(df.columns))}')
+        if len(df.columns) != cols:
+            raise ValueError(f'{name}: esperadas {cols} columnas, obtenidas {len(df.columns)}')
+        if actual < rows:
+            raise ValueError(f'{name}: minimo {rows} filas, obtenidas {actual}')
+        conteos[name]=(actual,len(df.columns))
         return df
 
     def publish(name, builder, keys=(), mandatory=()):
         if exists(name):
             df=valid(name,read(name))
-            print(f'[EXISTENTE, VERIFICADO] {name} {EXPECTED[name]}',flush=True)
+            print(f'[EXISTENTE, VERIFICADO] {name} {conteos[name]}',flush=True)
             return df
         df=valid(name,builder())
         if mandatory and df.filter(' OR '.join(f'`{x}` IS NULL' for x in mandatory)).limit(1).count():
             raise ValueError(f'{name}: clave obligatoria nula')
         if keys and df.groupBy(*keys).count().filter(F.col('count')>1).limit(1).count():
             raise ValueError(f'{name}: clave duplicada')
-        df.coalesce(2 if EXPECTED[name][0]>5000 else 1).write.mode('errorifexists').parquet(f'{gold}/{name}')
+        df.coalesce(2 if conteos[name][0]>5000 else 1).write.mode('errorifexists').parquet(f'{gold}/{name}')
         result=valid(name,read(name))
-        print(f'[CREADO, VERIFICADO] {name} {EXPECTED[name]}',flush=True)
+        print(f'[CREADO, VERIFICADO] {name} {conteos[name]}',flush=True)
         return result
 
     def build_analytical():
@@ -260,7 +267,7 @@ def main():
             for i,(name,(rows,cols)) in enumerate(EXPECTED.items(),1):
                 if not exists(name):
                     print(f'[{i:02d}/26] AUSENTE {name}',flush=True); bad.append(name); continue
-                try: valid(name,read(name)); print(f'[{i:02d}/26] OK {name}: {rows} filas, {cols} columnas',flush=True)
+                try: valid(name,read(name)); print(f'[{i:02d}/26] OK {name}: {conteos[name][0]} filas (min {rows}), {cols} columnas',flush=True)
                 except Exception as exc: print(f'[{i:02d}/26] ERROR {name}: {exc}',flush=True); bad.append(name)
             if bad: raise RuntimeError(f'{len(bad)} componentes requieren revision: {bad}')
             print('AUDITORIA GOLD: 26/26 CORRECTOS. HDFS NO MODIFICADO.')
