@@ -2,22 +2,23 @@
 from pathlib import Path
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+import config
 
 SALIDA = Path("docs/silver")
 
 TABLAS = {
-    "produccion": ("/danper/silver/produccion", "Producción agrícola regional"),
-    "exportaciones_danper": ("/danper/silver/exportaciones/danper", "Exportaciones de Danper"),
-    "exportaciones_regionales": ("/danper/silver/exportaciones/regionales", "Exportaciones regionales"),
-    "abastecimiento": ("/danper/silver/abastecimiento", "Abastecimiento GMML"),
-    "mercado_productores": ("/danper/silver/mercado_productores", "Mercado de Productores"),
-    "agroindustria": ("/danper/silver/agroindustria", "Agroindustria"),
-    "costos": ("/danper/silver/costos", "Costos agrícolas"),
-    "ena_produccion": ("/danper/silver/ena_2025/produccion", "ENA 2025 - Producción"),
-    "ena_insumos": ("/danper/silver/ena_2025/insumos", "ENA 2025 - Insumos"),
-    "ena_uso_tierra": ("/danper/silver/ena_2025/uso_tierra", "ENA 2025 - Uso de tierra"),
+    "produccion": (f"{config.SILVER}/produccion", "Producción agrícola regional"),
+    "exportaciones_danper": (f"{config.SILVER}/exportaciones/danper", "Exportaciones de Danper"),
+    "exportaciones_regionales": (f"{config.SILVER}/exportaciones/regionales", "Exportaciones regionales"),
+    "abastecimiento": (f"{config.SILVER}/abastecimiento", "Abastecimiento GMML"),
+    "mercado_productores": (f"{config.SILVER}/mercado_productores", "Mercado de Productores"),
+    "agroindustria": (f"{config.SILVER}/agroindustria", "Agroindustria"),
+    "costos": (f"{config.SILVER}/costos", "Costos agrícolas"),
+    "ena_produccion": (f"{config.SILVER}/ena_2025/produccion", "ENA 2025 - Producción"),
+    "ena_insumos": (f"{config.SILVER}/ena_2025/insumos", "ENA 2025 - Insumos"),
+    "ena_uso_tierra": (f"{config.SILVER}/ena_2025/uso_tierra", "ENA 2025 - Uso de tierra"),
     "sostenibilidad": (
-        "/danper/silver/sostenibilidad/danper_indicadores",
+        f"{config.SILVER}/sostenibilidad/danper_indicadores",
         "Indicadores de sostenibilidad Danper"
     )
 }
@@ -138,7 +139,7 @@ def main():
     spark = (
         SparkSession.builder
         .appName("Documentacion_Danper_Silver")
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
     spark.sparkContext.setLogLevel("ERROR")

@@ -13,14 +13,15 @@ from pyspark.sql.types import (
     StructType, StructField, StringType,
     IntegerType, DoubleType, DateType
 )
+import config
 
 
 # ==========================================
 # CONFIGURACION
 # ==========================================
 
-BRONZE = "/danper/bronze/abastecimiento/mercado_productores"
-SILVER = "/danper/silver/mercado_productores"
+BRONZE = f"{config.BRONZE}/abastecimiento/mercado_productores"
+SILVER = f"{config.SILVER}/mercado_productores"
 
 ANIOS = (2024, 2025)
 PDF_ESPERADOS = 24
@@ -447,7 +448,7 @@ def main():
         .appName(
             "Danper_Mercado_Productores_Silver"
         )
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
 

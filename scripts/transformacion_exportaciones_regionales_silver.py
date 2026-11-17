@@ -12,10 +12,11 @@ from extractor_exportaciones_regionales import (
     convertir_numero,
     CONFIGURACION,
 )
+import config
 
-BRONZE = "/danper/bronze/exportaciones"
-SILVER = "/danper/silver/exportaciones/regionales"
-CALIDAD = "/danper/calidad/exportaciones/regionales"
+BRONZE = f"{config.BRONZE}/exportaciones"
+SILVER = f"{config.SILVER}/exportaciones/regionales"
+CALIDAD = f"{config.CALIDAD}/exportaciones/regionales"
 
 
 def validar_totales(ruta, datos, incidencias):
@@ -135,7 +136,7 @@ def main():
     spark = (
         SparkSession.builder
         .appName("Danper_Exportaciones_Regionales_Silver")
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
 

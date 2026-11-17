@@ -23,14 +23,15 @@ from pyspark.sql.types import (
 )
 
 import extractor_agricola as extractor
+import config
 
 
 # ==========================================
 # CONFIGURACION
 # ==========================================
 
-BRONZE = "/danper/bronze/produccion"
-SILVER = "/danper/silver/produccion"
+BRONZE = f"{config.BRONZE}/produccion"
+SILVER = f"{config.SILVER}/produccion"
 
 MESES = {
     "ENE": 1,
@@ -56,7 +57,7 @@ def crear_spark():
     spark = (
         SparkSession.builder
         .appName("Danper_Produccion_Silver")
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
 

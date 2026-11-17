@@ -1,8 +1,9 @@
 from pathlib import Path
 import re
 import pandas as pd
+import config
 
-RUTA_DATOS = Path.home() / "proyecto_danper/datasets/agroindustria"
+RUTA_DATOS = config.DATASETS / "agroindustria"
 
 CUADROS = {
     7: ("INGRESO", "PARA PROCESAR"),

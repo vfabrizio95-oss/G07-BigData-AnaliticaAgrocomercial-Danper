@@ -4,13 +4,14 @@ from collections import Counter
 import argparse
 import hashlib
 import subprocess
+import config
 
 # ==========================================
 # CONFIGURACION DEL PROYECTO
 # ==========================================
 
-BASE = Path.home() / "proyecto_danper/datasets"
-BRONZE = "/danper/bronze"
+BASE = config.DATASETS
+BRONZE = config.BRONZE
 
 
 # ==========================================
