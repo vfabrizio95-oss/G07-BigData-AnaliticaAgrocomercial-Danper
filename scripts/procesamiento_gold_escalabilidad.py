@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""ETL Gold Danper (Spark 3.5.x, HDFS on-premise).
+"""ETL Gold Danper (Spark 3.5.x sobre HDFS).
 
 Modo predeterminado: --check (SOLO LECTURA). Para construir componentes
 faltantes deliberadamente: --build-missing. Nunca sobrescribe rutas existentes.
-El script no ha sido ejecutado en el cluster del usuario: probar --check primero.
 """
 import argparse
 from pyspark.sql import SparkSession, functions as F
