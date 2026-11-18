@@ -33,6 +33,45 @@ if SPARK_MASTER:
     SPARK_CONF["spark.master"] = SPARK_MASTER
 
 
+# PostgreSQL (capa de consumo de Gold)
+#   DANPER_PG_URL       jdbc:postgresql://localhost:5432/danper
+#   DANPER_PG_USER      usuario de la base de datos (por defecto, el del sistema)
+#   DANPER_PG_PASSWORD  contraseña; si no se define se busca en ~/.pgpass
+#   DANPER_PG_SCHEMA    esquema donde se publica Gold (por defecto gold)
+#   DANPER_PG_JAR       driver JDBC de PostgreSQL
+PG_URL = os.environ.get("DANPER_PG_URL", "jdbc:postgresql://localhost:5432/danper")
+PG_USER = os.environ.get("DANPER_PG_USER", os.environ.get("USER", "postgres"))
+PG_SCHEMA = os.environ.get("DANPER_PG_SCHEMA", "gold")
+PG_JAR = Path(
+    os.environ.get(
+        "DANPER_PG_JAR",
+        Path.home() / "proyecto_danper" / "jars" / "postgresql-42.7.4.jar",
+    )
+).expanduser()
+
+
+def pg_password():
+    """Contraseña de PostgreSQL: variable DANPER_PG_PASSWORD o ~/.pgpass."""
+    if os.environ.get("DANPER_PG_PASSWORD"):
+        return os.environ["DANPER_PG_PASSWORD"]
+    pgpass = Path(os.environ.get("PGPASSFILE", Path.home() / ".pgpass"))
+    sin_prefijo = PG_URL.split("//", 1)[-1]
+    servidor, _, base = sin_prefijo.partition("/")
+    host, _, puerto = servidor.partition(":")
+    buscado = [host, puerto or "5432", base.split("?")[0], PG_USER]
+    if pgpass.is_file():
+        for linea in pgpass.read_text().splitlines():
+            campos = linea.split(":", 4)
+            if len(campos) == 5 and all(
+                c in ("*", b) for c, b in zip(campos[:4], buscado)
+            ):
+                return campos[4]
+    raise RuntimeError(
+        "Falta la contraseña de PostgreSQL: defina DANPER_PG_PASSWORD "
+        "o agregue una línea en ~/.pgpass"
+    )
+
+
 def hdfs(ruta):
     """Devuelve la ruta HDFS completa (con URI) de una ruta absoluta."""
     return f"{HDFS_URI}{ruta}"
