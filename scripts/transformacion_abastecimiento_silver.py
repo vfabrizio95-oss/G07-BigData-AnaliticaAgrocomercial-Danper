@@ -23,10 +23,9 @@ BRONZE = f"{config.BRONZE}/abastecimiento"
 SILVER = f"{config.SILVER}/abastecimiento"
 CALIDAD = f"{config.CALIDAD}/abastecimiento/incidencias"
 
+# Una carpeta por anio (gmml_2024, gmml_2025, ...) mas los PDF de la raiz.
 FUENTES_GMML = [
-    f"{BRONZE}/gmml_2024/*.pdf",
-    f"{BRONZE}/gmml_2025/*.pdf",
-    f"{BRONZE}/gmml_2026/*.pdf",
+    f"{BRONZE}/gmml_*/*.pdf",
     f"{BRONZE}/*.pdf"
 ]
 
@@ -329,14 +328,36 @@ def descargar_pdf_bronze(directorio):
 # EXTRAER LOS 33 DOCUMENTOS
 # ==========================================
 
-def extraer_desde_bronze():
+def descargar_pdf_seleccionados(directorio, rutas_hdfs):
+    """Descarga solo los PDF indicados (modo incremental)."""
+    nombres = [ruta.rsplit("/", 1)[-1] for ruta in rutas_hdfs]
+
+    if len(set(nombres)) != len(nombres):
+        raise ValueError("Hay nombres de archivo repetidos.")
+
+    print("Recuperando PDF nuevos:", len(rutas_hdfs))
+
+    subprocess.run(
+        ["hdfs", "dfs", "-get", *rutas_hdfs, str(directorio)],
+        check=True
+    )
+
+    return sorted(Path(directorio) / nombre for nombre in nombres)
+
+
+def extraer_desde_bronze(rutas_hdfs=None):
     registros = []
     incidencias = []
 
     with TemporaryDirectory() as temporal:
-        archivos = descargar_pdf_bronze(
-            temporal
-        )
+        if rutas_hdfs:
+            archivos = descargar_pdf_seleccionados(
+                temporal, rutas_hdfs
+            )
+        else:
+            archivos = descargar_pdf_bronze(
+                temporal
+            )
 
         print("\n===== EXTRACCION GMML =====")
 
@@ -381,8 +402,8 @@ def extraer_desde_bronze():
 # VALIDAR CALIDAD
 # ==========================================
 
-def validar_datos(archivos, registros, incidencias):
-    if len(archivos) < PDF_ESPERADOS:
+def validar_datos(archivos, registros, incidencias, incremental=False):
+    if not incremental and len(archivos) < PDF_ESPERADOS:
         raise ValueError(
             "Hay menos reportes PDF que en la carga base."
         )
@@ -485,6 +506,51 @@ def crear_spark():
 
 
 # ==========================================
+# CARGA INCREMENTAL
+# ==========================================
+
+def agregar_incremental(spark, df, df_calidad):
+    """Agrega a Silver solo los reportes que aun no estan.
+
+    Clave de negocio: fecha_reporte + mercado + producto.
+    Nunca borra ni reescribe los datos existentes (append).
+    """
+    clave = ["fecha_reporte", "mercado", "producto"]
+
+    existentes = spark.read.parquet(SILVER).select(*clave)
+    nuevos = df.join(existentes, clave, "left_anti").cache()
+
+    omitidos = df.count() - nuevos.count()
+
+    if omitidos:
+        print(
+            "Registros ya existentes en Silver (omitidos):",
+            omitidos
+        )
+
+    fechas_nuevas = nuevos.select("fecha_reporte").distinct()
+    calidad_nueva = df_calidad.join(
+        fechas_nuevas, "fecha_reporte", "left_semi"
+    )
+
+    if nuevos.isEmpty():
+        print("No hay registros nuevos: Silver no se modifica.")
+        return
+
+    nuevos.write.mode("append").parquet(SILVER)
+    calidad_nueva.write.mode("append").parquet(CALIDAD)
+
+    print("\n===== RESULTADO INCREMENTAL =====")
+    print("Silver:", SILVER)
+    print("Registros agregados:", nuevos.count())
+    print(
+        "Total en Silver:",
+        spark.read.parquet(SILVER).count()
+    )
+    print("Incidencias agregadas:", calidad_nueva.count())
+
+
+# ==========================================
 # PROGRAMA PRINCIPAL
 # ==========================================
 
@@ -504,11 +570,24 @@ def main():
         )
     )
 
+    parser.add_argument(
+        "--archivos",
+        nargs="+",
+        metavar="RUTA_HDFS",
+        help=(
+            "Modo incremental: procesar solo estos PDF "
+            "de Bronze y agregarlos a Silver"
+        )
+    )
+
     args = parser.parse_args()
 
     print(
         "===== ABASTECIMIENTO GMML SILVER ====="
     )
+
+    if args.archivos:
+        print("Modo: INCREMENTAL,", len(args.archivos), "PDF")
 
     if args.ejecutar:
         print(
@@ -520,13 +599,14 @@ def main():
         )
 
     archivos, registros, incidencias = (
-        extraer_desde_bronze()
+        extraer_desde_bronze(args.archivos)
     )
 
     validar_datos(
         archivos,
         registros,
-        incidencias
+        incidencias,
+        incremental=bool(args.archivos)
     )
 
     spark = crear_spark()
@@ -590,6 +670,10 @@ def main():
             return
 
         print("\n===== ESCRIBIENDO EN HDFS =====")
+
+        if args.archivos:
+            agregar_incremental(spark, df, df_calidad)
+            return
 
         df.write.mode(
             "overwrite"
