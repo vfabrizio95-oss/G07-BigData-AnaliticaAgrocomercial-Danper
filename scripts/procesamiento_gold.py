@@ -3,7 +3,9 @@
 """ETL Gold Danper (Spark 3.5.x sobre HDFS).
 
 Modo predeterminado: --check (SOLO LECTURA). Para construir componentes
-faltantes deliberadamente: --build-missing. Nunca sobrescribe rutas existentes.
+faltantes deliberadamente: --build-missing (nunca sobrescribe rutas existentes).
+Para incorporar datos nuevos de Silver: --rebuild (recalcula las 26 tablas en
+una carpeta temporal y solo al terminar sin errores reemplaza Gold).
 """
 import argparse
 from pyspark.sql import SparkSession, functions as F
@@ -35,10 +37,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--check', action='store_true', help='Verificar HDFS sin escribir (predeterminado)')
     ap.add_argument('--build-missing', action='store_true', help='Crear SOLO componentes ausentes')
+    ap.add_argument('--rebuild', action='store_true', help='Recalcular Gold completo desde Silver y reemplazarlo')
     ap.add_argument('--hdfs', default=config.HDFS_URI)
     ap.add_argument('--partitions', type=int, default=2)
     args = ap.parse_args()
-    if args.check and args.build_missing:
+    if sum((args.check, args.build_missing, args.rebuild)) > 1:
         ap.error('Selecciona solo un modo')
     spark = (SparkSession.builder.appName('Danper_ETL_Gold')
              .config(map=config.SPARK_CONF)
@@ -47,9 +50,14 @@ def main():
              .getOrCreate())
     spark.sparkContext.setLogLevel('ERROR')
     silver = args.hdfs.rstrip('/')+config.SILVER
-    gold = args.hdfs.rstrip('/')+config.GOLD
+    gold_final = args.hdfs.rstrip('/')+config.GOLD
     hconf = spark.sparkContext._jsc.hadoopConfiguration()
     Path = spark._jvm.org.apache.hadoop.fs.Path
+    hdfs_fs = Path(gold_final).getFileSystem(hconf)
+    # --rebuild construye en una carpeta temporal y luego la intercambia.
+    gold = gold_final + '__nuevo' if args.rebuild else gold_final
+    if args.rebuild and hdfs_fs.exists(Path(gold)):
+        hdfs_fs.delete(Path(gold), True)
 
     def exists(name):
         p=Path(f'{gold}/{name}')
@@ -260,7 +268,7 @@ def main():
         return [pr,ex,de,ag,co,abb]
 
     try:
-        if not args.build_missing:
+        if not (args.build_missing or args.rebuild):
             print('MODO SEGURO --check: ninguna escritura HDFS',flush=True)
             bad=[]
             for i,(name,(rows,cols)) in enumerate(EXPECTED.items(),1):
@@ -271,7 +279,10 @@ def main():
             if bad: raise RuntimeError(f'{len(bad)} componentes requieren revision: {bad}')
             print('AUDITORIA GOLD: 26/26 CORRECTOS. HDFS NO MODIFICADO.')
             return
-        print('MODO --build-missing: solo rutas ausentes, NUNCA sobrescribe',flush=True)
+        if args.rebuild:
+            print(f'MODO --rebuild: construyendo en {gold}',flush=True)
+        else:
+            print('MODO --build-missing: solo rutas ausentes, NUNCA sobrescribe',flush=True)
         tables={name:publish(name,builder) for name,builder in zip(names_analytical,builders_analytical)}
         dim_names=list(EXPECTED)[7:13]
         if all(exists(n) for n in dim_names):
@@ -298,6 +309,17 @@ def main():
             keys=[['cultivo','anio'],['cultivo','anio'],['pais','anio'],['cultivo','anio','proceso','presentacion'],
                   ['region','anio','tipo_costo','unidad'],['cultivo','mercado','anio','unidad_medida','equivalencia_kg']]
             ks=[publish(n,lambda df=df:df,keys=k,mandatory=k) for n,df,k in zip(kpi_names,generated,keys)]
+        if args.rebuild:
+            anterior = Path(gold_final + '__anterior')
+            if hdfs_fs.exists(anterior):
+                hdfs_fs.delete(anterior, True)
+            if hdfs_fs.exists(Path(gold_final)) and not hdfs_fs.rename(Path(gold_final), anterior):
+                raise RuntimeError('No se pudo mover el Gold actual')
+            if not hdfs_fs.rename(Path(gold), Path(gold_final)):
+                hdfs_fs.rename(anterior, Path(gold_final))
+                raise RuntimeError('No se pudo publicar el Gold nuevo; se restauro el anterior')
+            hdfs_fs.delete(anterior, True)
+            print(f'GOLD REEMPLAZADO: {gold_final}')
         print('PROCESAMIENTO GOLD: 26 COMPONENTES VERIFICADOS')
     finally:
         spark.stop()
