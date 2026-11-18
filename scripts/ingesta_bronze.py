@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import subprocess
 import config
+import control
 
 # ==========================================
 # CONFIGURACION DEL PROYECTO
@@ -322,14 +323,35 @@ def main():
 
     # Validar contenido de archivos existentes
     # antes de subir archivos nuevos.
+    # Con tabla de control se compara contra el SHA-256
+    # registrado (sin releer HDFS); sin ella se lee HDFS.
     print("\nValidando archivos existentes...")
 
+    registros = control.leer()
+    cambios = False
+
     for archivo, destino in existentes:
-        if sha256_local(archivo) != sha256_hdfs(destino):
+        hash_local = sha256_local(archivo)
+
+        if destino in registros:
+            hash_esperado = registros[destino]["sha256"]
+        else:
+            hash_esperado = sha256_hdfs(destino)
+
+        if hash_local != hash_esperado:
             raise ValueError(
                 "El archivo existente tiene contenido "
                 f"diferente: {destino}"
             )
+
+        if destino not in registros:
+            registros[destino] = control.nuevo_registro(
+                destino,
+                archivo.relative_to(BASE).as_posix(),
+                hash_local,
+                archivo.stat().st_size
+            )
+            cambios = True
 
     print(
         "Archivos existentes verificados:",
@@ -375,7 +397,18 @@ def main():
                 f"{destino}"
             )
 
+        registros[destino] = control.nuevo_registro(
+            destino,
+            archivo.relative_to(BASE).as_posix(),
+            hash_local,
+            archivo.stat().st_size
+        )
+        cambios = True
         cargados += 1
+
+    if cambios:
+        control.guardar(registros)
+        print("Tabla de control actualizada:", control.ARCHIVO_CONTROL)
 
     print("\n===== INGESTA FINALIZADA =====")
     print("Existentes verificados:", len(existentes))
