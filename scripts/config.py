@@ -12,7 +12,14 @@ Si DANPER_SPARK_MASTER no se define, el master lo decide spark-submit
 (--master); al ejecutar con `python` PySpark usa local[*].
 """
 import os
+import sys
 from pathlib import Path
+
+# Spark usa el mismo Python que ejecuta el script (por ejemplo, el de .venv)
+# aunque el entorno virtual no esté activado. Sin esto, los workers toman el
+# python3 del sistema y PySpark falla si la versión menor es distinta.
+# En el cluster se puede fijar otro con PYSPARK_PYTHON.
+os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
 
 HDFS_URI = os.environ.get("DANPER_HDFS_URI", "hdfs://localhost:9000").rstrip("/")
 HDFS_BASE = "/" + os.environ.get("DANPER_HDFS_BASE", "/danper").strip("/")
