@@ -1,0 +1,21 @@
+# Conexión de Grafana al esquema Gold publicado por scripts/publicar_postgres.py.
+# Los valores vienen de las variables definidas en dashboard/docker-compose.yml.
+apiVersion: 1
+
+datasources:
+  - name: Danper Gold
+    uid: danper-gold
+    type: grafana-postgresql-datasource
+    access: proxy
+    url: ${DANPER_GRAFANA_PG_HOST}
+    user: ${DANPER_GRAFANA_PG_USER}
+    isDefault: true
+    editable: false
+    jsonData:
+      database: ${DANPER_GRAFANA_PG_DB}
+      sslmode: disable
+      postgresVersion: 1600
+      timescaledb: false
+      maxOpenConns: 10
+    secureJsonData:
+      password: ${DANPER_GRAFANA_PG_PASSWORD}
