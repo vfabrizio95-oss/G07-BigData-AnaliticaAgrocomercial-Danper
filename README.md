@@ -89,6 +89,17 @@ El repositorio contiene archivos de código y documentación organizados princip
 | `scripts/generar_documentacion_silver.py` | Genera `docs/silver/*.md` desde HDFS |
 | `scripts/procesamiento_gold.py` | Silver → Gold: construcción (`--build-missing`) y auditoría (`--check`) |
 | `scripts/procesamiento_gold_escalabilidad.py` | Variante de Gold para los escenarios de escalabilidad |
+| `scripts/control.py` | Tabla de control `/danper/control/archivos.csv`: qué archivos pasaron por cada capa |
+| `scripts/publicar_postgres.py` | Gold → PostgreSQL (esquema `gold`) por JDBC, para el dashboard |
+| `scripts/run_pipeline.py` | Orquestador incremental Bronze → Silver → Gold → PostgreSQL (`--vigilar` para revisar la carpeta de datasets) |
+
+### Dashboard
+
+| Archivo | Función |
+|---|---|
+| `dashboard/docker-compose.yml` | Grafana 12.4.3 en Docker |
+| `dashboard/grafana/provisioning/` | Conexión a PostgreSQL y carga automática del tablero |
+| `dashboard/grafana/dashboards/danper.json` | Tablero "Danper – Analítica agrocomercial" |
 
 ### Notebooks
 
@@ -180,6 +191,55 @@ spark-submit scripts/procesamiento_gold.py --check
 Los scripts de exportaciones regionales, agroindustria y costos no tienen modo simulación: escriben (sobrescriben) su tabla Silver al ejecutarse. ENA y sostenibilidad no sobrescriben destinos existentes.
 
 Tiempos de referencia medidos el 17/11/2026 en un equipo de 8 CPU y 15 GiB (Ubuntu 24.04, HDFS pseudodistribuido): Bronze ≈ 20 min (180 archivos, uno por uno), Silver 4,9 min, Gold 59 s (`--build-missing`) y 19 s (`--check`).
+
+## 7.2 Dashboard en Grafana
+
+Grafana lee el esquema `gold` de PostgreSQL (lo publica `scripts/publicar_postgres.py`) con un usuario de solo lectura y se refresca cada 5 s, así que muestra cada publicación del pipeline sin recargar la página. La conexión y el tablero se cargan solos desde `dashboard/grafana/` (provisioning): no hay que configurar nada a mano.
+
+Requisitos: Docker con el plugin Compose y la base `danper` con Gold publicado.
+
+**1. Usuario de solo lectura** (una vez):
+
+```bash
+sudo -u postgres createuser --pwprompt --no-superuser --no-createdb --no-createrole grafana_lector
+psql -h localhost -d danper <<'EOF'
+GRANT CONNECT ON DATABASE danper TO grafana_lector;
+GRANT USAGE ON SCHEMA gold TO grafana_lector;
+GRANT SELECT ON ALL TABLES IN SCHEMA gold TO grafana_lector;
+ALTER DEFAULT PRIVILEGES IN SCHEMA gold GRANT SELECT ON TABLES TO grafana_lector;
+EOF
+```
+
+El segundo comando lo ejecuta el dueño del esquema `gold` (el usuario que publica).
+
+**2. Contraseña** en `dashboard/.env` (no se sube al repositorio):
+
+```bash
+read -rsp "Contraseña de grafana_lector: " P && printf 'DANPER_GRAFANA_PG_PASSWORD=%s\n' "$P" > dashboard/.env && chmod 600 dashboard/.env && unset P; echo
+```
+
+**3. Levantar y detener:**
+
+```bash
+cd dashboard
+docker compose up -d     # http://localhost:3000  (admin / admin)
+docker compose down
+```
+
+El primer arranque tarda unos minutos (Grafana crea su base interna).
+
+| Variable | Por defecto | Uso |
+|---|---|---|
+| `DANPER_GRAFANA_PG_PASSWORD` | (obligatoria) | Contraseña de `grafana_lector` |
+| `DANPER_GRAFANA_PG_HOST` | `localhost:5432` | Servidor PostgreSQL |
+| `DANPER_GRAFANA_PG_DB` | `danper` | Base de datos |
+| `DANPER_GRAFANA_PG_USER` | `grafana_lector` | Usuario de solo lectura |
+| `DANPER_GRAFANA_ADDR` | `127.0.0.1` | IP donde escucha Grafana; en AWS `0.0.0.0` (limitar el puerto 3000 con el security group) |
+| `DANPER_GRAFANA_ADMIN_PASSWORD` | `admin` | Contraseña inicial del administrador; cambiarla fuera del entorno local |
+
+**Contenido del tablero:** estado del pipeline (última publicación, filas y fecha del último reporte GMML, historial), abastecimiento y precios del GMML, exportaciones de Danper y regionales, producción e ingreso a planta agroindustrial, costos agrícolas por región y precios del Mercado de Productores. Filtros: cultivo y región.
+
+**Demostración del pipeline incremental:** con `python scripts/run_pipeline.py --vigilar` en ejecución, copiar un PDF GMML nuevo a `~/proyecto_danper/datasets/abastecimiento/gmml_<año>/`. En unos 3 minutos cambian "Última publicación en PostgreSQL", "Registros de abastecimiento GMML" y "Último reporte GMML".
 
 ## 8. Verificación del almacenamiento HDFS
 
