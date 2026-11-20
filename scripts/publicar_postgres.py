@@ -7,6 +7,9 @@ conexiones del dashboard no se rompen. Al final registra la publicación en
 <esquema>.control_publicacion (tabla, filas y fecha), que el dashboard puede
 usar para mostrar la última actualización.
 
+También publica las tablas del modelo (scripts/modelo_abastecimiento.py) si
+ya existen en Gold; si no, las omite con un aviso.
+
 Uso:
     spark-submit --jars ~/proyecto_danper/jars/postgresql-42.7.4.jar \
         scripts/publicar_postgres.py
@@ -22,6 +25,8 @@ import config
 from procesamiento_gold import EXPECTED
 
 DRIVER = "org.postgresql.Driver"
+# Tablas que escribe scripts/modelo_abastecimiento.py (opcionales).
+TABLAS_MODELO = ["ml_prediccion_ingreso", "ml_metricas_modelo", "ml_plan_ingreso"]
 
 
 def crear_spark():
@@ -56,10 +61,9 @@ def ejecutar_sql(spark, sentencia, propiedades):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--tablas", nargs="+", choices=list(EXPECTED),
-                    help="Publicar solo estas tablas (por defecto, las 26)")
+    ap.add_argument("--tablas", nargs="+", choices=list(EXPECTED) + TABLAS_MODELO,
+                    help="Publicar solo estas tablas (por defecto, las 26 y las del modelo)")
     args = ap.parse_args()
-    tablas = args.tablas or list(EXPECTED)
 
     propiedades = {
         "user": config.PG_USER,
@@ -71,6 +75,19 @@ def main():
 
     spark = crear_spark()
     try:
+        if args.tablas:
+            tablas = args.tablas
+        else:
+            jvm = spark._jvm
+            fs = jvm.org.apache.hadoop.fs.FileSystem.get(
+                jvm.java.net.URI(config.HDFS_URI), spark._jsc.hadoopConfiguration())
+            tablas = list(EXPECTED)
+            for nombre in TABLAS_MODELO:
+                if fs.exists(jvm.org.apache.hadoop.fs.Path(f"{config.GOLD}/{nombre}")):
+                    tablas.append(nombre)
+                else:
+                    print(f"Aviso: {nombre} no existe en Gold "
+                          "(ejecute scripts/modelo_abastecimiento.py); se omite")
         ejecutar_sql(spark, f'CREATE SCHEMA IF NOT EXISTS "{esquema}"', propiedades)
         print(f"===== PUBLICAR GOLD EN POSTGRESQL =====")
         print("Destino:", config.PG_URL, "esquema", esquema)
