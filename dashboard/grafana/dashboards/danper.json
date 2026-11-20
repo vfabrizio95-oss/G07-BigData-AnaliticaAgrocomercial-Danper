@@ -78,6 +78,586 @@
   },
   "panels": [
     {
+      "id": 24,
+      "type": "row",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "title": "Abastecimiento y pronóstico de materia prima (KPI para planificar la compra a proveedores)"
+    },
+    {
+      "id": 25,
+      "type": "stat",
+      "title": "1 · Plan 2025 (t)",
+      "description": "Plan de ingreso 2025 (t). Volumen a asegurar en el año siguiente al último dato: promedio del mismo mes en los 3 últimos años válidos (método recomendado). Frecuencia anual. Responsable: Planeamiento / Extensión agrícola. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 5,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT sum(plan_t) FILTER (WHERE cultivo = 'ALCACHOFA') AS \"Alcachofa\", sum(plan_t) FILTER (WHERE cultivo = 'ESPARRAGO') AS \"Espárrago\" FROM gold.ml_plan_ingreso"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 26,
+      "type": "stat",
+      "title": "2 · Error WAPE",
+      "description": "Error de pronóstico (WAPE). Suma de errores absolutos / suma real del método recomendado, validación 2019-2024 con 3 meses de anticipación. Ningún modelo MLlib lo mejoró. Frecuencia anual. Responsable: Planeamiento. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 5,
+        "y": 1,
+        "w": 5,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT max(wape) FILTER (WHERE cultivo = 'ALCACHOFA') AS \"Alcachofa\", max(wape) FILTER (WHERE cultivo = 'ESPARRAGO') AS \"Espárrago\" FROM gold.ml_metricas_modelo WHERE metodo = 'prom_3a' AND anio_prueba = 'TODOS'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.2
+              },
+              {
+                "color": "red",
+                "value": 0.35
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 27,
+      "type": "stat",
+      "title": "3 · Sesgo",
+      "description": "Sesgo de planificación. (Pronóstico anual − real) / real del método recomendado. Negativo = se planifica menos de lo que llega. Meta: entre −5 % y +5 %. Frecuencia anual. Responsable: Planeamiento / Compras. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 10,
+        "y": 1,
+        "w": 5,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT max(error_anual) FILTER (WHERE cultivo = 'ALCACHOFA') AS \"Alcachofa\", max(error_anual) FILTER (WHERE cultivo = 'ESPARRAGO') AS \"Espárrago\" FROM gold.ml_metricas_modelo WHERE metodo = 'prom_3a' AND anio_prueba = 'TODOS'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": -0.05
+              },
+              {
+                "color": "red",
+                "value": 0.05
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 28,
+      "type": "stat",
+      "title": "4 · Pico ago–oct",
+      "description": "Concentración estacional (ago–oct). Porcentaje del ingreso anual que llega entre agosto y octubre, último año válido de cada cultivo. Indica cuánta capacidad de planta y de compra se necesita en la campaña. Frecuencia anual. Responsable: Operaciones de planta. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 15,
+        "y": 1,
+        "w": 5,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH u AS (SELECT cultivo, max(anio) AS anio FROM gold.ml_prediccion_ingreso GROUP BY 1) SELECT replace(initcap(p.cultivo), 'Esparrago', 'Espárrago') || ' ' || u.anio AS nombre, sum(real_t) FILTER (WHERE mes BETWEEN 8 AND 10) / sum(real_t) AS valor FROM gold.ml_prediccion_ingreso p JOIN u USING (cultivo, anio) GROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^valor$/",
+          "values": true
+        }
+      }
+    },
+    {
+      "id": 29,
+      "type": "stat",
+      "title": "5 · Meta 2023",
+      "description": "Cumplimiento del plan de compra Danper 2023. Volumen logrado / meta de materia prima de proveedores. Alcachofa 21 315 / 25 623 t, espárrago 5 965 / 6 117 t. Valor fijo: Reporte de Sostenibilidad Danper 2023 (no está en Gold). Frecuencia anual. Responsable: Compras.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT 21315.0 / 25623 AS \"Alcachofa\", 5965.0 / 6117 AS \"Espárrago\""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.9
+              },
+              {
+                "color": "green",
+                "value": 0.95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 30,
+      "type": "trend",
+      "title": "Plan de ingreso 2025 por mes, con banda de error (t)",
+      "description": "Eje horizontal: mes del año (1 = enero). Plan (línea continua) y rango ± WAPE histórico (líneas punteadas). Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT mes AS \"Mes\", max(plan_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa plan\", max(minimo_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa mínimo\", max(maximo_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa máximo\", max(plan_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago plan\", max(minimo_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago mínimo\", max(maximo_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago máximo\" FROM gold.ml_plan_ingreso GROUP BY mes ORDER BY mes"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "always",
+            "pointSize": 5,
+            "spanNulls": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*(mínimo|máximo)$"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    6,
+                    4
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "min",
+                "value": 1
+              },
+              {
+                "id": "max",
+                "value": 12
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "xField": "Mes"
+      }
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "Pronóstico vs real del ingreso a planta, 2019–2024 (t)",
+      "description": "Ingreso real frente al pronóstico con 3 meses de anticipación del método recomendado (promedio 3 años) y del mejor modelo MLlib (regresión lineal). Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT periodo::timestamp AS time, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' real' AS metric, real_t AS value FROM gold.ml_prediccion_ingreso WHERE cultivo IN ($cultivo) UNION ALL SELECT periodo::timestamp, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' promedio 3 años', pred_prom_3a FROM gold.ml_prediccion_ingreso WHERE cultivo IN ($cultivo) UNION ALL SELECT periodo::timestamp, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' MLlib lineal', pred_lineal FROM gold.ml_prediccion_ingreso WHERE cultivo IN ($cultivo) ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* real$"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* MLlib lineal$"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    6,
+                    4
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "timeFrom": "8y"
+    },
+    {
+      "id": 32,
+      "type": "barchart",
+      "title": "Error de pronóstico (WAPE) por año de prueba y método – ambos cultivos",
+      "description": "Validación hacia adelante: cada año se pronostica entrenando solo con los años anteriores. Más bajo es mejor. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT CASE anio_prueba WHEN 'TODOS' THEN '2019–2024' ELSE 'Año ' || anio_prueba END AS \"Año\", max(wape) FILTER (WHERE metodo = 'prom_3a') AS \"Promedio 3 años (base)\", max(wape) FILTER (WHERE metodo = 'naive_anual') AS \"Año anterior (base)\", max(wape) FILTER (WHERE metodo = 'lineal') AS \"MLlib lineal\", max(wape) FILTER (WHERE metodo = 'rf') AS \"MLlib Random Forest\", max(wape) FILTER (WHERE metodo = 'gbt') AS \"MLlib GBT\" FROM gold.ml_metricas_modelo WHERE cultivo = 'TODOS' GROUP BY anio_prueba ORDER BY anio_prueba"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 0,
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "vertical",
+        "showValue": "never",
+        "xTickLabelRotation": 0,
+        "barWidth": 0.85,
+        "groupWidth": 0.75,
+        "stacking": "none",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
       "id": 1,
       "type": "row",
       "title": "Estado del pipeline (se actualiza cada vez que run_pipeline.py publica Gold)",
@@ -86,7 +666,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 23
       },
       "panels": []
     },
@@ -103,7 +683,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 1
+        "y": 24
       },
       "targets": [
         {
@@ -155,7 +735,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 1
+        "y": 24
       },
       "targets": [
         {
@@ -206,7 +786,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 1
+        "y": 24
       },
       "targets": [
         {
@@ -258,7 +838,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 1
+        "y": 24
       },
       "targets": [
         {
@@ -309,7 +889,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 5
+        "y": 28
       },
       "targets": [
         {
@@ -360,7 +940,7 @@
         "h": 8,
         "w": 16,
         "x": 8,
-        "y": 5
+        "y": 28
       },
       "targets": [
         {
@@ -407,7 +987,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 36
       },
       "panels": []
     },
@@ -424,7 +1004,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 14
+        "y": 37
       },
       "targets": [
         {
@@ -479,7 +1059,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 14
+        "y": 37
       },
       "targets": [
         {
@@ -534,7 +1114,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 46
       },
       "targets": [
         {
@@ -581,7 +1161,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 53
       },
       "panels": []
     },
@@ -598,7 +1178,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 31
+        "y": 54
       },
       "targets": [
         {
@@ -653,7 +1233,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 31
+        "y": 54
       },
       "targets": [
         {
@@ -708,7 +1288,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 31
+        "y": 54
       },
       "targets": [
         {
@@ -758,7 +1338,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 63
       },
       "panels": []
     },
@@ -775,7 +1355,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 41
+        "y": 64
       },
       "targets": [
         {
@@ -830,7 +1410,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 41
+        "y": 64
       },
       "targets": [
         {
@@ -884,7 +1464,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 50
+        "y": 73
       },
       "targets": [
         {
@@ -939,7 +1519,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 50
+        "y": 73
       },
       "targets": [
         {
@@ -990,7 +1570,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 59
+        "y": 82
       },
       "panels": []
     },
@@ -1007,7 +1587,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 60
+        "y": 83
       },
       "targets": [
         {
@@ -1061,7 +1641,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 60
+        "y": 83
       },
       "targets": [
         {
