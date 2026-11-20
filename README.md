@@ -88,10 +88,10 @@ El repositorio contiene archivos de código y documentación organizados princip
 | `scripts/calidad_silver.py` | Controles básicos sobre la producción Silver |
 | `scripts/generar_documentacion_silver.py` | Genera `docs/silver/*.md` desde HDFS |
 | `scripts/procesamiento_gold.py` | Silver → Gold: construcción (`--build-missing`) y auditoría (`--check`) |
-| `scripts/procesamiento_gold_escalabilidad.py` | Variante de Gold para los escenarios de escalabilidad |
 | `scripts/control.py` | Tabla de control `/danper/control/archivos.csv`: qué archivos pasaron por cada capa |
 | `scripts/publicar_postgres.py` | Gold → PostgreSQL (esquema `gold`) por JDBC, para el dashboard |
 | `scripts/run_pipeline.py` | Orquestador incremental Bronze → Silver → Gold → PostgreSQL (`--vigilar` para revisar la carpeta de datasets) |
+| `scripts/prueba_escalabilidad.py` | Pruebas de escalabilidad y de caché con métricas de Spark (secciones 12 y 13) |
 | `scripts/modelo_abastecimiento.py` | Pronóstico del ingreso de materia prima a planta con Spark MLlib frente a la línea base (sección 15) |
 
 ### Dashboard
@@ -107,8 +107,8 @@ El repositorio contiene archivos de código y documentación organizados princip
 - `notebooks/01_ingesta_bronze.ipynb`: evidencia de la ingesta Bronze (180 archivos locales = 180 en HDFS, SHA-256 y `fsck`).
 - `notebooks/01_pipeline_danper.ipynb`: exploración de los Excel de producción.
 - `notebooks/procesamiento_gold.ipynb`: documentación y comprobación del procesamiento Gold.
-- `notebooks/Optimizacion_Rendimiento.ipynb`: comparación de rendimiento de Spark sin caché y con caché.
-- `notebooks/prueba_escalabilidad.ipynb`: pruebas experimentales de escalabilidad.
+- `notebooks/Optimizacion_Rendimiento.ipynb`: primera prueba de caché. Reemplazada por `scripts/prueba_escalabilidad.py --prueba cache`.
+- `notebooks/prueba_escalabilidad.ipynb`: primera prueba de escalabilidad. Reemplazada por `scripts/prueba_escalabilidad.py`.
 - `notebooks/Analisis_Exploratorio_Danper.ipynb`: análisis exploratorio y visualizaciones.
 - `notebooks/Modelo_Base_Danper.ipynb`: primer modelo (scikit-learn, producción 2025). Reemplazado por `scripts/modelo_abastecimiento.py`.
 
@@ -344,42 +344,66 @@ Los valores nulos no se reemplazan automáticamente por cero, ya que podrían re
 
 Asimismo, las exportaciones regionales y los registros de exportación asociados a Danper se analizan por separado para evitar interpretaciones incorrectas.
 
-## 12. Optimización del rendimiento
+## 12. Prueba de caché
 
-El notebook `notebooks/Optimizacion_Rendimiento.ipynb` documenta una prueba de consultas repetidas sobre datos de producción agrícola almacenados en Silver.
+`scripts/prueba_escalabilidad.py --prueba cache` prepara una tabla analítica de producción (pivot de las 7 variables por distrito, cultivo y mes) sobre Silver ×F y ejecuta 5 consultas de KPI sobre ella: sin caché, cada consulta vuelve a leer y transformar los datos desde HDFS; con caché, la tabla se guarda una vez en memoria. Cada modo corre en su propia aplicación Spark, con 1 ejecución de calentamiento y 3 mediciones. Antes de guardarla en caché, la tabla se junta en 2 particiones por núcleo: si se dejan las 200 particiones del shuffle, la caché resulta **más lenta** que no usarla, porque cada consulta paga 200 tareas pequeñas.
 
-Se comparó la ejecución sin caché y con caché de Apache Spark.
+Resultados locales (mediana de 3 mediciones, 8 hilos; `reportes/escalabilidad/cache.csv`):
 
-| Indicador | Resultado |
-|---|---:|
-| Tiempo promedio sin caché | 1,5480 segundos |
-| Tiempo promedio con caché | 0,6090 segundos |
-| Reducción observada | 60,66 % |
+| Factor | Filas de entrada | Sin caché | Con caché | Reducción | Preparar la caché (una vez) |
+|---|---:|---:|---:|---:|---:|
+| ×1 | 78 515 | 1,80 s | 1,26 s | 30 % | 3,0 s |
+| ×100 | 7,9 M | 4,25 s | 1,56 s | 63 % | 4,6 s |
+| ×1000 | 78,5 M | 20,15 s | 1,92 s | **90 %** | 10,1 s |
 
-La comparación corresponde a las condiciones específicas del experimento y excluye el tiempo inicial necesario para preparar los datos en caché.
+La ventaja crece con el volumen: con caché, el tiempo de las consultas casi no depende del tamaño de los datos. En ×1000 la caché se paga desde la primera ejecución (10,1 + 1,9 s frente a 20,2 s). La reducción vale para consultas repetidas sobre la misma tabla, no para todo el pipeline.
 
-Por ello, el resultado no representa una reducción del 60,66 % en la duración de todo el pipeline.
+Reemplaza a `notebooks/Optimizacion_Rendimiento.ipynb` (1,55 → 0,61 s), que medía con datos de ×1 y en otra máquina.
 
 ## 13. Prueba de escalabilidad
 
-El notebook `notebooks/prueba_escalabilidad.ipynb` documenta las pruebas de escalabilidad mediante factores de replicación ×1, ×10 y ×100.
+`scripts/prueba_escalabilidad.py` reemplaza a `notebooks/prueba_escalabilidad.ipynb` y al antiguo `procesamiento_gold_escalabilidad.py`, cuyos tiempos (54,98 / 55,03 / 53,35 s para ×1 / ×10 / ×100) no tenían respaldo en el repositorio y no eran comparables: las réplicas idénticas se fusionaban en los `distinct` y `pivot` de Gold, Silver pesaba solo 505 KB (×100 seguía siendo pequeño) y la memoria se medía con `psutil` en lugar de con Spark.
 
-Los datos replicados se utilizaron únicamente para medir rendimiento. No se emplearon en el análisis exploratorio ni en el entrenamiento del modelo.
+**Método**
 
-### Resultados
+- **Réplicas que no se fusionan:** Silver se replica ×1, ×10, ×100 y ×1000 en `/danper/pruebas_escalabilidad/silver_xF`. Cada copia lleva una columna `replica` que forma parte de todas las claves, y sus valores se alteran levemente. El script comprueba que las filas de salida sean exactamente F veces las de ×1.
+- **Trabajo medido:** es representativo de Gold: pivot de producción y de exportaciones, agregaciones de agroindustria y Danper, ventana `lag` sobre costos, dimensión de tiempo con `join`, KPI anual y escritura de 6 tablas en HDFS.
+- **Repeticiones:** cada escenario corre en su propia aplicación Spark, con 1 ejecución de calentamiento y 3 mediciones. Se reporta la mediana.
+- **Métricas de Spark:** se toman de su API REST: tiempo de executors, shuffle, tareas y memoria JVM pico. Con `spark.eventLog.enabled` cada aplicación queda en `/danper/spark-events` y se puede revisar en el Spark History Server.
+- **Resultados:** cada ejecución se agrega a `reportes/escalabilidad/escalabilidad.csv`, junto con el entorno en que se midió (núcleos, master y executores).
 
-| Indicador | ×1 | ×10 | ×100 |
-|---|---:|---:|---:|
-| Componentes Gold generados | 26 | 26 | 26 |
-| Tiempo de ejecución (s) | 54,98 | 55,03 | 53,35 |
-| Pico de RAM del sistema (GiB) | 5,42 | 5,59 | 5,36 |
-| Pico de CPU del sistema (%) | 83,9 | 76,8 | 84,5 |
+**Resultados locales** (Intel i7-6700HQ, 4 núcleos físicos y 8 hilos, 15 GB, HDFS de un nodo):
 
-Las pruebas evaluaron la etapa **Silver→Gold**. No incluyen el recorrido completo desde los archivos originales hasta las tres capas.
+Volumen creciente con 8 hilos:
 
-Los tiempos observados no permiten determinar el límite máximo de escalabilidad de la infraestructura ni garantizar que nuevas fuentes reales presenten el mismo comportamiento.
+| Factor | Filas de entrada | Filas de salida | Tiempo (mediana) | Tiempo de executors | Shuffle | Memoria pico |
+|---|---:|---:|---:|---:|---:|---:|
+| ×1 | 78 515 | 11 208 | 4,8 s | 2,0 s | 0,7 MB | 347 MB |
+| ×10 | 785 150 | 112 080 | 7,2 s | 8,7 s | 6,3 MB | 525 MB |
+| ×100 | 7,9 M | 1,1 M | 10,3 s | 36,3 s | 57 MB | 1 556 MB |
+| ×1000 | 78,5 M | 11,2 M | 32,4 s | 213 s | 574 MB | 2 100 MB |
 
-Las rutas experimentales se organizaron bajo `/danper/pruebas_escalabilidad/`, separadas de los datos utilizados para análisis y modelado.
+Paralelismo creciente con ×1000:
+
+| Hilos (`local[n]`) | Tiempo (mediana) | Aceleración |
+|---:|---:|---:|
+| 1 | 81,9 s | 1,0× |
+| 2 | 50,2 s | 1,6× |
+| 4 | 31,0 s | 2,6× |
+| 8 | 32,4 s | 2,5× |
+
+**Lectura**
+
+- Con 1 000 veces más datos el tiempo crece unas 7 veces (4,8 → 32,4 s). En volúmenes pequeños domina el costo fijo de Spark (planificación y tareas); desde ×100 el trabajo real crece con el volumen, como muestra el tiempo de executors.
+- Repartir el trabajo acelera 2,6× con 4 núcleos. De 4 a 8 hilos no mejora porque el equipo tiene 4 núcleos físicos (hyperthreading) y un solo disco y DataNode.
+- **Esta es una validación local del método.** Las cifras finales se toman en el cluster AWS con el mismo script, variando 1, 2 y 3 workers:
+
+```bash
+DANPER_SPARK_MASTER=yarn python scripts/prueba_escalabilidad.py \
+    --factores 1 10 100 1000 --executores 1 2 3 --entorno aws
+```
+
+Generar las réplicas es un paso aparte (se registra en el CSV con fase `generacion`): ×1000 tarda 51 s y ocupa 238 MB en HDFS. Los datos replicados solo se usan para medir rendimiento; no entran en el análisis ni en el modelo.
 
 ## 14. Análisis exploratorio
 
