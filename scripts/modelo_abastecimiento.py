@@ -43,6 +43,8 @@ Datos faltantes
 Salidas
     Gold  ml_prediccion_ingreso   pronóstico de cada método por mes de prueba
     Gold  ml_metricas_modelo      métricas por cultivo, método y año
+    Gold  ml_plan_ingreso         plan del año siguiente a los datos con el
+                                  método recomendado (prom_3a) y su banda
     reportes/modelo/metricas.csv  copia de las métricas para el informe
 
 Uso:
@@ -261,6 +263,37 @@ def metricas(pred):
     return salida.orderBy("cultivo", "anio_prueba", "metodo")
 
 
+def plan_siguiente(spark, met):
+    """Plan del año siguiente al último dato, con el método recomendado.
+
+    Para cada cultivo y mes: promedio de los 3 últimos años válidos de ese mes
+    (prom_3a). La banda es ± el WAPE histórico de prom_3a en ese cultivo.
+    """
+    serie = serie_ingreso(spark)
+    anio_plan = serie.agg(F.max("anio")).first()[0] + 1
+    w = Window.partitionBy("cultivo", "mes").orderBy(F.desc("anio"))
+    wape = (met.filter((F.col("metodo") == "prom_3a") & (F.col("anio_prueba") == "TODOS"))
+            .select("cultivo", F.col("wape").alias("wape_historico"),
+                    F.col("error_anual").alias("sesgo_historico")))
+    return (
+        serie.filter(F.col("real_t").isNotNull())
+        .withColumn("orden", F.row_number().over(w)).filter(F.col("orden") <= 3)
+        .groupBy("cultivo", "mes")
+        .agg(F.avg("real_t").alias("plan_t"),
+             F.concat_ws(",", F.sort_array(F.collect_list("anio"))).alias("anios_base"))
+        .join(wape, "cultivo", "left")
+        .withColumn("anio", F.lit(anio_plan))
+        .withColumn("periodo", F.make_date(F.lit(anio_plan), "mes", F.lit(1)))
+        .withColumn("minimo_t", F.col("plan_t") * (1 - F.col("wape_historico")))
+        .withColumn("maximo_t", F.col("plan_t") * (1 + F.col("wape_historico")))
+        .withColumn("metodo", F.lit("prom_3a"))
+        .withColumn("generado_en", F.current_timestamp())
+        .select("cultivo", "periodo", "anio", "mes", "plan_t", "minimo_t", "maximo_t",
+                "metodo", "anios_base", "wape_historico", "sesgo_historico", "generado_en")
+        .orderBy("cultivo", "mes")
+    )
+
+
 def guardar_csv(filas, columnas):
     CSV_LOCAL.parent.mkdir(parents=True, exist_ok=True)
     with CSV_LOCAL.open("w", newline="", encoding="utf-8") as f:
@@ -296,6 +329,8 @@ def main():
 
     pred.coalesce(1).write.mode("overwrite").parquet(f"{gold}/ml_prediccion_ingreso")
     met.coalesce(1).write.mode("overwrite").parquet(f"{gold}/ml_metricas_modelo")
+    plan = plan_siguiente(spark, met)
+    plan.coalesce(1).write.mode("overwrite").parquet(f"{gold}/ml_plan_ingreso")
 
     columnas_csv = ["cultivo", "metodo", "anio_prueba", "n_meses", "real_total_t",
                     "pred_total_t", "mae_t", "wape", "error_anual", "horizonte_meses"]
@@ -314,7 +349,13 @@ def main():
         orden = sorted(zip(VARIABLES, valores), key=lambda x: -x[1])
         print(f"  {nombre}: " + ", ".join(f"{v} {i:.2f}" for v, i in orden))
 
-    print(f"\nGold: {gold}/ml_prediccion_ingreso, {gold}/ml_metricas_modelo")
+    print("\nPlan del año siguiente (prom_3a):")
+    for f in (spark.read.parquet(f"{gold}/ml_plan_ingreso")
+              .groupBy("cultivo", "anio", "anios_base").agg(F.sum("plan_t").alias("t"))
+              .orderBy("cultivo").collect()):
+        print(f"  {f['cultivo']} {f['anio']}: {f['t']:,.0f} t (base {f['anios_base']})")
+
+    print(f"\nGold: {gold}/ml_prediccion_ingreso, {gold}/ml_metricas_modelo, {gold}/ml_plan_ingreso")
     print(f"CSV:  {CSV_LOCAL}")
     print(f"Tiempo: {time.time() - inicio:.0f} s")
     spark.stop()
