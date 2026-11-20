@@ -12,7 +12,7 @@ consulta, sin modificar la configuración del sistema.
 ### Control de acceso e integridad
 
 Las capas Silver y Gold de HDFS presentan permisos `drwxr-xr-x`
-(755), con el usuario `danna` como propietario y el grupo
+(755), con el usuario del sistema que ejecuta Hadoop como propietario y el grupo
 `supergroup`.
 
 La propiedad `dfs.permissions.enabled=true` confirma que la
