@@ -115,7 +115,7 @@ El repositorio contiene archivos de código y documentación organizados princip
 ### Documentación
 
 - `docs/reporte_calidad_gold.md`: resultados de auditoría y limitaciones de calidad.
-- `docs/reporte_escalabilidad_gold.md`: mediciones de tiempos y recursos.
+- `docs/reporte_escalabilidad_gold.md`: método, resultados e interpretación de las pruebas de escalabilidad y caché.
 - `docs/reporte_seguridad_plataforma.md`: diagnóstico de controles de seguridad.
 
 ## 7. Requisitos previos e instalación
