@@ -45,7 +45,7 @@ La plataforma adopta una arquitectura Data Lake basada en tres capas:
 
 | Capa | Ruta | Estado |
 |---|---|---|
-| Bronze | `/danper/bronze` | Verificada: 180 archivos, `fsck` HEALTHY |
+| Bronze | `/danper/bronze` | Verificada: 181 archivos (180 de la carga base + 1 reporte GMML incorporado de forma incremental), `fsck` HEALTHY |
 | Silver | `/danper/silver` | Verificada: 11 tablas, 79 498 filas |
 | Gold | `/danper/gold` | Verificada: 26/26 componentes |
 | Calidad | `/danper/calidad` | Incidencias de agroindustria, costos, regionales y abastecimiento |
