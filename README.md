@@ -92,6 +92,7 @@ El repositorio contiene archivos de código y documentación organizados princip
 | `scripts/control.py` | Tabla de control `/danper/control/archivos.csv`: qué archivos pasaron por cada capa |
 | `scripts/publicar_postgres.py` | Gold → PostgreSQL (esquema `gold`) por JDBC, para el dashboard |
 | `scripts/run_pipeline.py` | Orquestador incremental Bronze → Silver → Gold → PostgreSQL (`--vigilar` para revisar la carpeta de datasets) |
+| `scripts/modelo_abastecimiento.py` | Pronóstico del ingreso de materia prima a planta con Spark MLlib frente a la línea base (sección 15) |
 
 ### Dashboard
 
@@ -109,7 +110,7 @@ El repositorio contiene archivos de código y documentación organizados princip
 - `notebooks/Optimizacion_Rendimiento.ipynb`: comparación de rendimiento de Spark sin caché y con caché.
 - `notebooks/prueba_escalabilidad.ipynb`: pruebas experimentales de escalabilidad.
 - `notebooks/Analisis_Exploratorio_Danper.ipynb`: análisis exploratorio y visualizaciones.
-- `notebooks/Modelo_Base_Danper.ipynb`: desarrollo y evaluación inicial del modelo predictivo.
+- `notebooks/Modelo_Base_Danper.ipynb`: primer modelo (scikit-learn, producción 2025). Reemplazado por `scripts/modelo_abastecimiento.py`.
 
 ### Documentación
 
@@ -376,23 +377,72 @@ El análisis permite examinar el comportamiento de la producción agrícola por 
 
 Los resultados utilizan información de referencia y no deben presentarse como producción interna de Danper.
 
-## 15. Modelo predictivo base
+## 15. Modelo predictivo de abastecimiento
 
-El notebook `notebooks/Modelo_Base_Danper.ipynb` documenta un modelo inicial de regresión para estimar la producción agrícola utilizando variables de cultivo, provincia, distrito y mes.
+### Problema de negocio
 
-Se utilizó un conjunto de producción de 2025, con una separación temporal entre entrenamiento y prueba.
+Danper compra alcachofa y espárrago a proveedores terceros y debe programar ese volumen con anticipación. En 2023 la compra de alcachofa quedó **16,8 % por debajo de la meta** (25 623 t planificadas, 21 315 t logradas; espárrago −2,5 %), según el Reporte de Sostenibilidad Danper 2023.
 
-### Resultados iniciales
+El modelo pronostica, **con 3 meses de anticipación**, el ingreso mensual de materia prima a las plantas agroindustriales de La Libertad (Gold `agroindustria_mensual`, proceso `INGRESO`: alcachofa "para procesar" y espárrago "natural", fuente GRALL-OIA, 2010–2024). Es el volumen regional que las empresas del sector deben asegurar.
 
-| Métrica | Resultado |
-|---|---:|
-| MAE | 1.868,54 toneladas |
-| RMSE | 3.086,99 toneladas |
-| R² | 0,2989 |
+### Datos
 
-El modelo se considera una referencia inicial para posteriores mejoras. En la evaluación efectuada, una regresión de referencia basada en la mediana obtuvo un MAE inferior, por lo que el modelo lineal todavía no demuestra una mejora respecto de esa alternativa sencilla.
+- 360 meses (2 cultivos × 15 años), de los cuales **312 son válidos**.
+- Se tratan como faltantes los años completos en cero (espárrago 2016, alcachofa 2017–2018), que son vacíos del registro y no producción nula.
+- Espárrago 2024 es una copia celda a celda de 2023 en el Excel original, por lo que también se excluye.
+- Espárrago 2017 es bajo (40 742 t) pero se conserva: coincide con el Niño Costero de ese año.
 
-Las métricas corresponden a las pruebas documentadas y deben comprobarse nuevamente al reproducir el notebook en un entorno preparado desde cero.
+### Método
+
+| | Descripción |
+|---|---|
+| Línea base `naive_anual` | Mismo mes del año anterior |
+| Línea base `prom_3a` | Promedio del mismo mes en los 3 años anteriores |
+| `gbt`, `rf`, `lineal` | `GBTRegressor`, `RandomForestRegressor` y `LinearRegression` (elastic net) de Spark MLlib |
+
+- **Variables**, todas conocidas al momento de planificar: cultivo, mes, tamaño estacional del mes, tendencia de los últimos 3 meses observados frente al año anterior, el mismo mes 1 y 2 años antes respecto del promedio, y la tendencia de las exportaciones regionales del cultivo.
+- **Objetivo:** los modelos pronostican cuánto se aparta el mes de su nivel estacional (log de la razón), con cada mes ponderado por sus toneladas. Luego se convierte a toneladas. Así se evita que los árboles queden limitados a los valores vistos al entrenar.
+- **Validación hacia adelante por año:** para cada año de 2019 a 2024 se entrena solo con los meses anteriores y se pronostica ese año. Son 6 cortes y 132 meses de prueba, todos los métodos sobre los mismos meses.
+- **Métricas en toneladas:**
+  - MAE (error medio mensual).
+  - WAPE (suma de errores absolutos / suma real).
+  - Error anual (cuánto se desvía el total del año).
+
+### Resultados
+
+Horizonte 3 meses, años de prueba 2019–2024 (`reportes/modelo/metricas.csv`, también por año):
+
+| Método | Alcachofa WAPE | Espárrago WAPE | Total MAE | Total WAPE | Error anual |
+|---|---:|---:|---:|---:|---:|
+| **`prom_3a` (línea base)** | **41,6 %** | 29,7 % | **3 272 t** | **36,9 %** | −16,0 % |
+| `naive_anual` (línea base) | 45,6 % | **27,0 %** | 3 385 t | 38,1 % | −10,4 % |
+| `lineal` (MLlib) | 43,9 % | 30,8 % | 3 428 t | 38,6 % | −19,0 % |
+| `rf` (MLlib) | 44,4 % | 35,3 % | 3 616 t | 40,7 % | −21,2 % |
+| `gbt` (MLlib) | 47,2 % | 34,8 % | 3 747 t | 42,2 % | −23,3 % |
+
+**Ningún modelo de aprendizaje automático supera a la línea base estacional.** También se probó modelar las toneladas directamente y un horizonte de 1 mes, con el mismo resultado.
+
+### Interpretación
+
+- La serie depende de choques anuales que no están en su propia historia: clima (Niño Costero 2017) y decisiones de siembra y mercado. Por ejemplo, la alcachofa ingresó 139 mil t en 2022, 91 mil t en 2023 y 156 mil t en 2024.
+- Con 312 meses válidos no hay muestra suficiente para que un modelo aprenda esos choques. Este resultado se reporta tal cual en lugar de ajustar el modelo mirando los años de prueba.
+- **Todos los métodos subestiman el volumen anual (−10 % a −23 %)**: planificar solo con la historia lleva a asegurar menos materia prima de la que finalmente llega.
+- **Recomendación:** usar `prom_3a` como base de la planificación y revisar su sesgo cada temporada. Para mejorar el pronóstico hacen falta variables que anticipen los choques, como intenciones de siembra, superficie instalada o clima, con varios años de historia.
+
+### Ejecución y salidas
+
+```bash
+python scripts/modelo_abastecimiento.py              # horizonte 3, pruebas 2019-2024 (~2 min)
+python scripts/modelo_abastecimiento.py --horizonte 1
+```
+
+| Salida | Contenido |
+|---|---|
+| `/danper/gold/ml_prediccion_ingreso` | Valor real y pronóstico de cada método por mes de prueba |
+| `/danper/gold/ml_metricas_modelo` | MAE, WAPE y error anual por cultivo, método y año |
+| `reportes/modelo/metricas.csv` | Copia de las métricas, versionada en el repositorio |
+
+El primer modelo (`notebooks/Modelo_Base_Danper.ipynb`, scikit-learn sobre producción 2025, R² 0,30) queda como antecedente: usaba un solo año de datos y tampoco superaba a una referencia simple.
 
 ## 16. Seguridad
 

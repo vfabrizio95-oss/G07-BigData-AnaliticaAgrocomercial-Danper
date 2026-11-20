@@ -24,7 +24,7 @@ Resultado (horizonte 3, pruebas 2019-2024, 132 meses)
     Ningún modelo supera a la línea base prom_3a (WAPE 36,9 %): lineal
     38,6 %, rf 40,7 %, gbt 42,2 %. La serie depende de choques anuales
     (clima, mercado) que no están en su historia; con 312 meses válidos el
-    aprendizaje automático no agrega información. Ver README, sección 7.3.
+    aprendizaje automático no agrega información. Ver README, sección 15.
 
 Evaluación
     Validación hacia adelante por año: para cada año de prueba Y se entrena
