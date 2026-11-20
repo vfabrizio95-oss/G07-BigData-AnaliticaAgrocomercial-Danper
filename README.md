@@ -94,6 +94,13 @@ El repositorio contiene archivos de código y documentación organizados princip
 | `scripts/prueba_escalabilidad.py` | Pruebas de escalabilidad y de caché con métricas de Spark (secciones 12 y 13) |
 | `scripts/modelo_abastecimiento.py` | Pronóstico del ingreso de materia prima a planta con Spark MLlib frente a la línea base (sección 15) |
 
+**Dos registros de archivos distintos:**
+
+- **`/danper/control/archivos.csv` (en HDFS)** es el registro del pipeline. `run_pipeline.py` lo actualiza solo con cada archivo nuevo: guarda su SHA-256 y la fecha y hora en que pasó por Bronze, Silver, Gold y PostgreSQL. Así sabe qué falta procesar.
+- **`reportes/inventario_bronze.csv` (en el repositorio)** es una foto documental de la carpeta de datasets. Se regenera a mano con `python scripts/inventario_bronze.py` y se sube a Git como evidencia. El pipeline no lo modifica, para no generar un commit con cada archivo nuevo.
+
+Por eso, entre una regeneración y la siguiente, el inventario del repositorio puede tener menos archivos que HDFS. Por ejemplo, el reporte GMML del 21-09-2026 se procesó el 18/11/2026 (de Bronze a PostgreSQL en 2 min 22 s) y entró al inventario recién al regenerarlo el 20/11/2026.
+
 ### Dashboard
 
 | Archivo | Función |
