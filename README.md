@@ -238,7 +238,19 @@ El primer arranque tarda unos minutos (Grafana crea su base interna).
 | `DANPER_GRAFANA_ADDR` | `127.0.0.1` | IP donde escucha Grafana; en AWS `0.0.0.0` (limitar el puerto 3000 con el security group) |
 | `DANPER_GRAFANA_ADMIN_PASSWORD` | `admin` | Contraseña inicial del administrador; cambiarla fuera del entorno local |
 
-**Contenido del tablero:** estado del pipeline (última publicación, filas y fecha del último reporte GMML, historial), abastecimiento y precios del GMML, exportaciones de Danper y regionales, producción e ingreso a planta agroindustrial, costos agrícolas por región y precios del Mercado de Productores. Filtros: cultivo y región.
+**KPI de abastecimiento** (primera fila del tablero). Apoyan la decisión de cuánta materia prima asegurar con proveedores terceros (sección 15). Los datos vienen de `scripts/modelo_abastecimiento.py`, que hay que ejecutar antes de publicar.
+
+| KPI | Definición y fórmula | Frecuencia | Responsable |
+|---|---|---|---|
+| 1. Plan 2025 (t) | Volumen a asegurar en el año siguiente al último dato: promedio del mismo mes en los 3 últimos años válidos, con banda de ± WAPE histórico (`ml_plan_ingreso`) | Anual, al cargar datos nuevos | Planeamiento / Extensión agrícola |
+| 2. Error WAPE | Suma de errores absolutos / suma real del método recomendado, validación 2019–2024 (`ml_metricas_modelo`) | Anual | Planeamiento |
+| 3. Sesgo | (Pronóstico anual − real) / real. Negativo significa que se planifica menos de lo que llega. Meta: entre −5 % y +5 % | Anual | Planeamiento / Compras |
+| 4. Pico ago–oct | Ingreso de agosto a octubre / ingreso del año, último año válido de cada cultivo. Indica la capacidad de planta y de compra que se necesita en campaña | Anual | Operaciones de planta |
+| 5. Meta 2023 | Volumen logrado / meta de materia prima de proveedores (alcachofa 21 315 / 25 623 t; espárrago 5 965 / 6 117 t). Valor fijo tomado del Reporte de Sostenibilidad Danper 2023 | Anual | Compras |
+
+La fila incluye además el plan 2025 por mes, el pronóstico frente al valor real de 2019–2024 y el error de cada método por año.
+
+**Contenido del tablero:** KPI de abastecimiento, estado del pipeline (última publicación, filas y fecha del último reporte GMML, historial), abastecimiento y precios del GMML, exportaciones de Danper y regionales, producción e ingreso a planta agroindustrial, costos agrícolas por región y precios del Mercado de Productores. Filtros: cultivo y región.
 
 **Demostración del pipeline incremental:** con `python scripts/run_pipeline.py --vigilar` en ejecución, copiar un PDF GMML nuevo a `~/proyecto_danper/datasets/abastecimiento/gmml_<año>/`. En unos 3 minutos cambian "Última publicación en PostgreSQL", "Registros de abastecimiento GMML" y "Último reporte GMML".
 
