@@ -45,7 +45,6 @@ import argparse
 import csv
 import json
 import os
-import platform
 import statistics
 import subprocess
 import sys
@@ -394,7 +393,7 @@ def main():
     ap.add_argument("--executores", type=int, nargs="+",
                     help="spark.executor.instances para cada valor (cluster YARN)")
     ap.add_argument("--repeticiones", type=int, default=3)
-    ap.add_argument("--entorno", default=f"local-{platform.node()}",
+    ap.add_argument("--entorno", default="local",
                     help="etiqueta del entorno en los CSV (por ejemplo aws-3workers)")
     # Uso interno: un escenario por subproceso.
     ap.add_argument("--_escenario", action="store_true", help=argparse.SUPPRESS)
