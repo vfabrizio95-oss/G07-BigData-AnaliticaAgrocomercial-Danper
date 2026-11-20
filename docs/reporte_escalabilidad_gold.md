@@ -1,70 +1,127 @@
-# Prueba de escalabilidad del procesamiento Gold — Danper
+# Pruebas de escalabilidad y de caché del procesamiento Gold — Danper
+
+Script: `scripts/prueba_escalabilidad.py`. Resultados por ejecución:
+`reportes/escalabilidad/escalabilidad.csv` y `reportes/escalabilidad/cache.csv`.
+Evidencia de Spark: event log en `/danper/spark-events` (Spark History Server).
 
 ## Objetivo
 
-Evaluar el comportamiento del procesamiento Silver → Gold al aumentar
-el volumen de los siete conjuntos de datos de entrada mediante réplicas
-de datos reales, utilizando factores de 1, 10 y 100.
+Medir cómo cambia el tiempo del procesamiento Silver → Gold cuando crece el
+volumen de datos y cuando crece el paralelismo disponible, y cuánto reduce la
+caché de Spark el tiempo de consultas repetidas.
 
-## Entorno
+## Entorno de esta medición (validación local)
 
-- Sistema operativo: Debian 12.
-- Procesamiento: Apache Spark 3.5.1.
-- Almacenamiento: Hadoop HDFS.
-- Infraestructura: máquina virtual on-premise.
-- Recursos: 5 CPU virtuales y aproximadamente 8 GiB de RAM.
-- Salidas: 26 componentes Gold por escenario.
+- Equipo: Intel Core i7-6700HQ (4 núcleos físicos, 8 hilos), 15 GB de RAM, Ubuntu 24.04.
+- Apache Spark 3.5.1 en modo `local[n]`, driver con 4 GB.
+- HDFS 3.3.6 de un solo nodo.
+- Las cifras finales se toman en el cluster AWS con el mismo script, variando
+  1, 2 y 3 workers (`--executores 1 2 3 --entorno aws`).
+
+## Método
+
+1. **Réplicas de Silver ×1, ×10, ×100 y ×1000** de las cinco fuentes principales
+   (producción, exportaciones regionales, agroindustria, costos y exportaciones
+   de Danper), en `/danper/pruebas_escalabilidad/silver_xF`.
+   - Cada copia lleva una columna `replica` que forma parte de todas las claves de
+     agrupación, ventana y join. Sus valores se alteran levemente (+0 % a +6 %).
+   - Así las réplicas no se fusionan en los `distinct` y `pivot` y el trabajo
+     crece con el factor.
+   - El script comprueba que las filas de salida sean exactamente F veces las de ×1.
+2. **Trabajo medido:** es representativo de Gold.
+   - Pivot de producción (7 variables) y de exportaciones regionales.
+   - Agregaciones de agroindustria y de exportaciones de Danper.
+   - Ventana `lag` sobre costos.
+   - Dimensión de tiempo y su `join`.
+   - KPI anual de producción.
+   - Escritura de 6 tablas en HDFS.
+3. **Repeticiones:** cada escenario corre en su propia aplicación Spark, con
+   1 ejecución de calentamiento (registrada, pero no promediada) y 3 mediciones.
+   Se reporta la mediana, el mínimo y el máximo.
+4. **Métricas:**
+   - El tiempo de pared se mide en el script.
+   - El tiempo de executors, el shuffle, las tareas y la memoria JVM pico se
+     leen de la API REST de monitoreo de Spark, no de `psutil`.
+5. **Prueba de caché:** sobre una tabla analítica de producción (pivot de las
+   7 variables) se ejecutan 5 consultas de KPI, una vez sin caché y otra con caché.
+   - El tiempo de llenar la caché se mide aparte.
+   - Antes de guardarla en caché, la tabla se junta en 2 particiones por núcleo.
+     Con las 200 particiones que deja el shuffle, la caché resultó más lenta que
+     no usarla (5,5 s frente a 3,1 s en ×10).
 
 ## Resultados
 
-| Indicador | x1 | x10 | x100 |
-|---|---:|---:|---:|
-| Componentes Gold | 26 | 26 | 26 |
-| Tiempo (segundos) | 54.98 | 55.03 | 53.35 |
-| Pico RAM sistema (GiB) | 5.42 | 5.59 | 5.36 |
-| Pico RAM procesos (MiB) | 1063.24 | 1152.34 | 954.01 |
-| Pico CPU sistema (%) | 83.9 | 76.8 | 84.5 |
-| Código de salida | 0 | 0 | 0 |
+### Volumen creciente (8 hilos)
 
-Los valores de CPU y RAM corresponden a máximos observados durante
-muestreos periódicos. La RAM del sistema incluye procesos ajenos a
-Spark; la medición de procesos comprende el proceso Python y sus hijos
-observados durante la ejecución.
+| Factor | Filas de entrada | Filas de salida | Tiempo (mediana) | Tiempo de executors | Shuffle escrito | Memoria pico |
+|---|---:|---:|---:|---:|---:|---:|
+| ×1 | 78 515 | 11 208 | 4,8 s | 2,0 s | 0,7 MB | 347 MB |
+| ×10 | 785 150 | 112 080 | 7,2 s | 8,7 s | 6,3 MB | 525 MB |
+| ×100 | 7 851 500 | 1 120 800 | 10,3 s | 36,3 s | 57 MB | 1 556 MB |
+| ×1000 | 78 515 000 | 11 208 000 | 32,4 s | 213 s | 574 MB | 2 100 MB |
+
+### Paralelismo creciente (×1000)
+
+| Hilos | Tiempo (mediana) | Tiempo de executors | Aceleración |
+|---:|---:|---:|---:|
+| 1 | 81,9 s | 79 s | 1,0× |
+| 2 | 50,2 s | 88 s | 1,6× |
+| 4 | 31,0 s | 107 s | 2,6× |
+| 8 | 32,4 s | 213 s | 2,5× |
+
+### Caché (8 hilos)
+
+| Factor | Sin caché | Con caché | Reducción | Preparar la caché |
+|---|---:|---:|---:|---:|
+| ×1 | 1,80 s | 1,26 s | 30 % | 3,0 s |
+| ×100 | 4,25 s | 1,56 s | 63 % | 4,6 s |
+| ×1000 | 20,15 s | 1,92 s | 90 % | 10,1 s |
+
+### Generación de réplicas (paso aparte, no incluido en los tiempos anteriores)
+
+| Factor | Filas | Tamaño en HDFS | Tiempo |
+|---|---:|---:|---:|
+| ×1 | 78 515 | 0,3 MB | 12,2 s |
+| ×10 | 785 150 | 2,9 MB | 7,5 s |
+| ×100 | 7 851 500 | 28,7 MB | 12,7 s |
+| ×1000 | 78 515 000 | 238,3 MB | 51,0 s |
 
 ## Interpretación
 
-Las tres ejecuciones terminaron satisfactoriamente, con duraciones
-cercanas a 55 segundos. En esta prueba no se observó un crecimiento
-proporcional del tiempo respecto al factor de replicación.
-
-Este comportamiento puede estar influido por el costo fijo de iniciar
-Spark, la reducción de filas mediante agrupaciones y la repetición de
-registros con las mismas claves.
-
-Los datos replicados se utilizaron exclusivamente para medir rendimiento
-y no deben utilizarse para análisis, entrenamiento de modelos ni
-conclusiones de negocio.
+- **Volumen:** con 1 000 veces más datos, el tiempo crece unas 7 veces.
+  - Hasta ×10 domina el costo fijo de Spark: planificar, lanzar tareas y escribir archivos.
+  - Desde ×100 el trabajo real crece con el volumen, como muestran el tiempo de
+    executors y el shuffle, que crecen casi 10 veces por cada salto.
+- **Paralelismo:** pasar de 1 a 4 núcleos acelera 2,6 veces. De 4 a 8 hilos no
+  hay mejora, porque el equipo tiene 4 núcleos físicos (los otros 4 son
+  hyperthreading) y un solo disco y DataNode. El tiempo de executors se duplica
+  porque los hilos compiten por los mismos núcleos.
+- **Caché:** su ventaja crece con el volumen; con caché, el tiempo de las
+  consultas casi no depende del tamaño de los datos. En ×1000, preparar la caché
+  más una ejecución (12 s) ya cuesta menos que una ejecución sin caché (20 s).
 
 ## Limitaciones
 
-- Se evaluó la etapa Silver → Gold, no el recorrido completo
-  Bronze → Silver → Gold.
-- Las réplicas conservan los valores originales y no representan
-  la diversidad de nuevos registros reales.
-- Para esta prueba se relajó la validación de unicidad de las tablas
-  de hechos experimentales. El script original no fue modificado.
-- Las ejecuciones no incluyen el tiempo de preparación de las réplicas.
-- Los tiempos y recursos pueden variar según la carga de la máquina.
-- No se identificó el límite exacto de capacidad de una sola máquina:
-  únicamente se comprobó que los escenarios ensayados finalizaron.
+- Medición local en una sola máquina: valida el método, no la escalabilidad
+  horizontal. Esa se mide en AWS variando el número de workers.
+- Se mide la etapa Silver → Gold con un trabajo representativo, no las 26
+  tablas de `procesamiento_gold.py` ni el recorrido desde Bronze. Las réplicas
+  romperían las validaciones de unicidad de Gold.
+- Las réplicas reproducen la estructura de los datos reales, no su diversidad.
+  Solo sirven para medir rendimiento y no se usan en el análisis ni en el modelo.
+- La reducción por caché vale para consultas repetidas sobre la misma tabla,
+  no para la duración de todo el pipeline.
 
-## Conclusión
+## Prueba anterior (reemplazada)
 
-El procesamiento Gold logró generar sus 26 componentes con los tres
-volúmenes de prueba. Los tiempos observados no evidenciaron degradación
-proporcional al factor de replicación dentro del rango evaluado.
+La versión previa de este reporte informaba 54,98 / 55,03 / 53,35 s para ×1 /
+×10 / ×100, medidos en una máquina virtual de 5 CPU y 8 GiB. Esas cifras no se
+conservan porque:
 
-Los resultados muestran capacidad para ejecutar las cargas ensayadas
-en el entorno disponible, pero no permiten afirmar escalabilidad
-indefinida ni extrapolar el comportamiento a datos nuevos o al
-pipeline completo desde Bronze.
+- No estaban respaldadas por ningún script, notebook ni log del repositorio.
+- Las réplicas eran copias idénticas que se fusionaban en los `distinct` y `pivot`
+  de Gold, así que ×100 hacía casi el mismo trabajo que ×1.
+- Silver pesaba 505 KB, de modo que incluso ×100 era un volumen pequeño y el
+  tiempo lo dominaba el arranque de Spark.
+- La memoria se midió con `psutil` (proceso Python y sistema), no con métricas
+  de Spark, y por eso la RAM de ×100 salía menor que la de ×1.
