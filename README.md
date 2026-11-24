@@ -89,7 +89,7 @@ El repositorio contiene archivos de código y documentación organizados princip
 | `scripts/generar_documentacion_silver.py` | Genera `docs/silver/*.md` desde HDFS |
 | `scripts/procesamiento_gold.py` | Silver → Gold: construcción (`--build-missing`) y auditoría (`--check`) |
 | `scripts/control.py` | Tabla de control `/danper/control/archivos.csv`: qué archivos pasaron por cada capa |
-| `scripts/publicar_postgres.py` | Gold → PostgreSQL (esquema `gold`) por JDBC, para el dashboard |
+| `scripts/publicar_postgres.py` | Gold → PostgreSQL (esquema `gold`) por JDBC: escribe en `gold_staging`, valida las filas y reemplaza las tablas en una sola transacción (el dashboard nunca ve una tabla vacía) |
 | `scripts/run_pipeline.py` | Orquestador incremental Bronze → Silver → Gold → PostgreSQL (`--vigilar` para revisar la carpeta de datasets) |
 | `scripts/prueba_escalabilidad.py` | Pruebas de escalabilidad y de caché con métricas de Spark (secciones 12 y 13) |
 | `scripts/modelo_abastecimiento.py` | Pronóstico del ingreso de materia prima a planta con Spark MLlib frente a la línea base (sección 15) |
