@@ -509,6 +509,41 @@ def crear_spark():
 # CARGA INCREMENTAL
 # ==========================================
 
+# Cada PDF nuevo agrega un archivo Parquet pequeño. Con muchos archivos
+# diminutos Spark abre un archivo (y planifica una tarea) por cada uno; al
+# superar este número se reescribe la carpeta en un solo archivo.
+MAX_ARCHIVOS = 10
+
+
+def compactar(spark, ruta, maximo=MAX_ARCHIVOS):
+    """Junta los Parquet de `ruta` en uno si hay más de `maximo`.
+
+    Escribe en una carpeta temporal, comprueba que tenga las mismas filas y
+    solo entonces reemplaza la original (si algo falla, queda intacta).
+    """
+    jvm = spark._jvm
+    Path_ = jvm.org.apache.hadoop.fs.Path
+    fs = jvm.org.apache.hadoop.fs.FileSystem.get(
+        jvm.java.net.URI(config.HDFS_URI), spark._jsc.hadoopConfiguration())
+    archivos = [f for f in fs.listStatus(Path_(ruta))
+                if f.getPath().getName().endswith(".parquet")]
+    if len(archivos) <= maximo:
+        return
+    temporal, anterior = ruta + "__compactado", ruta + "__anterior"
+    for r in (temporal, anterior):
+        if fs.exists(Path_(r)):
+            fs.delete(Path_(r), True)
+    df = spark.read.parquet(config.hdfs(ruta))
+    filas = df.count()
+    df.coalesce(1).write.parquet(config.hdfs(temporal))
+    if spark.read.parquet(config.hdfs(temporal)).count() != filas:
+        fs.delete(Path_(temporal), True)
+        raise RuntimeError(f"Compactación de {ruta}: el conteo de filas no coincide")
+    fs.rename(Path_(ruta), Path_(anterior))
+    fs.rename(Path_(temporal), Path_(ruta))
+    fs.delete(Path_(anterior), True)
+    print(f"Compactado {ruta}: {len(archivos)} archivos -> 1 ({filas} filas)")
+
 def agregar_incremental(spark, df, df_calidad):
     """Agrega a Silver solo los reportes que aun no estan.
 
@@ -537,8 +572,11 @@ def agregar_incremental(spark, df, df_calidad):
         print("No hay registros nuevos: Silver no se modifica.")
         return
 
-    nuevos.write.mode("append").parquet(SILVER)
-    calidad_nueva.write.mode("append").parquet(CALIDAD)
+    # Un archivo por lote (sin coalesce, Spark escribe uno por partición).
+    nuevos.coalesce(1).write.mode("append").parquet(SILVER)
+    calidad_nueva.coalesce(1).write.mode("append").parquet(CALIDAD)
+    compactar(spark, SILVER)
+    compactar(spark, CALIDAD)
 
     print("\n===== RESULTADO INCREMENTAL =====")
     print("Silver:", SILVER)
