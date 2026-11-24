@@ -35,9 +35,14 @@ caché de Spark el tiempo de consultas repetidas.
    - Dimensión de tiempo y su `join`.
    - KPI anual de producción.
    - Escritura de 6 tablas en HDFS.
-3. **Repeticiones:** cada escenario corre en su propia aplicación Spark, con
-   1 ejecución de calentamiento (registrada, pero no promediada) y 3 mediciones.
-   Se reporta la mediana, el mínimo y el máximo.
+3. **Escenarios independientes y repeticiones:** cada escenario (un factor con
+   un número de núcleos o de workers) se ejecuta como un programa de Spark
+   separado, que Spark llama *aplicación*: arranca con memoria vacía y termina
+   antes del siguiente. Así la memoria, la caché o el calentamiento de un
+   escenario no favorecen al siguiente. No es un modelo ni hay entrenamiento:
+   se mide el tiempo del mismo trabajo de Gold.
+   - Dentro de cada escenario: 1 ejecución de calentamiento (registrada, pero
+     no promediada) y 3 mediciones. Se reporta la mediana, el mínimo y el máximo.
 4. **Métricas:**
    - El tiempo de pared se mide en el script.
    - El tiempo de executors, el shuffle, las tareas y la memoria JVM pico se
@@ -99,6 +104,30 @@ caché de Spark el tiempo de consultas repetidas.
 - **Caché:** su ventaja crece con el volumen; con caché, el tiempo de las
   consultas casi no depende del tamaño de los datos. En ×1000, preparar la caché
   más una ejecución (12 s) ya cuesta menos que una ejecución sin caché (20 s).
+
+## Cómo se ejecuta en el cluster AWS
+
+- **Dónde corre:** el script se ejecuta en el master, donde están el driver de
+  Spark, el ResourceManager de YARN, el NameNode y el History Server. Con
+  `DANPER_SPARK_MASTER=yarn`, cada escenario es una aplicación de YARN cuyas
+  tareas corren en executors de los workers.
+- **Qué se varía:** `--executores 1 2 3` fija `spark.executor.instances` sin
+  asignación dinámica.
+- **Un executor por worker:** cada executor se dimensiona con los núcleos y la
+  memoria de una máquina (`spark.executor.cores` y `spark.executor.memory` en
+  `spark-defaults.conf`), así que 1, 2 o 3 executors equivalen a 1, 2 o 3
+  workers.
+- **Datos:** HDFS con 2 o 3 DataNodes y `dfs.replication=2`. Las réplicas ×F
+  se generan una vez en el cluster.
+- **Evidencia:**
+  - CSV con `--entorno aws`.
+  - Cada escenario como aplicación separada en la interfaz de YARN (puerto
+    8088, solo por túnel, nunca abierto a internet).
+  - El Spark History Server, que muestra qué worker ejecutó cada tarea.
+- **Resultado esperado:** con ×1000, el tiempo baja al pasar de 1 a 2 y 3
+  workers, porque cada worker agrega núcleos físicos, disco y DataNode propios.
+  En la PC local, en cambio, los hilos 5 a 8 compartían los mismos 4 núcleos y
+  el mismo disco.
 
 ## Limitaciones
 

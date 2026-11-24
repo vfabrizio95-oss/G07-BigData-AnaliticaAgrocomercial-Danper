@@ -354,7 +354,7 @@ Asimismo, las exportaciones regionales y los registros de exportación asociados
 
 ## 12. Prueba de caché
 
-`scripts/prueba_escalabilidad.py --prueba cache` prepara una tabla analítica de producción (pivot de las 7 variables por distrito, cultivo y mes) sobre Silver ×F y ejecuta 5 consultas de KPI sobre ella: sin caché, cada consulta vuelve a leer y transformar los datos desde HDFS; con caché, la tabla se guarda una vez en memoria. Cada modo corre en su propia aplicación Spark, con 1 ejecución de calentamiento y 3 mediciones. Antes de guardarla en caché, la tabla se junta en 2 particiones por núcleo: si se dejan las 200 particiones del shuffle, la caché resulta **más lenta** que no usarla, porque cada consulta paga 200 tareas pequeñas.
+`scripts/prueba_escalabilidad.py --prueba cache` prepara una tabla analítica de producción (pivot de las 7 variables por distrito, cultivo y mes) sobre Silver ×F y ejecuta 5 consultas de KPI sobre ella: sin caché, cada consulta vuelve a leer y transformar los datos desde HDFS; con caché, la tabla se guarda una vez en memoria. Cada modo se ejecuta como un programa de Spark independiente (proceso y memoria propios), con 1 ejecución de calentamiento y 3 mediciones. Antes de guardarla en caché, la tabla se junta en 2 particiones por núcleo: si se dejan las 200 particiones del shuffle, la caché resulta **más lenta** que no usarla, porque cada consulta paga 200 tareas pequeñas.
 
 Resultados locales (mediana de 3 mediciones, 8 hilos; `reportes/escalabilidad/cache.csv`):
 
@@ -376,7 +376,8 @@ Reemplaza a `notebooks/Optimizacion_Rendimiento.ipynb` (1,55 → 0,61 s), que me
 
 - **Réplicas que no se fusionan:** Silver se replica ×1, ×10, ×100 y ×1000 en `/danper/pruebas_escalabilidad/silver_xF`. Cada copia lleva una columna `replica` que forma parte de todas las claves, y sus valores se alteran levemente. El script comprueba que las filas de salida sean exactamente F veces las de ×1.
 - **Trabajo medido:** es representativo de Gold: pivot de producción y de exportaciones, agregaciones de agroindustria y Danper, ventana `lag` sobre costos, dimensión de tiempo con `join`, KPI anual y escritura de 6 tablas en HDFS.
-- **Repeticiones:** cada escenario corre en su propia aplicación Spark, con 1 ejecución de calentamiento y 3 mediciones. Se reporta la mediana.
+- **Escenarios independientes:** cada escenario (un factor con un número de núcleos o de workers) se ejecuta como un programa de Spark separado, que Spark llama *aplicación*: arranca con memoria vacía y termina antes del siguiente. Así la memoria, la caché o el calentamiento de un escenario no favorecen al siguiente. No es un modelo ni hay entrenamiento: solo se mide el tiempo del mismo trabajo de Gold.
+- **Repeticiones:** dentro de cada escenario, 1 ejecución de calentamiento (se registra, pero no se promedia) y 3 mediciones. Se reporta la mediana.
 - **Métricas de Spark:** se toman de su API REST: tiempo de executors, shuffle, tareas y memoria JVM pico. Con `spark.eventLog.enabled` cada aplicación queda en `/danper/spark-events` y se puede revisar en el Spark History Server.
 - **Resultados:** cada ejecución se agrega a `reportes/escalabilidad/escalabilidad.csv`, junto con el entorno en que se midió (núcleos, master y executores).
 
@@ -410,6 +411,18 @@ Paralelismo creciente con ×1000:
 DANPER_SPARK_MASTER=yarn python scripts/prueba_escalabilidad.py \
     --factores 1 10 100 1000 --executores 1 2 3 --entorno aws
 ```
+
+**Cómo se ejecuta en el cluster AWS**
+
+| Pieza | Local (validación) | Cluster AWS |
+|---|---|---|
+| Dónde corre el script | La misma PC | El master, que también aloja el driver de Spark, el ResourceManager de YARN, el NameNode y el History Server |
+| Qué se varía | Hilos de una máquina (`--nucleos 1 2 4 8` → `local[n]`) | Workers que trabajan (`--executores 1 2 3` → `spark.executor.instances`, sin asignación dinámica) |
+| Quién ejecuta las tareas | Hilos del mismo proceso | Executors en los workers (NodeManager), cada uno con los núcleos y la memoria de una máquina (`spark.executor.cores` y `spark.executor.memory` en `spark-defaults.conf`), para que 1, 2 o 3 executors equivalgan a 1, 2 o 3 workers |
+| Datos | HDFS de un nodo | HDFS con 2 o 3 DataNodes y `dfs.replication=2`; las réplicas ×F se generan una vez en el cluster |
+| Evidencia | CSV con `entorno=local` | CSV con `entorno=aws`; cada escenario aparece como una aplicación separada en la interfaz de YARN (puerto 8088, solo por túnel) y en el Spark History Server, con las tareas que corrió cada worker |
+
+Lo que se espera ver en AWS es que, con ×1000, el tiempo baje al pasar de 1 a 2 y 3 workers, porque el map y el reduce se reparten entre más máquinas. A diferencia de la PC local, cada worker agrega núcleos físicos, disco y DataNode propios.
 
 Generar las réplicas es un paso aparte (se registra en el CSV con fase `generacion`): ×1000 tarda 51 s y ocupa 238 MB en HDFS. Los datos replicados solo se usan para medir rendimiento; no entran en el análisis ni en el modelo.
 

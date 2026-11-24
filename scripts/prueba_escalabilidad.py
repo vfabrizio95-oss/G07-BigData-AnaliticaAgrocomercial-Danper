@@ -19,8 +19,11 @@ Caché
     de KPI sin caché y con caché. El tiempo de llenar la caché se mide aparte.
 
 Medición
-    - Cada escenario corre en su propia aplicación Spark (subproceso), con
-      1 ejecución de calentamiento y --repeticiones mediciones.
+    - Cada escenario se ejecuta como un programa de Spark independiente (una
+      "aplicación" en términos de Spark: subproceso con memoria propia que
+      termina antes del siguiente), con 1 ejecución de calentamiento y
+      --repeticiones mediciones. En YARN, cada escenario es una aplicación
+      separada cuyos executors corren en los workers.
     - Tiempo de pared por ejecución y métricas de Spark tomadas de su API REST
       (tiempo de executors, bytes leídos, shuffle, tareas) y memoria JVM pico
       de los executors. No se usa psutil.
