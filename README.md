@@ -123,6 +123,7 @@ Por eso, entre una regeneración y la siguiente, el inventario del repositorio p
 
 - `docs/reporte_calidad_gold.md`: resultados de auditoría y limitaciones de calidad.
 - `docs/reporte_escalabilidad_gold.md`: método, resultados e interpretación de las pruebas de escalabilidad y caché.
+- `docs/evidencia_mapreduce.md`: fases de MapReduce (map, combiner, shuffle y reduce) en el plan de Spark de una agregación de Gold, con sus métricas.
 - `docs/reporte_seguridad_plataforma.md`: diagnóstico de controles de seguridad.
 
 ## 7. Requisitos previos e instalación
