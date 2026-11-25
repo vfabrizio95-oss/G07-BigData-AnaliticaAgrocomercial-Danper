@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Danper G07 - HDFS del cluster AWS.
+-->
+<configuration>
+  <!-- 2 copias de cada bloque: con 2 o 3 DataNodes el valor por defecto (3)
+       deja bloques subreplicados y fsck no devuelve HEALTHY -->
+  <property>
+    <name>dfs.replication</name>
+    <value>2</value>
+  </property>
+  <!-- Metadatos del NameNode (solo se usa en el master) -->
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>file:///data/hadoop/namenode</value>
+  </property>
+  <!-- Bloques de datos (solo se usa en los workers) -->
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>file:///data/hadoop/datanode</value>
+  </property>
+  <!-- El NameNode escucha en todas las interfaces de la VPC; el acceso lo
+       limita el grupo de seguridad sg-cluster, no esta configuración -->
+  <property>
+    <name>dfs.namenode.rpc-bind-host</name>
+    <value>0.0.0.0</value>
+  </property>
+  <!-- Permisos de HDFS activos (mínimo privilegio sobre /danper) -->
+  <property>
+    <name>dfs.permissions.enabled</name>
+    <value>true</value>
+  </property>
+</configuration>

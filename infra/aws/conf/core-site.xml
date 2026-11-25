@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Danper G07 - cluster AWS (1 master + 3 workers).
+  MASTER_HOST se reemplaza por el nombre DNS privado del master al instalar
+  cada nodo (infra/aws/instalar_nodo.sh). Igual en el master y en los workers.
+-->
+<configuration>
+  <!-- NameNode: mismo puerto que en local (9000), así DANPER_HDFS_URI solo cambia el host -->
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://MASTER_HOST:9000</value>
+  </property>
+  <!-- Datos temporales de Hadoop en el disco de datos, no en /tmp -->
+  <property>
+    <name>hadoop.tmp.dir</name>
+    <value>/data/hadoop/tmp</value>
+  </property>
+</configuration>
