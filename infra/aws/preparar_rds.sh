@@ -35,7 +35,7 @@ if [[ -z ${AWS_DEFAULT_REGION:-} ]]; then
             -H "X-aws-ec2-metadata-token-ttl-seconds: 60" || true)
     REGION=$(curl -sf -m 2 -H "X-aws-ec2-metadata-token: $TOKEN" \
             http://169.254.169.254/latest/meta-data/placement/region || true)
-    export AWS_DEFAULT_REGION=${REGION:-us-east-1}
+    export AWS_DEFAULT_REGION=${REGION:-us-east-2}
 fi
 
 parametro() {

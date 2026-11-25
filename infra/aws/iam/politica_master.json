@@ -32,7 +32,7 @@
       "Sid": "LeerContrasenasDanper",
       "Effect": "Allow",
       "Action": ["ssm:GetParameter", "ssm:GetParameters"],
-      "Resource": "arn:aws:ssm:us-east-1:ID_CUENTA:parameter/danper/*"
+      "Resource": "arn:aws:ssm:us-east-2:ID_CUENTA:parameter/danper/*"
     }
   ]
 }

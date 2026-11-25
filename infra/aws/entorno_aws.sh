@@ -39,7 +39,7 @@ _danper_cargar() {
                 -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
         region=$(curl -sf -m 2 -H "X-aws-ec2-metadata-token: $token" \
                 http://169.254.169.254/latest/meta-data/placement/region)
-        export AWS_DEFAULT_REGION=${region:-us-east-1}
+        export AWS_DEFAULT_REGION=${region:-us-east-2}
     fi
 
     _parametro() {  # _parametro NOMBRE -> valor (descifrado si es SecureString)
