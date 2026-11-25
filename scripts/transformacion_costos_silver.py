@@ -9,10 +9,11 @@ from pyspark.sql.types import (
     StructType, StructField,
     StringType, IntegerType, DoubleType
 )
+import config
 
-BRONZE = "/danper/bronze/costos"
-SILVER = "/danper/silver/costos"
-CALIDAD = "/danper/calidad/costos"
+BRONZE = f"{config.BRONZE}/costos"
+SILVER = f"{config.SILVER}/costos"
+CALIDAD = f"{config.CALIDAD}/costos"
 
 ARCHIVOS = {
     "Precio de Alquiler de Tractor.csv": "ALQUILER_TRACTOR",
@@ -142,7 +143,7 @@ def main():
     spark = (
         SparkSession.builder
         .appName("Danper_Costos_Silver")
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
 

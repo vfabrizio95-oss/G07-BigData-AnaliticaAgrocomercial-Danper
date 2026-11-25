@@ -2,8 +2,9 @@ from pathlib import Path
 from collections import Counter, defaultdict
 import hashlib
 import csv
+import config
 
-BASE = Path.home() / "proyecto_danper/datasets"
+BASE = config.DATASETS
 SALIDA = Path("reportes/inventario_bronze.csv")
 
 

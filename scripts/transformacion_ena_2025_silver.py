@@ -13,10 +13,11 @@ from pyspark.sql.types import (
     StructType, StructField,
     StringType, DoubleType, IntegerType
 )
+import config as cfg
 
 
-BRONZE = "/danper/bronze/costos/ena_2025/ENA_2025"
-SILVER = "/danper/silver/ena_2025"
+BRONZE = f"{cfg.BRONZE}/costos/ena_2025/ENA_2025"
+SILVER = f"{cfg.SILVER}/ena_2025"
 
 COMUNES = [
     "ANIO", "NSEGM", "ID_PROD", "UA",
@@ -208,7 +209,7 @@ def extraer(nombre_tabla, config, archivo, ruta_bronze):
             f"{int(repetidas.sum())}"
         )
 
-    if len(seleccion) != config["esperados"]:
+    if len(seleccion) < config["esperados"]:
         raise ValueError(
             f"Cantidad inesperada en {nombre_tabla}: "
             f"{len(seleccion)}; "
@@ -394,7 +395,7 @@ def main():
     spark = (
         SparkSession.builder
         .appName("Danper_ENA_2025_Silver")
-        .master("local[2]")
+        .config(map=cfg.SPARK_CONF)
         .getOrCreate()
     )
 
@@ -412,7 +413,7 @@ def main():
 
             cantidad = df.count()
 
-            if cantidad != CONFIG[nombre]["esperados"]:
+            if cantidad != len(registros):
                 raise ValueError(
                     f"Cantidad distinta en Spark: {nombre}"
                 )

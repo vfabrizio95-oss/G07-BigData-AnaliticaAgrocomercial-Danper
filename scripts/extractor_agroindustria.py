@@ -1,8 +1,10 @@
+from datetime import date
 from pathlib import Path
 import re
 import pandas as pd
+import config
 
-RUTA_DATOS = Path.home() / "proyecto_danper/datasets/agroindustria"
+RUTA_DATOS = config.DATASETS / "agroindustria"
 
 CUADROS = {
     7: ("INGRESO", "PARA PROCESAR"),
@@ -104,7 +106,7 @@ def extraer_agroindustria(ruta=None):
                 except (ValueError, TypeError):
                     continue
 
-                if not 2010 <= anio <= 2024:
+                if not 2010 <= anio <= date.today().year:
                     continue
 
                 proceso, presentacion = CUADROS[cuadro]

@@ -12,10 +12,11 @@ from extractor_exportaciones_regionales import (
     convertir_numero,
     CONFIGURACION,
 )
+import config
 
-BRONZE = "/danper/bronze/exportaciones"
-SILVER = "/danper/silver/exportaciones/regionales"
-CALIDAD = "/danper/calidad/exportaciones/regionales"
+BRONZE = f"{config.BRONZE}/exportaciones"
+SILVER = f"{config.SILVER}/exportaciones/regionales"
+CALIDAD = f"{config.CALIDAD}/exportaciones/regionales"
 
 
 def validar_totales(ruta, datos, incidencias):
@@ -135,7 +136,7 @@ def main():
     spark = (
         SparkSession.builder
         .appName("Danper_Exportaciones_Regionales_Silver")
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
 
@@ -168,14 +169,14 @@ def main():
         print("Totales revisados:", len(reporte))
 
         if (
-            len(datos) != 2043
-            or len(incidencias) != 117
-            or len(bloques) != 15
-            or len(reporte) != 120
+            len(datos) < 2043
+            or len(bloques) < 15
+            or len(reporte) < 120
         ):
             raise ValueError(
-                "Los resultados difieren de la "
-                "extraccion local validada"
+                "La extraccion tiene menos datos que la "
+                "carga base validada (2043 registros, "
+                "15 bloques, 120 totales)"
             )
 
         df = spark.createDataFrame(

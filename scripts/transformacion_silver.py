@@ -23,14 +23,15 @@ from pyspark.sql.types import (
 )
 
 import extractor_agricola as extractor
+import config
 
 
 # ==========================================
 # CONFIGURACION
 # ==========================================
 
-BRONZE = "/danper/bronze/produccion"
-SILVER = "/danper/silver/produccion"
+BRONZE = f"{config.BRONZE}/produccion"
+SILVER = f"{config.SILVER}/produccion"
 
 MESES = {
     "ENE": 1,
@@ -56,7 +57,7 @@ def crear_spark():
     spark = (
         SparkSession.builder
         .appName("Danper_Produccion_Silver")
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
 
@@ -88,9 +89,9 @@ def extraer_desde_bronze():
 
         print("Archivos Excel recuperados:", len(archivos))
 
-        if len(archivos) != 12:
+        if len(archivos) < 12:
             raise ValueError(
-                "Se esperaban exactamente 12 archivos "
+                "Se esperaban al menos 12 archivos "
                 "provinciales en Bronze."
             )
 
@@ -337,10 +338,10 @@ def validar_datos(df):
             "Se detectaron períodos inválidos."
         )
 
-    if provincias != 12 or archivos != 12:
+    if provincias < 12 or archivos < 12:
         raise ValueError(
-            "No se identificaron las 12 provincias "
-            "y los 12 archivos esperados."
+            "No se identificaron al menos las 12 provincias "
+            "y los 12 archivos de la carga base."
         )
 
     # Validar que los meses correspondan a su

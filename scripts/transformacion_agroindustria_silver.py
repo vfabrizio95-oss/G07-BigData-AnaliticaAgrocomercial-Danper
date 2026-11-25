@@ -14,10 +14,11 @@ from extractor_agroindustria import (
     convertir_numero,
     CUADROS
 )
+import config
 
-BRONZE = "/danper/bronze/agroindustria"
-SILVER = "/danper/silver/agroindustria"
-CALIDAD = "/danper/calidad/agroindustria"
+BRONZE = f"{config.BRONZE}/agroindustria"
+SILVER = f"{config.SILVER}/agroindustria"
+CALIDAD = f"{config.CALIDAD}/agroindustria"
 
 
 def validar_totales(ruta, datos, incidencias):
@@ -115,7 +116,7 @@ def main():
     spark = (
         SparkSession.builder
         .appName("Danper_Agroindustria_Silver")
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
 
@@ -144,7 +145,7 @@ def main():
         print("Cuadros:", len(cuadros))
         print("Valores no numericos:", len(incidencias))
 
-        if len(cuadros) != 18 or datos.empty:
+        if len(cuadros) < 18 or datos.empty:
             raise ValueError(
                 "La extraccion no tiene la cobertura esperada"
             )

@@ -7,10 +7,11 @@ import time
 from pathlib import Path
 
 from pyspark.sql import SparkSession
+import config
 
 
-BRONZE = "/danper/bronze/sostenibilidad/danper"
-SILVER = "/danper/silver/sostenibilidad/danper_indicadores"
+BRONZE = f"{config.BRONZE}/sostenibilidad/danper"
+SILVER = f"{config.SILVER}/sostenibilidad/danper_indicadores"
 
 REPORTES = {
     2022: "Reporte-de-Sostenibilidad-Danper-2022_Sello-GRI.pdf",
@@ -187,7 +188,7 @@ def main():
     spark = (
         SparkSession.builder
         .appName("Danper_Sostenibilidad_Silver")
-        .master("local[2]")
+        .config(map=config.SPARK_CONF)
         .getOrCreate()
     )
 
