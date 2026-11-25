@@ -1,0 +1,38 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListarSoloCarpetasDanper",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::NOMBRE_BUCKET",
+      "Condition": {
+        "StringLike": { "s3:prefix": ["datasets/*", "respaldos/*"] }
+      }
+    },
+    {
+      "Sid": "LeerDatasets",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::NOMBRE_BUCKET/datasets/*"
+    },
+    {
+      "Sid": "EscribirYLeerRespaldos",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
+      "Resource": "arn:aws:s3:::NOMBRE_BUCKET/respaldos/*"
+    },
+    {
+      "Sid": "NuncaBorrarEnElBucket",
+      "Effect": "Deny",
+      "Action": ["s3:DeleteObject", "s3:DeleteObjectVersion", "s3:DeleteBucket"],
+      "Resource": ["arn:aws:s3:::NOMBRE_BUCKET", "arn:aws:s3:::NOMBRE_BUCKET/*"]
+    },
+    {
+      "Sid": "LeerContrasenasDanper",
+      "Effect": "Allow",
+      "Action": ["ssm:GetParameter", "ssm:GetParameters"],
+      "Resource": "arn:aws:ssm:us-east-1:ID_CUENTA:parameter/danper/*"
+    }
+  ]
+}
