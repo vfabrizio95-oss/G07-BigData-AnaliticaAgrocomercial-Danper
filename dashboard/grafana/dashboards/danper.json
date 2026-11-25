@@ -1,0 +1,1683 @@
+{
+  "uid": "danper-gold",
+  "title": "Danper – Analítica agrocomercial",
+  "description": "Gold del pipeline HDFS → Spark → PostgreSQL. Se actualiza solo.",
+  "tags": [
+    "danper",
+    "gold",
+    "big-data"
+  ],
+  "editable": false,
+  "graphTooltip": 1,
+  "timezone": "utc",
+  "time": {
+    "from": "now-17y",
+    "to": "now"
+  },
+  "refresh": "5s",
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ]
+  },
+  "schemaVersion": 39,
+  "version": 1,
+  "links": [],
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "cultivo",
+        "label": "Cultivo",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "danper-gold"
+        },
+        "query": "SELECT cultivo FROM gold.dim_cultivo ORDER BY 1",
+        "definition": "SELECT cultivo FROM gold.dim_cultivo ORDER BY 1",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "region",
+        "label": "Región (costos)",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "danper-gold"
+        },
+        "query": "SELECT DISTINCT region FROM gold.costos_mensuales ORDER BY 1",
+        "definition": "SELECT DISTINCT region FROM gold.costos_mensuales ORDER BY 1",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "current": {
+          "selected": true,
+          "text": "LA LIBERTAD",
+          "value": "LA LIBERTAD"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 24,
+      "type": "row",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "title": "Abastecimiento y pronóstico de materia prima (KPI para planificar la compra a proveedores)"
+    },
+    {
+      "id": 25,
+      "type": "stat",
+      "title": "1 · Plan 2025 (t)",
+      "description": "Plan de ingreso 2025 (t). Volumen a asegurar en el año siguiente al último dato: promedio del mismo mes en los 3 últimos años válidos (método recomendado). Frecuencia anual. Responsable: Planeamiento / Extensión agrícola. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 5,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT sum(plan_t) FILTER (WHERE cultivo = 'ALCACHOFA') AS \"Alcachofa\", sum(plan_t) FILTER (WHERE cultivo = 'ESPARRAGO') AS \"Espárrago\" FROM gold.ml_plan_ingreso"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 26,
+      "type": "stat",
+      "title": "2 · Error WAPE",
+      "description": "Error de pronóstico (WAPE). Suma de errores absolutos / suma real del método recomendado, validación 2019-2024 con 3 meses de anticipación. Ningún modelo MLlib lo mejoró. Frecuencia anual. Responsable: Planeamiento. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 5,
+        "y": 1,
+        "w": 5,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT max(wape) FILTER (WHERE cultivo = 'ALCACHOFA') AS \"Alcachofa\", max(wape) FILTER (WHERE cultivo = 'ESPARRAGO') AS \"Espárrago\" FROM gold.ml_metricas_modelo WHERE metodo = 'prom_3a' AND anio_prueba = 'TODOS'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.2
+              },
+              {
+                "color": "red",
+                "value": 0.35
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 27,
+      "type": "stat",
+      "title": "3 · Sesgo",
+      "description": "Sesgo de planificación. (Pronóstico anual − real) / real del método recomendado. Negativo = se planifica menos de lo que llega. Meta: entre −5 % y +5 %. Frecuencia anual. Responsable: Planeamiento / Compras. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 10,
+        "y": 1,
+        "w": 5,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT max(error_anual) FILTER (WHERE cultivo = 'ALCACHOFA') AS \"Alcachofa\", max(error_anual) FILTER (WHERE cultivo = 'ESPARRAGO') AS \"Espárrago\" FROM gold.ml_metricas_modelo WHERE metodo = 'prom_3a' AND anio_prueba = 'TODOS'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": -0.05
+              },
+              {
+                "color": "red",
+                "value": 0.05
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 28,
+      "type": "stat",
+      "title": "4 · Pico ago–oct",
+      "description": "Concentración estacional (ago–oct). Porcentaje del ingreso anual que llega entre agosto y octubre, último año válido de cada cultivo. Indica cuánta capacidad de planta y de compra se necesita en la campaña. Frecuencia anual. Responsable: Operaciones de planta. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 15,
+        "y": 1,
+        "w": 5,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH u AS (SELECT cultivo, max(anio) AS anio FROM gold.ml_prediccion_ingreso GROUP BY 1) SELECT replace(initcap(p.cultivo), 'Esparrago', 'Espárrago') || ' ' || u.anio AS nombre, sum(real_t) FILTER (WHERE mes BETWEEN 8 AND 10) / sum(real_t) AS valor FROM gold.ml_prediccion_ingreso p JOIN u USING (cultivo, anio) GROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^valor$/",
+          "values": true
+        }
+      }
+    },
+    {
+      "id": 29,
+      "type": "stat",
+      "title": "5 · Meta 2023",
+      "description": "Cumplimiento del plan de compra Danper 2023. Volumen logrado / meta de materia prima de proveedores. Alcachofa 21 315 / 25 623 t, espárrago 5 965 / 6 117 t. Valor fijo: Reporte de Sostenibilidad Danper 2023 (no está en Gold). Frecuencia anual. Responsable: Compras.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT 21315.0 / 25623 AS \"Alcachofa\", 5965.0 / 6117 AS \"Espárrago\""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.9
+              },
+              {
+                "color": "green",
+                "value": 0.95
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 30,
+      "type": "trend",
+      "title": "Plan de ingreso 2025 por mes, con banda de error (t)",
+      "description": "Eje horizontal: mes del año (1 = enero). Plan (línea continua) y rango ± WAPE histórico (líneas punteadas). Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT mes AS \"Mes\", max(plan_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa plan\", max(minimo_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa mínimo\", max(maximo_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa máximo\", max(plan_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago plan\", max(minimo_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago mínimo\", max(maximo_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago máximo\" FROM gold.ml_plan_ingreso GROUP BY mes ORDER BY mes"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "always",
+            "pointSize": 5,
+            "spanNulls": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*(mínimo|máximo)$"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    6,
+                    4
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "min",
+                "value": 1
+              },
+              {
+                "id": "max",
+                "value": 12
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "xField": "Mes"
+      }
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "Pronóstico vs real del ingreso a planta, 2019–2024 (t)",
+      "description": "Ingreso real frente al pronóstico con 3 meses de anticipación del método recomendado (promedio 3 años) y del mejor modelo MLlib (regresión lineal). Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT periodo::timestamp AS time, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' real' AS metric, real_t AS value FROM gold.ml_prediccion_ingreso WHERE cultivo IN ($cultivo) UNION ALL SELECT periodo::timestamp, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' promedio 3 años', pred_prom_3a FROM gold.ml_prediccion_ingreso WHERE cultivo IN ($cultivo) UNION ALL SELECT periodo::timestamp, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' MLlib lineal', pred_lineal FROM gold.ml_prediccion_ingreso WHERE cultivo IN ($cultivo) ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* real$"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* MLlib lineal$"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    6,
+                    4
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "timeFrom": "8y"
+    },
+    {
+      "id": 32,
+      "type": "barchart",
+      "title": "Error de pronóstico (WAPE) por año de prueba y método – ambos cultivos",
+      "description": "Validación hacia adelante: cada año se pronostica entrenando solo con los años anteriores. Más bajo es mejor. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT CASE anio_prueba WHEN 'TODOS' THEN '2019–2024' ELSE 'Año ' || anio_prueba END AS \"Año\", max(wape) FILTER (WHERE metodo = 'prom_3a') AS \"Promedio 3 años (base)\", max(wape) FILTER (WHERE metodo = 'naive_anual') AS \"Año anterior (base)\", max(wape) FILTER (WHERE metodo = 'lineal') AS \"MLlib lineal\", max(wape) FILTER (WHERE metodo = 'rf') AS \"MLlib Random Forest\", max(wape) FILTER (WHERE metodo = 'gbt') AS \"MLlib GBT\" FROM gold.ml_metricas_modelo WHERE cultivo = 'TODOS' GROUP BY anio_prueba ORDER BY anio_prueba"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 0,
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "vertical",
+        "showValue": "never",
+        "xTickLabelRotation": 0,
+        "barWidth": 0.85,
+        "groupWidth": 0.75,
+        "stacking": "none",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Estado del pipeline (se actualiza cada vez que run_pipeline.py publica Gold)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Última publicación en PostgreSQL",
+      "description": "Tiempo desde la última vez que scripts/publicar_postgres.py cargó Gold.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 24
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT extract(epoch FROM max(publicado_en)::timestamptz) * 1000 AS valor FROM gold.control_publicacion"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeFromNow",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^valor$/",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Fecha y hora de publicación",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 24
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT to_char(max(publicado_en), 'DD/MM/YYYY HH24:MI:SS') AS valor FROM gold.control_publicacion"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^valor$/",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Registros de abastecimiento GMML",
+      "description": "Filas de gold.abastecimiento_mayorista. Sube al cargar un PDF GMML nuevo.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 24
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT count(*) AS valor FROM gold.abastecimiento_mayorista"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^valor$/",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Último reporte GMML",
+      "description": "Fecha del reporte GMML más reciente incorporado al pipeline.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 24
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT to_char(max(fecha_reporte), 'DD/MM/YYYY') AS valor FROM gold.abastecimiento_mayorista"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^valor$/",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Historial de publicaciones: abastecimiento_mayorista",
+      "description": "Cada publicación registra cuántas filas tenía la tabla.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 28
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT to_char(publicado_en, 'DD/MM/YYYY HH24:MI:SS') AS \"Publicado\", filas AS \"Filas\" FROM gold.control_publicacion WHERE tabla = 'abastecimiento_mayorista' ORDER BY publicado_en DESC LIMIT 10"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Tablas de la última publicación",
+      "description": "Las 26 tablas Gold publicadas en la última ejecución.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 8,
+        "y": 28
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT tabla AS \"Tabla\", filas AS \"Filas\" FROM gold.control_publicacion WHERE publicado_en = (SELECT max(publicado_en) FROM gold.control_publicacion) ORDER BY tabla"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "Abastecimiento mayorista – Gran Mercado Mayorista de Lima (GMML)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "panels": []
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Ingreso diario al GMML (t)",
+      "description": "Toneladas ingresadas el día del reporte. Algunos reportes no informan ingreso.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 37
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT fecha_reporte::timestamp AS time, producto AS metric, ingreso_hoy_t AS value FROM gold.abastecimiento_mayorista WHERE $__timeFilter(fecha_reporte) AND ingreso_hoy_t IS NOT NULL ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "always",
+            "pointSize": 5,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "timeFrom": "3y"
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Precio del día en el GMML (S/)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 37
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT fecha_reporte::timestamp AS time, producto || ' (S/ por ' || lower(unidad_medida) || ')' AS metric, precio_hoy_soles AS value FROM gold.abastecimiento_mayorista WHERE $__timeFilter(fecha_reporte) AND precio_hoy_soles IS NOT NULL ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "prefix:S/ ",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "always",
+            "pointSize": 5,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "timeFrom": "3y"
+    },
+    {
+      "id": 11,
+      "type": "table",
+      "title": "Últimos reportes GMML incorporados",
+      "description": "El reporte más reciente aparece primero.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 46
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT to_char(fecha_reporte, 'DD/MM/YYYY') AS \"Fecha\", producto AS \"Producto\", unidad_medida AS \"Unidad\", ingreso_hoy_t AS \"Ingreso (t)\", precio_hoy_soles AS \"Precio hoy (S/)\", precio_7dias_soles AS \"Precio hace 7 días (S/)\" FROM gold.abastecimiento_mayorista ORDER BY fecha_reporte DESC, producto LIMIT 10"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "Exportaciones",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 53
+      },
+      "panels": []
+    },
+    {
+      "id": 13,
+      "type": "barchart",
+      "title": "Exportaciones de Danper por año (FOB, USD)",
+      "description": "El último año es parcial (meses disponibles en la fuente).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 54
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT 'Año ' || anio AS \"Año\", sum(valor_fob_reportado_usd) AS \"FOB USD\" FROM gold.kpi_exportaciones_danper_anual GROUP BY anio ORDER BY anio"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "vertical",
+        "showValue": "auto",
+        "xTickLabelRotation": 0,
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "stacking": "none",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "barchart",
+      "title": "Principales destinos de Danper (FOB, USD)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 54
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT pais AS \"País\", sum(valor_fob_usd) AS \"FOB USD\" FROM gold.exportaciones_danper GROUP BY pais ORDER BY 2 DESC LIMIT 10"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "xTickLabelRotation": 0,
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "stacking": "none",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Exportaciones regionales por cultivo (t)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 54
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT periodo::timestamp AS time, cultivo AS metric, volumen_exportado_t AS value FROM gold.exportaciones_regionales WHERE $__timeFilter(periodo) AND cultivo IN ($cultivo) ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "pointSize": 5,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "type": "row",
+      "title": "Producción agrícola e ingreso a planta agroindustrial",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 63
+      },
+      "panels": []
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Producción mensual por cultivo (t)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 64
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT periodo::timestamp AS time, cultivo AS metric, sum(produccion_t) AS value FROM gold.produccion_mensual WHERE $__timeFilter(periodo) AND cultivo IN ($cultivo) GROUP BY 1, 2 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "always",
+            "pointSize": 5,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "timeFrom": "3y"
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "Ingreso a planta agroindustrial por cultivo (t)",
+      "description": "Materia prima que ingresa a planta para procesar (agroindustria).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 64
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT periodo::timestamp AS time, cultivo AS metric, sum(cantidad_t) AS value FROM gold.agroindustria_mensual WHERE proceso = 'INGRESO' AND $__timeFilter(periodo) AND cultivo IN ($cultivo) GROUP BY 1, 2 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "pointSize": 5,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 19,
+      "type": "barchart",
+      "title": "Producción por provincia (t)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 73
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT provincia AS \"Provincia\", sum(produccion_t) AS \"Producción (t)\" FROM gold.produccion_mensual WHERE cultivo IN ($cultivo) GROUP BY provincia ORDER BY 2 DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "xTickLabelRotation": 0,
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "stacking": "none",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "barchart",
+      "title": "Precio promedio en chacra por cultivo (S/ por kg)",
+      "description": "Precio pagado al productor (promedio de los meses con dato).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 73
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT cultivo AS \"Cultivo\", round(avg(precio_chacra_s_kg)::numeric, 2) AS \"S/ por kg\" FROM gold.produccion_mensual WHERE precio_chacra_s_kg > 0 AND cultivo IN ($cultivo) GROUP BY cultivo ORDER BY 2 DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "prefix:S/ ",
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "vertical",
+        "showValue": "auto",
+        "xTickLabelRotation": 0,
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "stacking": "none",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "row",
+      "title": "Costos agrícolas y Mercado de Productores",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 82
+      },
+      "panels": []
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Costos agrícolas en $region",
+      "description": "Jornal, alquiler de tractor y yunta. La fuente no confirma la unidad monetaria.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 83
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT periodo::timestamp AS time, tipo_costo AS metric, avg(valor_costo) AS value FROM gold.costos_mensuales WHERE region = '$region' AND $__timeFilter(periodo) GROUP BY 1, 2 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "pointSize": 5,
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "timeFrom": "9y"
+    },
+    {
+      "id": 23,
+      "type": "table",
+      "title": "Mercado de Productores de Santa Anita (último reporte)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 83
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT categoria AS \"Categoría\", producto AS \"Producto\", unidad_medida AS \"Unidad\", precio_hoy_soles AS \"Precio hoy (S/)\", variacion_porcentaje AS \"Variación (%)\" FROM gold.precios_mercado_productores WHERE fecha_reporte = (SELECT max(fecha_reporte) FROM gold.precios_mercado_productores) ORDER BY categoria, producto"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        }
+      }
+    }
+  ]
+}

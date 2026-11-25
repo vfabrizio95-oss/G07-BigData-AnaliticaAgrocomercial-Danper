@@ -1,8 +1,9 @@
 from pathlib import Path
 import pandas as pd
+import config
 
 # Configuración de rutas
-RUTA_DATOS = Path.home() / "proyecto_danper/datasets/produccion"
+RUTA_DATOS = config.DATASETS / "produccion"
 
 def extraer_datos_agricolas(ruta_datos=RUTA_DATOS):
     registros = []
