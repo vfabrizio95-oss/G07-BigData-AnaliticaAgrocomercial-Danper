@@ -1,0 +1,18 @@
+# Finales de línea: el repositorio guarda LF aunque se commitee desde Windows.
+* text=auto
+
+# Archivos que se ejecutan o leen en Linux (EC2): siempre LF.
+*.sh   text eol=lf
+*.py   text eol=lf
+*.xml  text eol=lf
+*.conf text eol=lf
+*.sql  text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+
+# Binarios: Git no los toca.
+*.pdf     binary
+*.png     binary
+*.jpg     binary
+*.parquet binary
+*.xlsx    binary
