@@ -1,4 +1,24 @@
+<!--
+REGISTRO DE CAMBIOS (noviembre de 2026)
+Este archivo se actualizó con lo implementado hasta la corrección del proyecto
+(rama feature/correccion-proyecto, PR #7 y #8). Las secciones que dependen de trabajo
+aún no terminado (despliegue en AWS, secciones 5 y 6, conclusiones) se mantienen como
+estaban y se actualizarán al cerrar el proyecto.
+
+Cómo encontrar los cambios para pasarlos al .docx:
+- Cada sección modificada empieza con el comentario <!- - ACTUALIZADO - -> (sin espacios).
+- Donde hace falta una imagen nueva hay un bloque "[CAPTURA PENDIENTE]" que dice qué mostrar
+  y con qué comando obtenerla.
+- Donde falta un dato que se medirá después hay un bloque "[PENDIENTE]".
+  - [PENDIENTE OE3]: tiempo de la consulta manual (lo mide el equipo).
+  - [PENDIENTE AWS]: lo que se completará cuando el cluster en AWS esté desplegado.
+- Las figuras que ya no corresponden a lo implementado se eliminaron (pruebas de caché y
+  escalabilidad anteriores) o se conservaron como antecedente (modelo base de la Semana 7).
+-->
+
 <!-- Página 1 del PDF -->
+
+<!-- ACTUALIZADO -->
 
 UNIVERSIDAD PRIVADA ANTENOR ORREGO FACULTAD DE INGENIERÍA PROGRAMA DE ESTUDIO DE ING. COMPUTACIÓN Y SISTEMAS
 
@@ -10,6 +30,8 @@ ASIGNATURA: Big Data y Analítica de Datos PERIODO ACADÉMICO: 2026-20 CICLO: VI
 
 RUTA DE DESPLIEGUE: X | ☐ | On-premise | ☐ | Nube
 
+<!-- PENDIENTE AWS: al terminar el despliegue en el cluster de Amazon EC2, marcar "Nube". -->
+
 DOCENTE: Caballero Alvarado Javier Armando
 
 INTEGRANTES DEL EQUIPO
@@ -20,137 +42,111 @@ Trujillo – Perú 2026
 
 <!-- Página 2 del PDF -->
 
+<!-- ACTUALIZADO: se quitó el texto de la plantilla y las entradas del índice que pertenecían a la guía del curso. En Word, regenerar el índice automático. -->
+
 Índice
 
-Para generar el índice: clic derecho sobre esta zona y elegir «Actualizar campos».
+0. Ficha del proyecto y gestión del equipo
 
-Índice | 2
+0.1. Equipo y roles
 
-Propósito y uso de este documento | 4
+0.2. Cronograma
 
-Las dos ideas que sostienen todo el proyecto | 4
+0.3. Riesgos y mitigación
 
-Naturaleza del trabajo | 4
+0.4. Bitácora de decisiones
 
-Cómo se evalúa el proyecto | 4
+1. La empresa, el problema y la línea base
 
-Hitos, instrumentos y forma de calificación | 4
+1.1. Resumen ejecutivo
 
-Composición de la nota de cada hito | 5
+1.2. La empresa y su contexto
 
-Requisito de admisibilidad | 5
+1.3. Definición del problema de negocio
 
-Avance mínimo esperado a la Semana 7 | 5
+1.4. Línea base del negocio
 
-Qué sección alimenta cada criterio de la medición final | 6
+1.5. Objetivos del proyecto
 
-Requisitos mínimos del proyecto | 7
+1.6. Alcance y limitaciones
 
-Sobre el volumen y la prueba de escalabilidad | 7
+1.7. Justificación del proyecto como problema de Big Data
 
-Las dos rutas de despliegue | 8
+2. Arquitectura de la solución
 
-Estructura del informe | 9
+2.1. Arquitectura propuesta
 
-0. Ficha del proyecto y gestión del equipo | 9
+2.2. Atributos de calidad del diseño
 
-0.1. Equipo y roles | 9
+2.3. Prueba de sustitución de componentes
 
-0.2. Cronograma | 9
+2.4. Stack tecnológico y equivalencia entre rutas
 
-0.3. Riesgos y mitigación | 9
+3. Implementación del pipeline de datos
 
-0.4. Bitácora de decisiones | 9
+3.1. Fuentes de datos y ficha de procedencia
 
-1. La empresa, el problema y la línea base | 9
+3.2. Ingesta y organización del data lake
 
-1.1. Resumen ejecutivo | 9
+3.3. Procesamiento y limpieza
 
-1.2. La empresa y su contexto | 9
+3.4. Control de calidad de los datos
 
-1.3. Definición del problema de negocio | 9
+3.5. Almacenamiento de datos procesados
 
-1.4. Línea base del negocio | 10
+3.6. Optimización del rendimiento
 
-1.5. Objetivos del proyecto | 10
+3.7. Prueba de escalabilidad
 
-1.6. Alcance y limitaciones | 10
+3.8. Seguridad de la plataforma
 
-1.7. Justificación del proyecto como problema de Big Data | 10
+4. Análisis, modelado y capa de consumo
 
-2. Arquitectura de la solución | 10
+4.1. Análisis exploratorio de datos
 
-2.1. Arquitectura propuesta | 10
+4.2. Modelo base
 
-2.2. Atributos de calidad del diseño | 10
+4.3. Modelo definitivo, selección y evaluación
 
-2.3. Prueba de sustitución de componentes | 11
+4.4. Modelo dimensional y capa de consumo
 
-2.4. Stack tecnológico y equivalencia entre rutas | 11
+5. Ética, privacidad y gobierno de datos
 
-3. Implementación del pipeline de datos | 11
+5.1. Datos sensibles y protección aplicada
 
-3.1. Fuentes de datos y ficha de procedencia | 11
+5.2. Linaje y gobierno del dato
 
-3.2. Ingesta y organización del data lake | 12
+5.3. Sesgos y consecuencias del modelo
 
-3.3. Procesamiento y limpieza | 12
+5.4. Marco normativo aplicable
 
-3.4. Control de calidad de los datos | 12
+5.5. Aporte al desarrollo sostenible de la región
 
-<!-- Página 3 del PDF -->
+6. Valor generado, conclusiones y recomendaciones
 
-3.5. Almacenamiento de datos procesados | 12
+6.1. Trazabilidad del valor
 
-3.6. Optimización del rendimiento | 12
+6.2. Conclusiones
 
-3.7. Prueba de escalabilidad | 12
+6.3. Recomendaciones de negocio
 
-3.8. Seguridad de la plataforma | 13
+6.4. Trabajo futuro
 
-4. Análisis, modelado y capa de consumo | 13
+7. Anexos
 
-4.1. Análisis exploratorio de datos | 13
+Anexo A. Declaración de uso de herramientas de IA generativa
 
-4.2. Modelo base | 13
+Anexo B. Lista de verificación previa a la entrega
 
-4.3. Modelo definitivo, selección y evaluación | 13
+Anexo C. Diccionario de datos del proyecto
 
-4.4. Modelo dimensional y capa de consumo | 13
+Anexo D. Repositorio
 
-5. Ética, privacidad y gobierno de datos | 13
-
-5.1. Datos sensibles y protección aplicada | 14
-
-5.2. Linaje y gobierno del dato | 14
-
-5.3. Sesgos y consecuencias del modelo | 14
-
-5.4. Marco normativo aplicable | 14
-
-5.5. Aporte al desarrollo sostenible de la región | 14
-
-6. Valor generado, conclusiones y recomendaciones | 14
-
-6.1. Trazabilidad del valor | 14
-
-6.2. Conclusiones | 14
-
-6.3. Recomendaciones de negocio | 15
-
-6.4. Trabajo futuro | 15
-
-7. Anexos | 15
-
-Anexo A. Declaración de uso de herramientas de IA generativa | 16
-
-Anexo B. Lista de verificación previa a la entrega | 16
-
-Referencias sugeridas | 17
+Referencias
 
 <!-- Página 4 del PDF -->
 
-## Estructura del informe
+
 
 # 0. Ficha del proyecto y gestión del equipo
 
@@ -224,57 +220,24 @@ de Big Data.
 
 El proyecto se desarrollará desde la semana 2 hasta la semana 14 del semestre académico 2026-20. La planificación contempla actividades progresivas, comenzando con la definición del problema y el reconocimiento de las fuentes de información de Danper, hasta llegar al procesamiento de datos, la implementación de técnicas analíticas y la presentación de los resultados. El cronograma se organiza considerando las dependencias entre las actividades. Por ejemplo, antes de implementar un modelo analítico es necesario disponer de datos procesados y evaluar su calidad. De esta manera, se busca reducir retrasos y evitar repetir procedimientos por errores detectados tardíamente.
 
-Con la finalidad de evaluar el avance del proyecto, se realizó un seguimiento de las actividades planificadas, contrastándolas con los resultados obtenidos durante la implementación. Para ello, se tomaron como evidencias los scripts desarrollados, los notebooks ejecutados, el repositorio GitHub y las capturas de los procedimientos realizados en Debian 12.
+<!-- ACTUALIZADO -->
 
-Actividad | Semana planificada | Ejecución comprobada | Observaciones
+Con la finalidad de evaluar el avance del proyecto, se realizó un seguimiento de las actividades planificadas, contrastándolas con los resultados obtenidos durante la implementación. Para ello, se tomaron como evidencias los scripts del repositorio GitHub, los reportes generados por esos scripts (archivos CSV y Markdown versionados) y las ejecuciones realizadas en Debian 12 y en Ubuntu 24.04. El 17/11/2026 el pipeline completo se reconstruyó desde los datasets originales en un entorno nuevo (Ubuntu 24.04) y se obtuvieron los mismos resultados documentados.
 
-Recolección | y | 5 | Se recopilaron datasets de | Actividad ejecutada; fecha
+**Tabla 0.2. Seguimiento de las actividades planificadas**
 
-revisión de datos | fuentes institucionales y se | exacta | de | cierre | por
-
-elaboró el inventario de | contrastar.
-
-datos.
-
-Limpieza | y | 6 | Se desarrollaron procesos de | Fue necesario adaptar la
-
-transformación | transformación | para | lectura de fuentes con
-
-organizar los datos en la | diferentes | estructuras | y
-
-capa Silver. | formatos.
-
-Análisis | 7 | Se | generaron | tres | Actividad | ejecutada;
-
-exploratorio | visualizaciones | sobre | cumplimiento del plazo por
-
-producción agrícola. | verificar.
-
-Arquitectura de | 9 | Se verificaron las capas | Falta consolidar la evidencia
-
-almacenamiento | Bronze, Silver y Gold en | de una ejecución integral del
-
-Hadoop HDFS. | pipeline.
-
-<!-- Página 7 del PDF -->
-
-Modelo analítico | 10 | Se entrenó y evaluó un | El modelo obtuvo un MAE de 1
-
-inicial | modelo de regresión lineal. | 868,54 toneladas y no superó
-
-la referencia basada en la mediana.
-
-Optimización del | 11 | Se compararon operaciones | Se obtuvo una reducción del
-
-procesamiento | con caché y sin caché | 60,66 % del tiempo promedio
-
-mediante PySpark. | de las consultas repetidas.
-
-Evaluación | de | No diferenciada en el | Se realizaron pruebas con | Las mediciones corresponden
-
-escalabilidad | cronograma original | réplicas ×1, ×10 y ×100. | a Silver | → | Gold; falta evaluar el
-
-recorrido completo.
+| Actividad | Semana planificada | Ejecución comprobada | Observaciones |
+|---|---|---|---|
+| Recolección y revisión de datos | 5 | Se recopilaron 181 archivos de fuentes institucionales y se generó el inventario con tamaño y SHA-256 de cada archivo (`reportes/inventario_bronze.csv`). | 180 archivos de la carga base más 1 reporte GMML incorporado después de forma incremental. |
+| Limpieza y transformación | 6 | 9 scripts Bronze → Silver generan 11 tablas Silver con 79 498 filas. | Las validaciones de conteos fijos se reemplazaron por reglas de calidad para admitir datos nuevos. |
+| Análisis exploratorio | 7 | Tres visualizaciones sobre producción agrícola 2025. | Sin cambios respecto a la Semana 7. |
+| Arquitectura de almacenamiento | 9 | Bronze (181 archivos, `fsck` HEALTHY), Silver (11 tablas) y Gold (26 componentes) verificados en un mismo entorno. | Se resolvió la observación anterior: las tres capas se comprobaron en una misma instalación y en una corrida completa. |
+| Pipeline incremental y orquestación | No prevista | `run_pipeline.py` lleva un archivo nuevo de Bronze a PostgreSQL. Con `--vigilar` revisa la carpeta de datos cada 60 s. | Un reporte GMML nuevo llegó de Bronze a PostgreSQL en 2 min 22 s (18/11/2026). |
+| Modelo analítico | 10 | Modelo inicial de regresión lineal (Semana 7) y modelo definitivo con Spark MLlib (GBT, Random Forest y regresión lineal) para el ingreso de materia prima a planta. | Ningún modelo supera a la línea base estacional (WAPE 36,9 %); se reporta tal cual (sección 4.3). |
+| Optimización del procesamiento | 11 | Prueba de caché reproducible con `scripts/prueba_escalabilidad.py`. | Con 1 000 veces el volumen, la caché reduce 90 % el tiempo de las consultas repetidas (sección 3.6). |
+| Evaluación de escalabilidad | No diferenciada en el cronograma original | Prueba local con réplicas ×1 a ×1000 y de 1 a 8 hilos, con métricas de Spark. | Reemplaza a la prueba anterior, que no tenía respaldo en el código (sección 3.7). La medición con 1, 2 y 3 workers se hará en AWS. |
+| Capa de consumo | 12 | Gold publicado en PostgreSQL (29 tablas) y tablero en Grafana con 5 KPI de abastecimiento. | El tablero se actualiza solo cada 5 s (sección 4.4). |
+| Despliegue en la nube | No prevista | Scripts de instalación y configuración del cluster preparados y probados en contenedores. | [PENDIENTE AWS] Despliegue en Amazon EC2 con 1 master y 3 workers. |
 
 ### 0.3. Riesgos y mitigación
 
@@ -350,39 +313,21 @@ cronograma establecido. | documentación compartida que
 
 facilite la continuidad del trabajo.
 
-Durante el desarrollo del proyecto se identificaron situaciones relacionadas con la disponibilidad de información, la calidad de los datos y el rendimiento del modelo analítico. Estas dificultades se contrastaron con los riesgos previstos inicialmente para evaluar las medidas de mitigación aplicadas.
+<!-- ACTUALIZADO -->
 
-Riesgo identificado | Situación observada | Medida aplicada
+Durante el desarrollo del proyecto se identificaron situaciones relacionadas con la disponibilidad de información, la calidad de los datos, el rendimiento del modelo analítico y los recursos tecnológicos. Estas dificultades se contrastaron con los riesgos previstos inicialmente para evaluar las medidas de mitigación aplicadas.
 
-Acceso restringido a | No se contó con información | Se utilizaron datasets públicos
+**Tabla 0.4. Riesgos observados y medidas aplicadas**
 
-datos empresariales | operativa interna de Danper para | institucionales relacionados con
+| Riesgo identificado | Situación observada | Medida aplicada |
+|---|---|---|
+| Acceso restringido a datos empresariales | No se contó con información operativa interna de Danper. | Se usaron datasets públicos institucionales y los reportes de sostenibilidad publicados por Danper (2022–2024), de los que se tomaron cifras de la empresa, como la meta de compra de materia prima a terceros. |
+| Calidad insuficiente de los datos | Valores faltantes, años completos en cero y una serie copiada de un año a otro en el Excel original (espárrago 2024 igual a 2023). | Limpieza y validación con PySpark. Los vacíos del registro se tratan como faltantes y no como producción cero; las incidencias se guardan en `/danper/calidad`. |
+| Bajo rendimiento del modelo analítico | La regresión lineal de la Semana 7 no superó a la mediana. El modelo definitivo con Spark MLlib tampoco supera a la línea base estacional. | Se cambió a una variable objetivo con 15 años de historia, se compararon tres algoritmos con validación hacia adelante y el resultado se reporta sin ajustarlo a los años de prueba (sección 4.3). |
+| Limitaciones de recursos tecnológicos | La prueba de escalabilidad anterior no tenía respaldo en el código y sus réplicas se fusionaban en las agregaciones. | Se rehízo con un script versionado y réplicas que no se fusionan. En una sola máquina, pasar de 4 a 8 hilos no acelera el trabajo, lo que justifica medir con varios workers en AWS. |
+| Fallos en el entorno de procesamiento distribuido | HDFS no queda activo después de reiniciar el equipo local. | Se documentó el arranque en el README. En AWS, los servicios de Hadoop y Spark se instalan como servicios que arrancan solos con la máquina. |
 
-desarrollar el prototipo. | producción, costos y comercialización
-
-agrícola.
-
-<!-- Página 9 del PDF -->
-
-Calidad insuficiente | Se identificaron valores faltantes y | Se aplicaron procedimientos de limpieza,
-
-de los datos | diferencias de estructura entre las | normalización y validación mediante
-
-fuentes recopiladas. | PySpark.
-
-Bajo rendimiento del | La regresión lineal obtuvo un MAE | Se documentó el resultado como línea
-
-modelo analítico | superior al modelo de referencia | base y se propuso evaluar algoritmos
-
-basado en la mediana. | alternativos.
-
-Limitaciones de | Los escenarios de escalabilidad | Se registraron tiempos y consumo de CPU
-
-recursos tecnológicos | evaluados finalizaron | y memoria para evaluar la capacidad del
-
-correctamente. | entorno.
-
-El seguimiento permitió comprobar que los riesgos relacionados con la disponibilidad y calidad de los datos se presentaron durante el desarrollo del proyecto y fueron atendidos mediante el uso de fuentes públicas y procedimientos de limpieza y validación. Asimismo, el rendimiento limitado del modelo predictivo fue identificado a través de su evaluación y comparación con una referencia sencilla. En cuanto a los recursos tecnológicos, las pruebas realizadas no evidenciaron saturación de la máquina virtual, aunque todavía queda pendiente determinar su límite de capacidad. Por tanto, las medidas aplicadas permitieron continuar con la implementación, manteniendo identificadas las limitaciones que requieren atención en las siguientes etapas.
+El seguimiento permitió comprobar que los riesgos de disponibilidad y calidad de los datos se presentaron y fueron atendidos con fuentes públicas, reglas de validación y registro de incidencias. El rendimiento limitado del modelo se identificó al compararlo con una referencia sencilla y se documentó con sus causas. En cuanto a los recursos, la nueva prueba mostró el límite de una sola máquina: con 1 000 veces el volumen, el tiempo deja de mejorar al pasar de 4 a 8 hilos porque el equipo tiene 4 núcleos físicos.
 
 ### 0.4. Bitácora de decisiones
 
@@ -536,6 +481,24 @@ Octubre de | Realizar pruebas de | Volumen original y | Evaluar tiempos y | Se d
 
 Silver | → | Gold.
 
+<!-- ACTUALIZADO: decisiones nuevas, agregar a continuación de la tabla anterior -->
+
+**Tabla 0.5. Decisiones técnicas de la corrección del proyecto**
+
+| Fecha | Decisión técnica | Alternativas evaluadas | Criterio de elección | Consecuencia |
+|---|---|---|---|---|
+| 17/11/2026 | Centralizar rutas y conexión en `scripts/config.py` con variables de entorno | Rutas y master de Spark fijos en cada script | Ejecutar el mismo código en local y en un cluster sin modificarlo | Los scripts dejan de fijar `local[2]` y `hdfs://localhost:9000`; en el cluster solo cambian variables de entorno. |
+| 17/11/2026 | Validar con reglas de calidad en vez de conteos exactos | Mantener conteos fijos de filas y archivos | Los conteos fijos hacían fallar el pipeline con cualquier dato nuevo | El pipeline acepta datos nuevos y registra las incidencias. |
+| 17/11/2026 | Pipeline incremental con tabla de control por SHA-256 | Reprocesar todo en cada carga | Incorporar solo lo nuevo y no procesar dos veces el mismo archivo | `run_pipeline.py` lleva un archivo nuevo de Bronze a PostgreSQL. |
+| 17/11/2026 | Reconstruir Gold con Write-Audit-Publish (`--rebuild`) | Sobrescribir Gold directamente | No dejar Gold a medio escribir si falla una validación | Gold se escribe aparte, se valida y recién entonces reemplaza a la versión anterior. |
+| 19/11/2026 | PostgreSQL y Grafana como capa de consumo | Power BI, Metabase o Superset | Software libre en Linux, actualización automática del tablero y conexión con un usuario de solo lectura | Tablero con refresco cada 5 s y 5 KPI de abastecimiento. |
+| 19/11/2026 | Cambiar la variable objetivo del modelo al ingreso mensual de materia prima a planta y usar Spark MLlib | Producción mensual 2025 con scikit-learn | La producción solo tenía un año válido; el ingreso a planta tiene 15 años y se relaciona con la decisión de compra de Danper | Validación hacia adelante 2019–2024; resultado honesto frente a la línea base. |
+| 20/11/2026 | Rehacer la prueba de escalabilidad con un script versionado y réplicas que no se fusionan | Conservar las cifras anteriores | Las cifras anteriores no estaban respaldadas por código y las réplicas colapsaban en las agregaciones | Resultados reproducibles en `reportes/escalabilidad/`. |
+| 23/11/2026 | Publicar en PostgreSQL vía un esquema de staging en una sola transacción | Vaciar y recargar cada tabla | El tablero no debe mostrar tablas vacías durante una publicación | Grafana ve siempre una versión completa: la anterior o la nueva. |
+| 25/11/2026 | Desplegar en un cluster propio en Amazon EC2 | Amazon EMR | La cuenta del plan gratuito de AWS no permite EMR; un cluster propio demuestra HDFS y YARN con los mismos scripts | [PENDIENTE AWS] Despliegue con 1 master y 3 workers. |
+| 25/11/2026 | Guardar las contraseñas en SSM Parameter Store (SecureString) | AWS Secrets Manager | El proyecto no requiere rotación automática y Parameter Store no tiene costo | Ninguna contraseña queda en archivos del servidor ni del repositorio. |
+
+
 # 1. La empresa, el problema y la línea base
 
 ### 1.1. Resumen ejecutivo
@@ -616,71 +579,36 @@ La problemática no se limita a la existencia de información dispersa, sino a l
 
 ### 1.4. Línea base del negocio
 
+<!-- ACTUALIZADO -->
+
 La línea base establece la situación inicial de los indicadores que el proyecto de Big Data y Analítica Agrocomercial busca mejorar, permitiendo comparar los resultados obtenidos antes y después de implementar la solución propuesta para Danper Trujillo S.A.C.
+
+**Proceso de la empresa al que apunta el proyecto.** Danper procesa espárrago y alcachofa provenientes de fundos propios y de proveedores terceros, y debe programar con anticipación cuánta materia prima comprar a esos terceros para cada campaña. Según su Reporte de Sostenibilidad 2023, ese año la compra de alcachofa a terceros quedó 16,8 % por debajo de lo planificado (21 315 t logradas frente a una meta de 25 623 t) y la de espárrago, 2,5 % por debajo (5 965 t frente a 6 117 t). La decisión que apoya el proyecto es, por tanto, **cuánta materia prima asegurar por mes**, y la información para tomarla está dispersa en fuentes distintas.
 
 La línea base revela el hallazgo más importante del arranque: el problema no es la ausencia de información agrocomercial, sino su dispersión entre diferentes fuentes que dificultan analizar conjuntamente las condiciones de abastecimiento y comercialización. El equipo ha recopilado datos sobre producción agrícola, precios, costos, abastecimiento mayorista, agroindustria y exportaciones; sin embargo, al inicio del proyecto, ninguna de estas seis dimensiones se encuentra integrada en una misma capa analítica de la plataforma propuesta. Esto establece un valor inicial de 0 de 6 dimensiones integradas (0 %).
 
-<!-- Página 15 del PDF -->
-
-La importancia de este problema se evidencia en los registros agrícolas y comerciales recopilados. Según la Gerencia Regional de Agricultura de La Libertad, durante la campaña agrícola 2024–2025, el precio en chacra del espárrago en Virú fluctuó entre S/ 2,80 y S/ 4,88 por kilogramo, mientras que su producción alcanzó las 33 950,76 toneladas. Asimismo, las estadísticas regionales muestran que las exportaciones de espárrago disminuyeron un 24,19 % en volumen entre 2022 y 2023. Estas variaciones son relevantes para Danper, porque pueden influir en la disponibilidad de materia prima, los costos de adquisición y las decisiones comerciales.
+La importancia de este problema se evidencia en los registros agrícolas y comerciales recopilados. Según la Gerencia Regional de Agricultura de La Libertad, durante la campaña agrícola 2024–2025, el precio en chacra del espárrago en Virú fluctuó entre S/ 2,80 y S/ 4,88 por kilogramo, mientras que su producción alcanzó las 33 950,76 toneladas. Asimismo, las estadísticas regionales muestran que las exportaciones de espárrago disminuyeron un 24,19 % en volumen entre 2022 y 2023. Estas variaciones son relevantes para Danper, porque pueden influir en la disponibilidad de materia prima, los costos de adquisición y las decisiones comerciales. Todas estas cifras se obtienen ahora directamente de las tablas Gold de la plataforma, por lo que son trazables hasta el archivo de origen.
 
 **Tabla 1.2 Indicadores de la línea base del negocio**
 
-Indicador | Valor actual o de referencia | Fuente | Fecha de
+| Indicador | Valor actual o de referencia | Fuente | Fecha de medición |
+|---|---|---|---|
+| Dimensiones agrocomerciales integradas en la plataforma propuesta | 0 de 6 (0 %) | Diagnóstico inicial del equipo | Octubre de 2026 |
+| Fuentes de información agrocomercial que requieren integración | 6 dimensiones: producción, precios, costos, abastecimiento, agroindustria y exportaciones | Inventario de datasets del proyecto | Octubre de 2026 |
+| Cumplimiento de la meta de compra de materia prima a terceros | Alcachofa: 83,2 % (21 315 de 25 623 t). Espárrago: 97,5 % (5 965 de 6 117 t) | Danper, Reporte de Sostenibilidad 2023 | Año 2023 |
+| Error del método simple de planificación (promedio del mismo mes en los 3 años anteriores) para el ingreso de materia prima a planta | WAPE 36,9 %; el total anual se subestima en 16,0 % | Cálculo del proyecto con datos GRLL-OIA (`reportes/modelo/metricas.csv`) | Validación 2019–2024 |
+| Variación del precio en chacra del espárrago en Virú | S/ 2,80 a S/ 4,88 por kg, diferencia de S/ 2,08/kg | Gerencia Regional de Agricultura de La Libertad | Campaña 2024–2025 |
+| Producción agrícola de espárrago en Virú | 33 950,76 toneladas | Gerencia Regional de Agricultura de La Libertad | Campaña 2024–2025 |
+| Producción agrícola de alcachofa en Virú | 20 730,80 toneladas | Gerencia Regional de Agricultura de La Libertad | Campaña 2024–2025 |
+| Variación del volumen exportado de espárrago en La Libertad | −24,19 %, de 78 692,24 a 59 659,85 toneladas | GRLL-GRAG-OIA, con datos del BCRP | Comparación 2022–2023 |
+| Ingreso de alcachofa para procesamiento agroindustrial en La Libertad | 156 157,73 toneladas | GRLL-OIA, registros de empresas agroindustriales | Año 2024 |
+| Tiempo para elaborar la consulta agrocomercial consolidada de espárrago en Virú (precio en chacra, producción y exportaciones) | Manual: [PENDIENTE OE3]. Con la plataforma: [PENDIENTE OE3] | Medición del equipo | [PENDIENTE OE3] |
 
-medición
-
-Dimensiones | 0 de 6 (0 %) | Diagnóstico inicial del | Octubre de 2026
-
-agrocomerciales integradas | equipo
-
-en la plataforma propuesta
-
-Fuentes de información | 6 dimensiones: producción, | Inventario de datasets | Octubre de 2026
-
-agrocomercial | que | precios, | costos, | del proyecto
-
-requieren integración | abastecimiento, agroindustria
-
-y exportaciones
-
-Variación del precio en | S/ 2,80 a S/ 4,88 por kg, | Gerencia Regional de | Campaña 2024–
-
-chacra del espárrago en | diferencia de S/ 2,08/kg | Agricultura | de | La | 2025
-
-Virú | Libertad
-
-Producción agrícola de | 33 950,76 toneladas | Gerencia Regional de | Campaña 2024–
-
-espárrago en Virú | Agricultura | de | La | 2025
-
-Libertad
-
-Producción agrícola de | 20 730,80 toneladas | Gerencia Regional de | Campaña 2024–
-
-alcachofa en Virú | Agricultura | de | La | 2025
-
-Libertad
-
-Variación del volumen | −24,19 | %, de 78 692,24 a 59 | GRLL-GRAG-OIA, con | Comparación
-
-exportado de espárrago en | 659,85 toneladas | datos del BCRP | 2022–2023
-
-La Libertad
-
-Ingreso de alcachofa para | 156 157,73 toneladas | GRLL-OIA, registros de | Año 2024
-
-procesamiento | empresas
-
-agroindustrial | en | La | agroindustriales
-
-Libertad
-
-<!-- Página 16 del PDF -->
+> **[PENDIENTE OE3]** Cronometrar la elaboración manual de la consulta de la última fila (abrir los Excel y PDF de origen, ubicar los valores y armar el resumen) y la misma consulta desde la plataforma. Registrar ambos tiempos, la fecha y quién la realizó.
 
 Los resultados muestran que existen variaciones productivas y comerciales que pueden representar riesgos para la planificación agrocomercial de Danper. Sin embargo, identificar cómo se relacionan estos cambios requiere consultar y comparar información procedente de distintas fuentes, con diferentes periodos y niveles geográficos.
 
-Por ello, la métrica principal que el proyecto busca mejorar es el porcentaje de dimensiones agrocomerciales integradas, cuyo valor inicial es del 0 %. La meta propuesta es alcanzar la integración del 100 % de las seis dimensiones seleccionadas, permitiendo consultar información por producto, zona y periodo. Como indicador adicional de eficiencia, se evaluará la reducción del tiempo necesario para elaborar una consulta agrocomercial consolidada, comparando una prueba manual inicial con la consulta realizada mediante la plataforma.
+Por ello, la métrica principal que el proyecto busca mejorar es el porcentaje de dimensiones agrocomerciales integradas, cuyo valor inicial es del 0 %. La meta propuesta es alcanzar la integración del 100 % de las seis dimensiones seleccionadas, permitiendo consultar información por producto, zona y periodo. Como indicadores adicionales se evaluarán el error de la planificación del ingreso de materia prima, comparando el método simple con el modelo predictivo, y la reducción del tiempo necesario para elaborar una consulta agrocomercial consolidada, comparando una prueba manual con la consulta realizada mediante la plataforma.
 
 El valor del proyecto no se medirá por un aumento directo de la producción agrícola o una reducción de los precios del mercado, variables que la plataforma no controla, sino por su capacidad para transformar información dispersa en indicadores comparables que faciliten la identificación oportuna de riesgos y oportunidades de abastecimiento y comercialización.
 
@@ -728,7 +656,9 @@ La solución integrará las siguientes dimensiones:
 
 El proyecto incluirá la ingesta, limpieza, transformación e integración de los datos, su almacenamiento en una arquitectura de datos, el análisis exploratorio, el desarrollo de un modelo predictivo y la construcción de una capa de consumo con indicadores para apoyar la planificación del abastecimiento y el análisis agrocomercial.
 
-La implementación se realizará mediante la ruta on-premise, utilizando Debian 12 como sistema operativo, Hadoop HDFS para el almacenamiento de datos y Apache Spark/PySpark para los procesos de limpieza, transformación e integración. Las ejecuciones documentadas del prototipo se desarrollaron principalmente en modo local, por lo que no se considera a Hadoop YARN como un componente activo del procesamiento implementado.
+<!-- ACTUALIZADO -->
+
+La implementación se desarrolló en la ruta on-premise, utilizando Debian 12 y Ubuntu 24.04 como sistemas operativos, Hadoop HDFS para el almacenamiento de datos, Apache Spark/PySpark para la limpieza, transformación, integración y el modelo predictivo, PostgreSQL para publicar los resultados y Grafana para el tablero. Las ejecuciones documentadas hasta ahora se realizaron en un solo equipo, con Spark en modo local. Los scripts ya no fijan el modo de ejecución, de modo que el mismo código podrá ejecutarse sobre YARN en un cluster de varios nodos. [PENDIENTE AWS] Ejecución en el cluster de Amazon EC2.
 
 Limitaciones
 
@@ -740,25 +670,21 @@ La información de mercados mayoristas será utilizada como indicador de abastec
 
 <!-- Página 18 del PDF -->
 
-Finalmente, las pruebas de escalabilidad realizadas permitieron evaluar el comportamiento del procesamiento ante distintos volúmenes de información. Se utilizaron el conjunto original y réplicas de 10 y 100 veces su tamaño, observándose que los tres escenarios finalizaron correctamente en una sola máquina virtual. Sin embargo, las pruebas comprendieron únicamente el procesamiento de Silver a Gold y no permitieron identificar el punto de saturación del equipo. Por tanto, todavía no se ha demostrado que el volumen actual requiera obligatoriamente procesamiento distribuido, siendo necesario realizar evaluaciones adicionales sobre el pipeline completo.
+<!-- ACTUALIZADO -->
+
+Finalmente, la prueba de escalabilidad (sección 3.7) se realizó en una sola máquina con el conjunto original y réplicas de 10, 100 y 1 000 veces su tamaño. Comprende el procesamiento de Silver a Gold con un trabajo representativo, no el recorrido completo desde Bronze. Mostró el límite de un solo equipo: con 1 000 veces el volumen, pasar de 4 a 8 hilos ya no reduce el tiempo. La escalabilidad horizontal, con varios nodos, aún no se ha medido.
 
 ### 1.7. Justificación del proyecto como problema de Big Data
 
 El proyecto se justifica dentro del enfoque de Big Data principalmente por la necesidad de integrar y procesar múltiples fuentes de datos con diferentes estructuras, niveles de detalle, frecuencias de actualización y formatos, para convertirlas en información útil para la planificación agrocomercial de Danper. No se considera un proyecto de Big Data únicamente por utilizar Apache Spark, sino por los retos que presenta la integración, calidad, crecimiento y procesamiento de los datos.
 
-En relación con las cinco V de Big Data, no todas se presentan con la misma intensidad en el proyecto. La variedad, la veracidad y el valor constituyen las características más evidentes, mientras que la velocidad se presenta de forma moderada. Respecto al volumen, se documentaron 79 498 filas distribuidas en once conjuntos Silver y se realizaron pruebas de escalabilidad con réplicas de 10 y 100 veces el tamaño original
+<!-- ACTUALIZADO -->
 
-para evaluar el procesamiento Silver | → | Gold. Los resultados no demostraron que el volumen actual requiera
+En relación con las cinco V de Big Data, no todas se presentan con la misma intensidad en el proyecto. La variedad, la veracidad y el valor constituyen las características más evidentes, mientras que la velocidad se presenta de forma moderada. Respecto al volumen, Silver tiene 79 498 filas en once conjuntos y Bronze 181 archivos (unos 605 MB); la prueba de escalabilidad llegó a 78,5 millones de filas de entrada con réplicas de hasta 1 000 veces el tamaño original.
 
-obligatoriamente procesamiento distribuido.
+- | Volumen: se integran datos de producción agrícola de las provincias y distritos de La Libertad, costos, precios, abastecimiento mayorista, agroindustria y exportaciones: 79 498 filas en once conjuntos Silver, de fuentes y niveles de detalle distintos. El volumen actual cabe en un solo equipo. La prueba de escalabilidad muestra que, al crecer 1 000 veces, el procesamiento sigue funcionando en una máquina, pero deja de acelerarse con más hilos; para crecer más allá se necesita repartir el trabajo entre varios nodos.
 
-- | Volumen: se integrarán datos de producción agrícola de las provincias y distritos de La Libertad,
-
-costos, precios, abastecimiento mayorista, agroindustria y exportaciones. La documentación técnica registra 79 498 filas distribuidas en once conjuntos procesados de la capa Silver, correspondientes a diferentes fuentes y niveles de detalle. Asimismo, se realizaron pruebas de escalabilidad con réplicas de 10 y 100 veces el volumen original para evaluar el comportamiento del procesamiento Silver– Gold. Aunque las pruebas finalizaron correctamente, todavía no se ha demostrado que el volumen actual requiera obligatoriamente procesamiento distribuido ni se ha identificado el punto de saturación de una sola máquina. Por esta razón, en esta etapa no se considera que el volumen por sí solo justifique el uso de una arquitectura distribuida.
-
-- | Velocidad: las fuentes presentan diferentes frecuencias de actualización. Existen datos diarios de
-
-precios y abastecimiento mayorista, datos mensuales de producción y exportaciones, y fuentes anuales como la ENA. Por ello, la arquitectura debe permitir incorporar nuevos periodos sin reconstruir completamente el procesamiento existente. Por tanto, el proyecto no presenta actualmente un escenario de alta velocidad ni procesamiento en tiempo real.
+- | Velocidad: las fuentes presentan diferentes frecuencias de actualización. Existen datos diarios de precios y abastecimiento mayorista, datos mensuales de producción y exportaciones, y fuentes anuales como la ENA. Por ello, el pipeline incorpora los archivos nuevos de forma incremental, sin reconstruir todo el procesamiento: un reporte diario del GMML llega al tablero en unos 2 minutos. El proyecto no presenta un escenario de procesamiento en tiempo real.
 
 - | Variedad: constituye una de las principales características del proyecto, debido a que las fuentes se
 
@@ -774,9 +700,9 @@ distintas unidades de medida, periodos incompletos y diferentes niveles de agreg
 
 a decisiones. La plataforma buscará facilitar la identificación de productos, zonas y periodos con mejores condiciones de producción, costos, abastecimiento y comportamiento comercial para apoyar la planificación de Danper.
 
-Respecto a la pregunta “¿los datos caben y rinden en una sola máquina, hoy y cuando crezcan?”, en el estado actual no se puede afirmar que el volumen disponible requiera obligatoriamente procesamiento distribuido.
+<!-- ACTUALIZADO -->
 
-En la prueba de escalabilidad de la subsección 3.7 se evaluó el procesamiento de Silver a Gold utilizando el conjunto real y réplicas de 10 y 100 veces su tamaño. Los tiempos registrados fueron de 54,98 segundos para ×1, 55,03 segundos para ×10 y 53,35 segundos para ×100. Estos resultados muestran que la máquina virtual pudo completar los escenarios evaluados sin evidenciar una degradación proporcional al incremento del volumen. Sin embargo, todavía no se ha identificado el punto de saturación del equipo ni se ha evaluado la escalabilidad del pipeline completo Bronze–Silver–Gold. Por tanto, el uso futuro de procesamiento distribuido deberá justificarse mediante pruebas adicionales.
+Respecto a la pregunta “¿los datos caben y rinden en una sola máquina, hoy y cuando crezcan?”: hoy sí caben. En la prueba de la sección 3.7, con el volumen real el procesamiento Silver → Gold tarda 4,8 s y con 1 000 veces el volumen, 32,4 s. Sin embargo, con ese volumen el equipo llegó a su límite: pasar de 4 a 8 hilos no redujo el tiempo, porque solo tiene 4 núcleos físicos y un disco. Si los datos siguen creciendo, la forma de mantener el rendimiento es agregar nodos, cada uno con núcleos y disco propios. [PENDIENTE AWS] Esta afirmación se comprobará midiendo el mismo trabajo con 1, 2 y 3 workers.
 
 Por lo tanto, el uso de tecnologías Big Data se plantea no solo para resolver el volumen actual, sino para construir una arquitectura escalable, reproducible y capaz de integrar fuentes heterogéneas, manteniendo su funcionamiento a medida que aumenten los datos disponibles.
 
@@ -784,7 +710,9 @@ Por lo tanto, el uso de tecnologías Big Data se plantea no solo para resolver e
 
 La arquitectura de la plataforma de Big Data y Analítica Agrocomercial propuesta para Danper Trujillo S.A.C. está orientada a integrar información procedente de distintas instituciones públicas, procesarla de manera organizada y transformarla en indicadores que permitan analizar el comportamiento de la producción, los precios, los costos agrícolas, el abastecimiento, la actividad agroindustrial y las exportaciones de productos relevantes para la empresa.
 
-La solución utiliza una arquitectura de datos por capas, implementada mediante la ruta on-premise. Hadoop Distributed File System (HDFS) permite almacenar la información en las capas Bronze, Silver y Gold, mientras que Apache Spark/PySpark se encarga de las operaciones de limpieza, transformación e integración. Los datos procesados se almacenan principalmente en formato Parquet y se utilizan posteriormente para consultas analíticas, visualizaciones y evaluación de modelos predictivos. Esta organización busca conservar los datos originales, facilitar su limpieza e integración y mantener separados los procesos técnicos de los resultados utilizados para la toma de decisiones.
+<!-- ACTUALIZADO -->
+
+La solución utiliza una arquitectura de datos por capas, implementada mediante la ruta on-premise. Hadoop Distributed File System (HDFS) permite almacenar la información en las capas Bronze, Silver y Gold, mientras que Apache Spark/PySpark se encarga de las operaciones de limpieza, transformación, integración y del modelo predictivo con Spark MLlib. Los datos procesados se almacenan en formato Parquet y la capa Gold se publica en PostgreSQL, desde donde la consulta un tablero de Grafana. Un orquestador lleva cada archivo nuevo por todas las capas de forma automática. Esta organización busca conservar los datos originales, facilitar su limpieza e integración y mantener separados los procesos técnicos de los resultados utilizados para la toma de decisiones.
 
 El diseño también considera la posibilidad de incorporar nuevas fuentes y periodos de información sin reconstruir toda la plataforma. Para ello, se establecerán formatos, esquemas y rutas de almacenamiento consistentes, procurando que cada componente pueda mantenerse o sustituirse sin afectar innecesariamente al resto de la solución.
 
@@ -806,6 +734,8 @@ La plataforma permitirá procesar información de cinco productos priorizados: e
 
 Figura 2.1. Arquitectura propuesta de la plataforma Big Data y Analítica Agrocomercial de Danper
 
+> **[CAPTURA PENDIENTE] Actualizar la Figura 2.1.** El diagrama debe mostrar lo implementado: orquestador `run_pipeline.py` con la tabla de control, modelo con Spark MLlib (no Scikit-learn), PostgreSQL (esquemas `gold` y `gold_staging`) y tablero de Grafana como capa de consumo.
+
 El recorrido mostrado en la Figura 2.1 comienza con la obtención de información institucional de MIDAGRI, INEI, SISAP/EMMSA y otras fuentes relacionadas con agroindustria y exportaciones. Mediante procesos de ingesta por lotes desarrollados en Python, los archivos serán incorporados a HDFS y organizados en la capa Bronze, conservando su estructura original y la información necesaria para identificar su procedencia.
 
 Posteriormente, Apache Spark/PySpark realizará las transformaciones correspondientes a la limpieza, conversión de tipos, tratamiento de registros duplicados, normalización de nombres de productos, unidades de medida y fechas. Los conjuntos resultantes se almacenarán en la capa Silver, principalmente mediante archivos Parquet, para facilitar su procesamiento y consulta.
@@ -814,43 +744,20 @@ Posteriormente, Apache Spark/PySpark realizará las transformaciones correspondi
 
 En la capa Gold se integrarán los conjuntos de información que compartan claves y granularidades compatibles, generando tablas analíticas e indicadores por producto, zona y periodo. Estos resultados servirán como entrada para el análisis exploratorio, el desarrollo del modelo predictivo y las visualizaciones utilizadas para apoyar la planificación del abastecimiento y el análisis agrocomercial de Danper.
 
-**Tabla 2.1. Recorrido del dato en la arquitectura propuesto**
+<!-- ACTUALIZADO -->
 
-Etapa | Qué ocurre | Tecnología
+**Tabla 2.1. Recorrido del dato en la arquitectura propuesta**
 
-1. Fuentes | Obtención de datos institucionales sobre producción, | MIDAGRI, INEI,
-
-precios, costos, abastecimiento, agroindustria y | SISAP/EMMSA y fuentes
-
-exportaciones. | complementarias
-
-2. Ingesta | Descarga, lectura y organización de archivos | Python y scripts de ingesta
-
-institucionales, registrando su procedencia y fecha de incorporación.
-
-3a. Bronze | Almacenamiento de archivos originales sin modificar su | Hadoop HDFS
-
-contenido.
-
-3b. Silver | Limpieza, normalización, validación de esquemas y | Spark/PySpark, HDFS y
-
-conversión de los datos a formatos adecuados para el | Parquet
-
-procesamiento.
-
-3c. Gold | Integración de fuentes, agregaciones y generación de | Spark SQL/PySpark y
-
-tablas analíticas por producto, zona y periodo. | Parquet
-
-4. Análisis y | Consultas sobre los conjuntos integrados, generación de | Spark SQL, JupyterLab,
-
-modelado | indicadores y entrenamiento de un modelo predictivo. | Python y Scikit-learn para el
-
-análisis exploratorio y el modelo base de regresión lineal.
-
-5. Consumo Presentación de indicadores y visualizaciones que apoyen | Tablero analítico por
-
-la planificación agrocomercial. | implementar
+| Etapa | Qué ocurre | Tecnología |
+|---|---|---|
+| 1. Fuentes | Obtención de datos institucionales sobre producción, precios, costos, abastecimiento, agroindustria y exportaciones | MIDAGRI, INEI, SISAP/EMMSA, SUNAT y reportes de Danper |
+| 2. Ingesta | Carga de archivos a HDFS registrando su procedencia, su huella SHA-256 y su paso por cada capa | Python, `run_pipeline.py` y tabla de control |
+| 3a. Bronze | Almacenamiento de archivos originales sin modificar su contenido | Hadoop HDFS |
+| 3b. Silver | Limpieza, normalización, validación por reglas y conversión a Parquet | Spark/PySpark, HDFS y Parquet |
+| 3c. Gold | Integración de fuentes, agregaciones y generación de tablas analíticas por producto, zona y periodo | Spark SQL/PySpark y Parquet |
+| 4. Análisis y modelado | Consultas sobre los conjuntos integrados, indicadores y modelo predictivo del ingreso de materia prima | Spark MLlib y JupyterLab |
+| 5. Publicación | Copia de Gold a una base relacional mediante un esquema de staging y una sola transacción | PostgreSQL 16 (JDBC) |
+| 6. Consumo | Tablero con indicadores de abastecimiento que se actualiza solo | Grafana 12.4.3 |
 
 Tipo de arquitectura
 
@@ -950,7 +857,9 @@ objetivo analítico.
 
 Los contratos permiten separar las responsabilidades de cada etapa. Por ejemplo, si cambia la estructura de un archivo de producción publicado por una institución, la modificación debe realizarse principalmente en el proceso de transformación hacia Silver, procurando mantener el esquema utilizado por Gold.
 
-En la implementación actual, las validaciones se encuentran distribuidas entre los scripts de ingesta, transformación y procesamiento. Por tanto, estos contratos documentan las condiciones técnicas y de calidad de la arquitectura, sin afirmar que exista un sistema independiente de gestión automática de contratos.
+<!-- ACTUALIZADO -->
+
+En la implementación actual, las validaciones se encuentran distribuidas entre los scripts de ingesta, transformación y procesamiento, y se suma un contrato más: Gold → PostgreSQL, en el que cada tabla debe llegar con las mismas filas que tiene en Gold antes de publicarse. Estos contratos documentan las condiciones técnicas y de calidad de la arquitectura, sin afirmar que exista un sistema independiente de gestión automática de contratos.
 
 La arquitectura permitirá conservar las características propias de cada fuente para evitar interpretaciones incorrectas. Por ejemplo, la información de precios mayoristas no se utilizará como equivalente directo del precio en chacra, debido a que representan diferentes etapas de la comercialización. De igual manera, los indicadores regionales no se atribuirán a un distrito determinado sin información que permita justificar dicha relación.
 
@@ -966,17 +875,13 @@ La arquitectura propuesta para Danper Trujillo S.A.C. busca garantizar que los d
 
 ● | Escalabilidad
 
-La arquitectura utiliza Apache Spark/PySpark para el procesamiento de datos y Hadoop HDFS como sistema de almacenamiento. Para evaluar su escalabilidad se realizaron pruebas con el volumen original de datos y réplicas de 10 y 100 veces su tamaño, utilizando una máquina virtual Debian 12 con 5 CPU virtuales y aproximadamente 8 GiB de memoria RAM.
+<!-- ACTUALIZADO -->
 
-Los tiempos registrados durante el procesamiento Silver | → | Gold fueron de 54,98 segundos
-
-(×1), 55,03 segundos (×10) y 53,35 segundos (×100). Estos resultados muestran que, en las condiciones evaluadas, el aumento del volumen no produjo un incremento proporcional del tiempo de ejecución. Sin embargo, no permiten asegurar que el comportamiento se mantenga con datos reales más diversos ni determinar el punto de saturación del equipo. Por ello, antes de incorporar nuevos nodos o ampliar la infraestructura, será necesario
-
-completar las pruebas del pipeline Bronze | → | Silver | → | Gold y evaluar cargas superiores.
+La arquitectura utiliza Apache Spark/PySpark para el procesamiento de datos y Hadoop HDFS como sistema de almacenamiento. En la prueba de la sección 3.7, con 1 000 veces el volumen real el tiempo del procesamiento Silver → Gold creció unas 7 veces (de 4,8 a 32,4 s), y pasar de 1 a 4 núcleos lo aceleró 2,6 veces. Más allá de 4 núcleos un solo equipo no mejora, por lo que el crecimiento debe lograrse agregando nodos. [PENDIENTE AWS] Medición con 1, 2 y 3 workers.
 
 ● | Disponibilidad
 
-Para reducir el riesgo de pérdida de información durante el procesamiento, los archivos originales se conservarán en la capa Bronze, permitiendo reconstruir las capas Silver y Gold si una transformación presenta errores. Por ejemplo, si falla un trabajo de Spark mientras integra los precios agrícolas y la producción, será necesario corregir el problema y ejecutar nuevamente el proceso correspondiente. Los archivos originales podrán mantenerse siempre que el almacenamiento permanezca íntegro. No obstante, debido a que el prototipo puede depender de una sola máquina virtual, una falla de dicho entorno interrumpiría temporalmente los servicios. Por lo tanto, la propuesta contempla recuperación mediante reprocesamiento, pero no garantiza alta disponibilidad física.
+Para reducir el riesgo de pérdida de información durante el procesamiento, los archivos originales se conservarán en la capa Bronze, permitiendo reconstruir las capas Silver y Gold si una transformación presenta errores. Por ejemplo, si falla un trabajo de Spark mientras integra los precios agrícolas y la producción, será necesario corregir el problema y ejecutar nuevamente el proceso correspondiente. Los archivos originales podrán mantenerse siempre que el almacenamiento permanezca íntegro. No obstante, debido a que el prototipo puede depender de una sola máquina virtual, una falla de dicho entorno interrumpiría temporalmente los servicios. Por lo tanto, la propuesta contempla recuperación mediante reprocesamiento, pero no garantiza alta disponibilidad física. Además, Gold y la publicación en PostgreSQL siguen el patrón Write-Audit-Publish: se escriben aparte, se validan y recién entonces reemplazan a la versión anterior, de modo que un fallo durante el procesamiento no deja al tablero sin datos. <!-- ACTUALIZADO -->
 
 ● | Mantenibilidad
 
@@ -1002,7 +907,9 @@ Si Danper decidiera reemplazar Apache Spark por otro motor de procesamiento, com
 
 Por otro lado, si se decidiera migrar el almacenamiento de HDFS hacia Amazon S3, sería necesario trasladar los archivos, modificar las rutas de lectura y escritura, configurar los conectores y establecer los permisos correspondientes. No obstante, las transformaciones desarrolladas con Spark podrían conservar gran parte de su lógica, siempre que se garantice la compatibilidad de formatos y esquemas. La organización de las capas Bronze, Silver y Gold también podría mantenerse, debido a que representa una decisión de arquitectura y no una característica exclusiva de HDFS.
 
-Para facilitar estos cambios, se propone mantener separados los parámetros de conexión y almacenamiento de las reglas agrocomerciales. Por ejemplo, la definición del rendimiento agrícola o la normalización de los nombres de productos no debería depender de una ruta específica de HDFS. De igual manera, las tablas analíticas deberán conservar nombres, tipos de datos, unidades de medida y niveles de agregación consistentes, independientemente de la herramienta que las procese.
+<!-- ACTUALIZADO -->
+
+Para facilitar estos cambios, los parámetros de conexión y almacenamiento se mantienen separados de las reglas agrocomerciales: la dirección de HDFS, la carpeta de datos, el modo de ejecución de Spark y la conexión a PostgreSQL se definen en `scripts/config.py` mediante variables de entorno, sin modificar los scripts. Por ejemplo, la definición del rendimiento agrícola o la normalización de los nombres de productos no debería depender de una ruta específica de HDFS. De igual manera, las tablas analíticas deberán conservar nombres, tipos de datos, unidades de medida y niveles de agregación consistentes, independientemente de la herramienta que las procese.
 
 Por lo tanto, la arquitectura propuesta permitiría conservar sus datos y definiciones analíticas frente a determinados cambios tecnológicos, aunque no eliminaría completamente el trabajo de migración. Su
 
@@ -1012,63 +919,37 @@ principal ventaja es que los cambios podrían concentrarse en componentes identi
 
 ### 2.4. Stack tecnológico y equivalencia entre rutas
 
-La selección de tecnologías para la plataforma de Big Data y Analítica Agrocomercial de Danper Trujillo S.A.C. se fundamenta en las necesidades de almacenamiento, procesamiento e integración de datos institucionales y en la infraestructura disponible durante el curso. Se seleccionó la ruta on-premise, utilizando Hadoop HDFS para almacenar los datos en las capas Bronze, Silver y Gold, Apache Spark/PySpark para realizar las transformaciones y consultas analíticas, y JupyterLab como entorno de desarrollo y ejecución de notebooks. El procesamiento documentado se realizó en modo local, sin utilizar YARN como administrador de recursos.
+La selección de tecnologías para la plataforma de Big Data y Analítica Agrocomercial de Danper Trujillo S.A.C. se fundamenta en las necesidades de almacenamiento, procesamiento e integración de datos institucionales y en la infraestructura disponible durante el curso. <!-- ACTUALIZADO -->
+
+Se seleccionó la ruta on-premise, utilizando Hadoop HDFS para almacenar los datos en las capas Bronze, Silver y Gold, Apache Spark/PySpark para las transformaciones, las consultas analíticas y el modelo predictivo, PostgreSQL y Grafana para la capa de consumo, y JupyterLab para el análisis exploratorio. El procesamiento documentado se realizó en modo local; el despliegue sobre YARN en un cluster se documentará al terminarlo.
 
 Según Chambers y Zaharia (2018), Apache Spark proporciona herramientas para procesar datos mediante DataFrames y consultas SQL, facilitando operaciones de transformación, integración y análisis. Estas características resultan adecuadas para el proyecto, debido a que las fuentes agrocomerciales presentan diferentes estructuras, formatos y niveles de detalle.
 
 ## Herramientas seleccionadas
 
+<!-- ACTUALIZADO -->
+
 **Tabla 2.4. Stack tecnológico del proyecto**
 
-Herramienta | Versión | Función | Estado
-
-Debian GNU/Linux | 12 | Sistema operativo del | Utilizada
-
-entorno de ejecución.
-
-Apache Hadoop HDFS | 3.3.6 | Almacenamiento de los | Implementada
-
-conjuntos procesados en las capas Silver y Gold y soporte para la organización del data lake.
-
-Apache Spark / PySpark 3.5.1 | Limpieza, | Utilizada en el pipeline
-
-transformación e | Gold
-
-integración de fuentes.
-
-Spark SQL | 3.5.1 | Consultas, agrupaciones | Utilizada
-
-y uniones de datos.
-
-Python | 3.11.2 | Scripts de ingesta y | Utilizada
-
-preparación de archivos.
-
-Git | 2.39.5 | Control de versiones, | Utilizada
-
-gestión de ramas y seguimiento de cambios del proyecto.
-
-<!-- Página 27 del PDF -->
-
-JupyterLab | 4.6.3 | Desarrollo y ejecución | Utilizada
-
-del pipeline.
-
-Apache Parquet | Formato de | Almacenamiento | Utilizada
-
-almacenamiento | columnar de las capas
-
-Silver y Gold.
-
-Apache Hadoop | 3.3.6 | Alternativa de | No seleccionado como
-
-MapReduce | procesamiento por | motor principal
-
-lotes.
-
-Apache Kafka | No aplica | Procesamiento de flujos | No utilizado
-
-de eventos.
+| Herramienta | Versión | Función | Estado |
+|---|---|---|---|
+| Debian GNU/Linux / Ubuntu | 12 / 24.04 | Sistemas operativos de los entornos de ejecución | Utilizada |
+| OpenJDK | 11 | Ejecución de Hadoop y Spark | Utilizada |
+| Apache Hadoop HDFS | 3.3.6 | Almacenamiento de las capas Bronze, Silver y Gold | Implementada |
+| Apache Spark / PySpark | 3.5.1 | Limpieza, transformación e integración de fuentes | Utilizada en todo el pipeline |
+| Spark SQL | 3.5.1 | Consultas, agrupaciones y uniones de datos | Utilizada |
+| Spark MLlib | 3.5.1 | Modelo predictivo (GBT, Random Forest y regresión lineal) | Utilizada |
+| Python | 3.11 | Scripts de ingesta, orquestación y análisis | Utilizada |
+| poppler-utils (`pdftotext`) | 24.02 | Lectura de los reportes PDF | Utilizada |
+| PostgreSQL | 16 | Base de datos de la capa de consumo | Implementada |
+| Grafana | 12.4.3 | Tablero de indicadores | Implementada |
+| Docker | — | Ejecución de Grafana | Utilizada |
+| Git | 2.39.5 | Control de versiones, gestión de ramas y seguimiento de cambios | Utilizada |
+| JupyterLab | 4.6 | Análisis exploratorio | Utilizada |
+| Apache Parquet | Formato de almacenamiento | Almacenamiento columnar de las capas Silver y Gold | Utilizada |
+| Apache Hadoop YARN | 3.3.6 | Administrador de recursos del cluster | [PENDIENTE AWS] |
+| Apache Hadoop MapReduce | 3.3.6 | Alternativa de procesamiento por lotes | No seleccionado como motor principal; su patrón se aplica dentro de Spark (sección 3.6) |
+| Apache Kafka | No aplica | Procesamiento de flujos de eventos | No utilizado |
 
 Se seleccionó Spark como motor principal porque permite desarrollar transformaciones y consultas analíticas mediante una misma plataforma. Aunque Hadoop MapReduce también permite realizar procesamiento por lotes, Spark proporciona una interfaz de programación más adecuada para las operaciones de limpieza, integración y agregación previstas en el proyecto. Por su parte, Kafka no fue seleccionado porque las fuentes institucionales se obtienen mediante archivos y actualizaciones periódicas, sin requerir procesamiento continuo de eventos.
 
@@ -1112,7 +993,9 @@ Eficiencia y sostenibilidad
 
 La arquitectura propuesta contempla medidas para reducir el consumo innecesario de recursos. Una de las principales decisiones consiste en utilizar archivos Parquet en las capas Silver y Gold, debido a que su organización columnar permite disminuir la cantidad de información leída cuando las consultas requieren únicamente determinadas variables.
 
-Asimismo, se considera el particionado de los datos por periodo cuando el volumen lo justifique, evitando generar una cantidad excesiva de archivos pequeños. Durante el procesamiento con Apache Spark se aplicaron técnicas de optimización, entre ellas el almacenamiento temporal de DataFrames en memoria mediante caché. Las pruebas realizadas sobre los datos de producción agrícola permitieron reducir el tiempo promedio de ejecución de las consultas repetidas de 1,5480 a 0,6090 segundos, lo que representa una mejora aproximada del 60,66 %. Sin embargo, este resultado corresponde a las condiciones específicas de la prueba y no debe interpretarse como una mejora general de todo el pipeline. Estas decisiones contribuyen a utilizar los recursos de manera más eficiente y reducir operaciones innecesarias de lectura y procesamiento.
+<!-- ACTUALIZADO -->
+
+Asimismo, se considera el particionado de los datos por periodo cuando el volumen lo justifique, evitando generar una cantidad excesiva de archivos pequeños; con ese fin, la carga incremental del GMML compacta sus archivos. Durante el procesamiento con Apache Spark se aplicó el almacenamiento temporal de DataFrames en memoria caché: con 1 000 veces el volumen real, el tiempo de las consultas repetidas bajó de 20,15 a 1,92 segundos, una reducción del 90 % (sección 3.6). Este resultado corresponde a consultas repetidas sobre una misma tabla y no a la duración de todo el pipeline.
 
 En cuanto a sostenibilidad, se considera el apagado de los servicios cuando no se encuentren en uso, la asignación de CPU y memoria según la carga real y la eliminación de archivos temporales generados durante las pruebas de escalabilidad. Estas decisiones buscan disminuir el consumo eléctrico y evitar la utilización innecesaria de almacenamiento.
 
@@ -1130,7 +1013,7 @@ Las fuentes seleccionadas corresponden principalmente a información pública at
 
 Para garantizar la trazabilidad, se elaboraron fichas de procedencia que documentan las características principales de cada conjunto, incluyendo su origen, entidad publicadora, fecha de obtención, periodo de cobertura, formato, tamaño y condiciones de uso. Asimismo, se identificaron las columnas relevantes y su significado para el análisis agrocomercial.
 
-A continuación, se presentan las seis fuentes principales consideradas en el proyecto, acompañadas de sus respectivas fichas de procedencia y diccionarios de columnas.
+A continuación, se presentan las fuentes consideradas en el proyecto, acompañadas de sus respectivas fichas de procedencia y diccionarios de columnas: las seis principales y tres fuentes complementarias que también se procesan en Silver (GMML, Mercado de Productores y reportes de sostenibilidad de Danper). <!-- ACTUALIZADO -->
 
 ![Imagen de la página 29](Danper_G07_imagenes/pagina_29_imagen_02.png)
 
@@ -1452,6 +1335,64 @@ Total anual | Decimal | Total anual declarado por la fuente.
 
 Variación anual% | Decimal o porcentaje | Variación porcentual anual según la fuente.
 
+<!-- ACTUALIZADO: fichas agregadas para las fuentes que se usan en Silver y no tenían ficha -->
+
+# 7. Reportes de ingreso y precios del Gran Mercado Mayorista de Lima (GMML)
+
+| Campo | Detalle |
+|---|---|
+| Nombre del conjunto | Reporte de ingreso y precios en el Gran Mercado Mayorista de Lima |
+| Origen | X Fuente pública institucional |
+| Entidad publicadora | Ministerio de Desarrollo Agrario y Riego (MIDAGRI) |
+| Enlace o medio de entrega | Repositorio local del proyecto: `datasets/abastecimiento/gmml_2024`, `gmml_2025` y `gmml_2026`. [PENDIENTE] Enlace de descarga oficial |
+| Fecha de obtención | [PENDIENTE] Fecha de descarga |
+| Licencia o condiciones de uso | Información pública del Estado peruano |
+| Período cubierto y número de registros | Reportes diarios de 2024 a 2026: 34 PDF (12 de 2024, 12 de 2025 y 10 de 2026). El último, del 21/09/2026, se incorporó con la carga incremental. En Silver cada PDF genera 2 registros (espárrago y alcachofa) |
+| Tamaño en disco y formato | 6,53 MB; 34 archivos PDF |
+| Uso en el proyecto | Dimensión de abastecimiento mayorista y fuente de la demostración del pipeline incremental |
+
+**Diccionario de columnas relevantes (Silver `abastecimiento`)**
+
+| Nombre de la columna | Tipo de dato | Descripción / significado de negocio para Danper |
+|---|---|---|
+| `fecha_reporte` | Texto (fecha) | Día del reporte del mercado |
+| `mercado` | Texto | Mercado mayorista de origen |
+| `producto` | Texto | Espárrago o alcachofa |
+| `ingreso_hoy_t`, `ingreso_ayer_t` | Decimal | Toneladas ingresadas al mercado el día del reporte y el anterior |
+| `promedio_ingreso_7dias_t` | Decimal | Promedio de ingreso de los últimos siete días |
+| `precio_hoy_soles`, `precio_ayer_soles` | Decimal | Precio por unidad comercial, en soles |
+| `unidad_medida`, `equivalencia_kg` | Texto / Decimal | Unidad comercial del precio y su equivalencia en kilogramos |
+| `archivo_origen` | Texto | PDF de donde se extrajo el registro (trazabilidad) |
+
+# 8. Precios del Mercado de Productores
+
+| Campo | Detalle |
+|---|---|
+| Nombre del conjunto | Boletines de precios del Mercado de Productores |
+| Origen | X Fuente pública institucional |
+| Entidad publicadora | [PENDIENTE] Confirmar la entidad que publica los boletines |
+| Enlace o medio de entrega | Repositorio local del proyecto: `datasets/abastecimiento/mercado_productores` |
+| Fecha de obtención | [PENDIENTE] Fecha de descarga |
+| Licencia o condiciones de uso | Información pública |
+| Período cubierto y número de registros | 24 boletines mensuales (2024 y 2025); 756 registros en Silver |
+| Tamaño en disco y formato | 13,55 MB; 24 archivos PDF |
+| Uso en el proyecto | Referencia de precios del mercado interno. Sus productos son abarrotes (arroz, azúcar, aceite, fideos, harina, leche y menestras), no cultivos de Danper, por lo que se usa solo como contexto de precios y no en el modelo |
+
+# 9. Reportes de sostenibilidad de Danper
+
+| Campo | Detalle |
+|---|---|
+| Nombre del conjunto | Reportes de Sostenibilidad Danper 2022, 2023 y 2024 |
+| Origen | X Fuente pública de la empresa (publicada por Danper) |
+| Entidad publicadora | Danper Trujillo S.A.C. |
+| Enlace o medio de entrega | Repositorio local del proyecto: `datasets/sostenibilidad/danper`. [PENDIENTE] Enlace oficial en danper.com |
+| Fecha de obtención | [PENDIENTE] Fecha de descarga |
+| Licencia o condiciones de uso | Documento público de la empresa |
+| Período cubierto y número de registros | Años 2022 a 2024; 12 indicadores transcritos en Silver |
+| Tamaño en disco y formato | 20,07 MB; 3 archivos PDF |
+| Uso en el proyecto | Cifras de la empresa para la línea base: meta y volumen logrado de compra de materia prima a terceros (2023) |
+
+
 Como complemento a las fichas de procedencia presentadas, se elaboró un diccionario de datos en formato Excel denominado Diccionario_Datos_Danper_G07.xlsx. Este documento reúne información de las columnas relevantes de las fuentes originales, los conjuntos procesados de la capa Silver y las tablas analíticas de la capa Gold.
 
 El diccionario permite identificar el nombre de cada campo, su tipo de dato, descripción, unidad de medida, procedencia y observaciones de validación. De esta manera, facilita la interpretación de las variables utilizadas y contribuye a mantener la trazabilidad entre las fuentes de información y los resultados obtenidos durante el procesamiento.
@@ -1460,7 +1401,7 @@ El diccionario de datos completo se presenta como archivo Excel complementario e
 
 ### 3.2. Ingesta y organización del data lake
 
-<!-- Página 37 del PDF -->
+<!-- ACTUALIZADO -->
 
 La implementación del pipeline de datos para Danper Trujillo S.A.C. se desarrolló bajo una arquitectura on-premise, utilizando Apache Hadoop HDFS 3.3.6 como sistema de almacenamiento y Apache Spark/PySpark 3.5.1 para el procesamiento. Se adoptó un enfoque de ingesta por lotes, debido a que las fuentes agrocomerciales utilizadas se encuentran principalmente en archivos descargados de distintas entidades y no requieren procesamiento continuo en tiempo real.
 
@@ -1468,101 +1409,79 @@ Para organizar la información se utilizó una arquitectura de tres capas: Bronz
 
 ## Ingesta de archivos en la capa Bronze
 
-El proceso de ingesta fue desarrollado mediante los scripts ingesta_bronze.py e inventario_bronze.py, disponibles en el repositorio GitHub del proyecto. El primero permite organizar y cargar los archivos desde el directorio local de datasets hacia HDFS, mientras que el segundo genera un inventario con información sobre las características de los archivos.
+El proceso de ingesta fue desarrollado mediante los scripts `ingesta_bronze.py` e `inventario_bronze.py`, disponibles en el repositorio GitHub del proyecto. El primero carga los archivos desde la carpeta local de datasets hacia HDFS, mientras que el segundo genera un inventario con la ruta, el tamaño y la huella SHA-256 de cada archivo (`reportes/inventario_bronze.csv`).
 
 ![Imagen de la página 37](Danper_G07_imagenes/pagina_37_imagen_03.png)
 
 Figura 3.2-A. Scripts de ingesta e inventario de la capa Bronze disponibles en el repositorio GitHub del proyecto.
 
-Evidencia complementaria del apartado 3.2. Scripts de ingesta e inventario de la capa Bronze disponibles en el repositorio GitHub del proyecto, rama develop.
+Durante la ingesta se identifican los archivos disponibles y se determina su ubicación de acuerdo con la categoría agrocomercial correspondiente. Además, se comprueba si los archivos ya existen en HDFS para evitar sobrescrituras involuntarias. El procedimiento verifica la integridad mediante el algoritmo SHA-256, comparando el contenido de los archivos locales con las copias almacenadas en HDFS.
 
-La disponibilidad de estos archivos permite identificar los procedimientos implementados para organizar las fuentes originales, registrar su inventario y verificar su integridad. Su existencia en el repositorio complementa la evidencia de almacenamiento en HDFS presentada en la Figura 3.2.
+La capa Bronze contiene **181 archivos**: los 180 de la carga base y un reporte GMML del 21/09/2026 que se incorporó después con la carga incremental. La comprobación se hizo en un mismo entorno: los 180 archivos locales coinciden uno a uno por SHA-256 con los de HDFS y el comando `hdfs fsck /danper/bronze` devuelve el estado HEALTHY. Los formatos recopilados incluyen CSV, XLS, XLSX y PDF, que se conservan sin modificar para permitir su revisión y reprocesamiento.
 
-Durante la ingesta se identifican los archivos disponibles y se determina su ubicación de acuerdo con la categoría agrocomercial correspondiente. Además, se comprueba si los archivos ya existen en HDFS para evitar sobrescrituras involuntarias. El procedimiento incorpora verificaciones de integridad mediante el algoritmo SHA-256, que permite comparar el contenido de los archivos locales con las copias almacenadas en el sistema distribuido.
+## Carga incremental y tabla de control
 
-De acuerdo con la documentación disponible en el repositorio, el proceso Bronze fue desarrollado para gestionar 180 archivos pertenecientes a diferentes categorías agrocomerciales. Los formatos recopilados incluyen CSV, XLS, XLSX y PDF, los cuales se conservan para permitir su revisión y posterior transformación.
+Para incorporar datos nuevos sin reprocesar todo, se implementó una **tabla de control** en `/danper/control/archivos.csv` (script `control.py`). Por cada archivo guarda su huella SHA-256 y la fecha y hora en que pasó por Bronze, Silver, Gold y PostgreSQL. Si un archivo ya registrado se vuelve a copiar, su huella coincide y no se procesa de nuevo.
 
-La ruta utilizada para la ingesta de archivos originales es /danper/bronze. Su existencia fue comprobada mediante una consulta de Hadoop HDFS realizada en Debian 12, donde se identificaron nueve elementos de primer nivel correspondientes a distintas categorías agrocomerciales, entre ellas abastecimiento, agroindustria, comercio regional, costos, exportaciones, pecuaria, precios, producción y sostenibilidad.
+El orquestador `run_pipeline.py` ejecuta el recorrido completo para los archivos nuevos: Bronze → Silver → Gold → PostgreSQL. Con la opción `--vigilar` revisa la carpeta de datasets cada 60 segundos, de modo que basta copiar un archivo nuevo para que llegue al tablero. En la demostración del 18/11/2026, un reporte GMML nuevo recorrió todas las capas hasta PostgreSQL en 2 minutos y 22 segundos.
 
-Esta evidencia confirma que la estructura de almacenamiento de Bronze existe en el entorno consultado. Sin embargo, la verificación de los 180 archivos debe contrastarse con el inventario generado durante la ingesta, debido a que la consulta realizada muestra directorios y no el número total de archivos almacenados.
-
-<!-- Página 38 del PDF -->
+> **[CAPTURA PENDIENTE] Figura 3.2-B.** Terminal con `python scripts/run_pipeline.py --vigilar` detectando un PDF GMML nuevo y mostrando el paso por Bronze, Silver, Gold y PostgreSQL con sus tiempos. Al lado, la tabla de control: `hdfs dfs -cat /danper/control/archivos.csv | tail -3`.
 
 ## Organización de las capas del data lake
 
-La capa Silver contiene conjuntos de datos estructurados que se obtienen mediante los scripts de transformación desarrollados para las distintas fuentes. Estos procesos preparan la información para realizar consultas y análisis posteriores, almacenando los resultados principalmente en formato Parquet.
+La capa Silver contiene conjuntos de datos estructurados que se obtienen mediante los scripts de transformación desarrollados para las distintas fuentes. Estos procesos preparan la información para realizar consultas y análisis posteriores, almacenando los resultados en formato Parquet.
 
 Por su parte, la capa Gold recibe los conjuntos Silver utilizados para elaborar tablas analíticas, dimensiones, hechos e indicadores. En esta etapa se aplican operaciones de agrupación e integración mediante Apache Spark/PySpark, generando información preparada para el análisis exploratorio, el modelado y la interpretación de resultados agrocomerciales.
 
 **Tabla 3.1. Organización de las capas del data lake**
 
-Capa | Ruta HDFS | Contenido | Estado de verificación
-
-Bronze | /danper/bronze | Archivos originales organizados por | Estructura verificada en HDFS, con
-
-categorías agrocomerciales. | nueve elementos de primer nivel;
-
-cantidad total de archivos pendiente de contrastar con el inventario.
-
-Silver | /danper/silver | Conjuntos estructurados y | Implementada y verificada mediante
-
-procesados en formato Parquet. | consulta HDFS.
-
-Gold | /danper/gold | Tablas analíticas, dimensiones, | Implementada y verificada; 26
-
-hechos e indicadores KPI. | componentes encontrados.
+| Capa | Ruta HDFS | Contenido | Estado de verificación |
+|---|---|---|---|
+| Bronze | `/danper/bronze` | Archivos originales organizados por categorías agrocomerciales | 181 archivos; coinciden por SHA-256 con el inventario; `fsck` HEALTHY |
+| Silver | `/danper/silver` | 11 conjuntos estructurados en formato Parquet | 79 498 filas en la carga base |
+| Gold | `/danper/gold` | Tablas analíticas, dimensiones, hechos, indicadores KPI y resultados del modelo | 26 componentes del procesamiento Gold y 3 tablas del modelo predictivo |
+| Calidad | `/danper/calidad` | Registros con incidencias detectadas en Silver | Incidencias de abastecimiento, agroindustria, costos y exportaciones regionales |
+| Control | `/danper/control` | Tabla de control de la carga incremental | Un registro por archivo con su paso por cada capa |
 
 ## Resultados de la organización y procesamiento
 
-La documentación técnica de Silver registra once conjuntos de datos y un total de 79 498 filas, correspondientes a distintas fuentes y niveles de detalle. Entre ellos se encuentran datos de producción agrícola, exportaciones, abastecimiento, precios de mercado, agroindustria, costos, ENA 2025 y sostenibilidad.
+La capa Silver registra once conjuntos de datos y un total de 79 498 filas en la carga base, correspondientes a distintas fuentes y niveles de detalle: producción agrícola, exportaciones, abastecimiento, precios de mercado, agroindustria, costos, ENA 2025 y sostenibilidad.
 
-En la consulta del directorio /danper/silver se identificaron diez elementos de primer nivel. Esta cantidad no representa necesariamente el total de conjuntos procesados, debido a que algunas fuentes se encuentran organizadas en subdirectorios, como ocurre con las exportaciones y los datos de la ENA 2025.
-
-Para el procesamiento Gold se utilizaron siete conjuntos Silver principales. A partir de ellos se generaron 26 componentes analíticos, distribuidos en siete tablas analíticas, seis dimensiones, siete tablas de hechos y seis tablas de indicadores KPI.
-
-La consulta realizada sobre /danper/gold confirmó la presencia de los 26 componentes. Estos resultados evidencian la organización de los productos analíticos en HDFS, aunque la comprobación de sus esquemas y cantidades de registros requiere ejecutar los controles de lectura y validación correspondientes.
-
-<!-- Página 39 del PDF -->
+Para el procesamiento Gold se utilizaron siete conjuntos Silver principales. A partir de ellos se generaron 26 componentes analíticos: siete tablas analíticas, seis dimensiones, siete tablas de hechos y seis tablas de indicadores KPI. El modelo predictivo agrega tres tablas más (`ml_prediccion_ingreso`, `ml_metricas_modelo` y `ml_plan_ingreso`).
 
 ## Evidencia de implementación
 
-La estructura de almacenamiento del Data Lake fue comprobada mediante consultas ejecutadas desde la terminal de Debian 12, utilizando el comando hdfs dfs -ls sobre las rutas de Bronze, Silver y Gold. Estas consultas permiten observar los directorios existentes y verificar que las capas del proyecto se encuentran organizadas dentro de HDFS..
+La estructura de almacenamiento del data lake se comprobó con consultas desde la terminal, usando `hdfs dfs -ls` y `hdfs dfs -count` sobre las rutas de Bronze, Silver y Gold. A diferencia de la entrega anterior, las tres capas se verificaron en un mismo entorno y después de una corrida completa del pipeline desde los datasets originales (17/11/2026).
 
-![Imagen de la página 39](Danper_G07_imagenes/pagina_39_imagen_04.png)
+> **[CAPTURA PENDIENTE] Figuras 3.2, 3.3 y 3.4.** Reemplazar las tres capturas anteriores (eran de usuarios distintos) por capturas del mismo entorno:
+> - Figura 3.2: `hdfs dfs -count /danper/bronze` (181 archivos) y la última línea de `hdfs fsck /danper/bronze` (HEALTHY).
+> - Figura 3.3: `hdfs dfs -ls /danper/silver`.
+> - Figura 3.4: `hdfs dfs -ls /danper/gold` (29 carpetas).
+> Revisar que no aparezcan nombres de usuario ni del equipo en la captura.
 
-Figura 3.2. Estructura de almacenamiento de la capa Bronze en HDFS.
-
-![Imagen de la página 39](Danper_G07_imagenes/pagina_39_imagen_05.png)
-
-Figura 3.3. Estructura de almacenamiento de la capa Silver en HDFS.
-
-![Imagen de la página 39](Danper_G07_imagenes/pagina_39_imagen_06.png)
-
-Figura 3.4. Estructura de almacenamiento de la capa Gold en HDFS.
-
-Las evidencias muestran que las tres rutas de almacenamiento existen en los entornos consultados. Cabe precisar que las capturas de Bronze y de las capas procesadas corresponden a usuarios distintos del entorno Debian, por lo que estas verificaciones acreditan la existencia de sus respectivos directorios, pero no constituyen por sí solas una prueba de ejecución completa del pipeline desde Bronze hasta Gold.
-
-<!-- Página 40 del PDF -->
-
-En conjunto, la organización del Data Lake permite separar las fuentes originales de la información procesada y de los productos analíticos. Esta estructura facilita la trazabilidad de los datos, el mantenimiento de los procesos y la ejecución de nuevas transformaciones sin modificar directamente los archivos de origen, contribuyendo a una gestión más ordenada de la información agrocomercial utilizada en el proyecto.
+En conjunto, la organización del data lake permite separar las fuentes originales de la información procesada y de los productos analíticos. Esta estructura facilita la trazabilidad de los datos, el mantenimiento de los procesos y la ejecución de nuevas transformaciones sin modificar directamente los archivos de origen.
 
 ### 3.3. Procesamiento y limpieza
 
-El procesamiento y la limpieza de datos constituyen una etapa fundamental en el desarrollo de la plataforma de Big Data y Analítica Agrocomercial para Danper Trujillo S.A.C., debido a que las fuentes recopiladas presentan diferentes estructuras, formatos, periodos de cobertura y niveles de detalle. Para preparar esta información se implementaron scripts en Python y Apache Spark/PySpark que permiten extraer, estructurar, normalizar y validar los datos antes de utilizarlos en los análisis agrocomerciales.
+<!-- ACTUALIZADO -->
 
-El procesamiento sigue el recorrido Bronze | → | Silver | → | Gold. En primer lugar, los archivos originales
+El procesamiento y la limpieza de datos constituyen una etapa fundamental de la plataforma, debido a que las fuentes recopiladas presentan diferentes estructuras, formatos, periodos de cobertura y niveles de detalle. Para preparar esta información se implementaron scripts en Python y Apache Spark/PySpark que permiten extraer, estructurar, normalizar y validar los datos antes de utilizarlos en los análisis agrocomerciales.
 
-almacenados en Bronze son leídos y transformados en conjuntos estructurados de la capa Silver. Posteriormente, los datos Silver seleccionados se integran y agregan para generar los componentes analíticos de Gold. Esta separación permite conservar los archivos originales, documentar las transformaciones y evitar que los análisis dependan directamente de documentos sin procesar.
+El procesamiento sigue el recorrido Bronze → Silver → Gold. En primer lugar, los archivos originales almacenados en Bronze son leídos y transformados en conjuntos estructurados de la capa Silver. Posteriormente, los datos Silver seleccionados se integran y agregan para generar los componentes analíticos de Gold. Esta separación permite conservar los archivos originales, documentar las transformaciones y evitar que los análisis dependan directamente de documentos sin procesar.
+
+Todos los scripts toman las rutas de HDFS, la carpeta de datasets y el modo de ejecución de Spark de un único archivo de configuración (`scripts/config.py`), que a su vez lee variables de entorno. Así, el mismo código se ejecuta en un equipo local o en un cluster sin modificarse.
 
 Carga de datos y verificación de esquemas
 
 La primera actividad consistió en identificar el formato y la estructura de los archivos originales. Las fuentes utilizadas incluyen documentos CSV, Excel y PDF, por lo que fue necesario aplicar procedimientos de lectura específicos según las características de cada conjunto.
 
-Para los archivos CSV, los scripts consideran los encabezados y las columnas esperadas, mientras que los documentos Excel requieren identificar las filas y bloques donde se encuentran los valores estadísticos. En el caso de los boletines PDF de abastecimiento y precios mayoristas, se desarrollaron procedimientos de extracción para convertir la información relevante en registros estructurados.
+Para los archivos CSV, los scripts consideran los encabezados y las columnas esperadas, mientras que los documentos Excel requieren identificar las filas y bloques donde se encuentran los valores estadísticos. En el caso de los boletines PDF de abastecimiento y precios mayoristas, se desarrollaron procedimientos de extracción con `pdftotext` para convertir la información relevante en registros estructurados.
 
-Un ejemplo es el procesamiento de producción agrícola provincial, implementado en scripts/transformacion_silver.py. Este procedimiento recupera doce archivos Excel desde Bronze, extrae la información agrícola, construye un DataFrame con un esquema definido y comprueba la existencia de las variables necesarias.
+Un ejemplo es el procesamiento de producción agrícola provincial, implementado en `scripts/transformacion_silver.py`. Este procedimiento recupera los archivos Excel desde Bronze, extrae la información agrícola, construye un DataFrame con un esquema definido y comprueba la existencia de las variables necesarias.
 
-En las exportaciones asociadas a Danper, el script transformacion_exportaciones_danper_silver.py verifica la presencia de campos obligatorios, entre ellos ruc, exportador, mes, agente, aduana, pais y fob_usd. La verificación de esquemas permite detectar diferencias entre los archivos antes de consolidar la información.
+En las exportaciones asociadas a Danper, el script `transformacion_exportaciones_danper_silver.py` verifica la presencia de campos obligatorios, entre ellos ruc, exportador, mes, agente, aduana, pais y fob_usd. La verificación de esquemas permite detectar diferencias entre los archivos antes de consolidar la información.
+
+**Validación por reglas en lugar de conteos fijos.** En la versión anterior, varios scripts exigían un número exacto de archivos o de filas (por ejemplo, 33 PDF del GMML o 12 provincias). Eso hacía fallar el pipeline apenas llegaba un dato nuevo. Esas comprobaciones se reemplazaron por reglas de calidad: columnas obligatorias, tipos, rangos válidos, claves sin duplicar y mínimos razonables. Un archivo nuevo se acepta si cumple las reglas, y sus problemas se registran como incidencias.
 
 Tratamiento de valores nulos, duplicados y registros inconsistentes
 
@@ -1570,77 +1489,39 @@ Durante la preparación de los datos se aplicaron controles para identificar reg
 
 Los valores nulos no se sustituyeron automáticamente por cero, porque la ausencia de información no significa necesariamente que una producción, ingreso o costo haya sido igual a cero. Por ejemplo, los boletines de abastecimiento presentan indicadores que no están disponibles en determinados reportes y deben conservarse como datos faltantes para evitar conclusiones incorrectas.
 
-<!-- Página 41 del PDF -->
-
 Asimismo, los scripts de transformación incorporan verificaciones de duplicados mediante las claves correspondientes a cada conjunto. En producción agrícola se evalúan combinaciones de provincia, distrito, cultivo, variable, posición temporal y archivo de origen; en otras fuentes se utilizan las dimensiones temporales, geográficas o comerciales pertinentes.
 
-En los procesos de costos, agroindustria y exportaciones regionales también se identifican incidencias relacionadas con valores no numéricos, totales anuales o datos ausentes. Determinados procedimientos almacenan estas incidencias en rutas separadas de calidad dentro de HDFS, permitiendo conservar evidencia para su revisión.
-
-Los registros que incumplen condiciones críticas pueden provocar la interrupción del procesamiento, según las validaciones definidas en el script correspondiente. Por ello, no debe asumirse que todos los registros identificados como problemáticos fueron eliminados automáticamente.
+En los procesos de abastecimiento, costos, agroindustria y exportaciones regionales se identifican incidencias relacionadas con valores no numéricos, totales anuales o datos ausentes. Estas incidencias se almacenan en rutas separadas de calidad dentro de HDFS (`/danper/calidad`), lo que permite conservar evidencia para su revisión.
 
 Corrección de tipos de datos y normalización de formatos
 
 Una parte importante del procesamiento consistió en convertir la información original en variables con formatos consistentes. Los campos cuantitativos se prepararon como valores numéricos para permitir cálculos y agregaciones, mientras que los identificadores se conservaron como texto cuando correspondía.
 
-En la producción agrícola, los nombres de provincias, distritos y cultivos se normalizaron mediante operaciones de eliminación de espacios adicionales y conversión a mayúsculas. Además, se generaron campos temporales a partir de la posición de las columnas mensuales de los archivos provinciales.
+En la producción agrícola, los nombres de provincias, distritos y cultivos se normalizaron mediante operaciones de eliminación de espacios adicionales y conversión a mayúsculas. Además, se generaron campos temporales a partir de la posición de las columnas mensuales de los archivos provinciales, lo que permitió construir las variables anio, mes_numero y periodo de la campaña agrícola 2024–2025.
 
-Esta transformación permitió distinguir los meses de la campaña agrícola 2024–2025 y construir las variables anio, mes_numero y periodo, necesarias para analizar la evolución de los cultivos.
-
-En las exportaciones Danper también se normalizaron las denominaciones textuales y los periodos mensuales. El campo fob_usd se preparó como variable numérica para realizar operaciones sobre los valores comerciales, mientras que los registros conservaron información de procedencia, como el archivo original.
+En las exportaciones Danper también se normalizaron las denominaciones textuales y los periodos mensuales. El campo fob_usd se preparó como variable numérica, mientras que los registros conservaron información de procedencia, como el archivo original.
 
 En los costos agrícolas se normalizaron los nombres de las regiones y los tipos de costo. No obstante, las unidades de medida que no pudieron confirmarse permanecen identificadas como una limitación de la fuente, en lugar de asignarles unidades sin respaldo documental.
 
 Transformación de estructuras e ingeniería de características
 
-Las fuentes originales presentaban diferentes formas de organización. Algunas utilizaban tablas con meses distribuidos horizontalmente, mientras que otras contenían registros individuales por fecha o producto.
-
-Para facilitar su análisis, los scripts de transformación convirtieron parte de estas estructuras en conjuntos de datos con observaciones identificadas por periodo, ubicación, producto o indicador.
+Las fuentes originales presentaban diferentes formas de organización. Algunas utilizaban tablas con meses distribuidos horizontalmente, mientras que otras contenían registros individuales por fecha o producto. Para facilitar su análisis, los scripts de transformación convirtieron estas estructuras en conjuntos de datos con observaciones identificadas por periodo, ubicación, producto o indicador.
 
 En producción agrícola, los registros obtenidos desde Excel permiten construir una estructura con variables como provincia, distrito, cultivo, variable, valor y periodo. De esta manera, es posible consultar la producción, los precios en chacra, las siembras y las cosechas por mes y territorio, según la disponibilidad de los datos originales.
 
-<!-- Página 42 del PDF -->
-
 En la capa Gold se generaron características y medidas adicionales orientadas al análisis agrocomercial. Entre ellas se encuentran los volúmenes de producción, los valores FOB exportados, las cantidades agroindustriales, los valores de costos reportados y los indicadores de cobertura de información.
-
-Estas transformaciones permiten pasar de archivos heterogéneos a conjuntos estructurados que pueden utilizarse en consultas, visualizaciones y modelos analíticos.
 
 **Tabla 3.2. Principales transformaciones aplicadas durante el procesamiento**
 
-Fuente de datos | Transformación principal | Resultado
-
-Producción agrícola | Extracción de Excel, normalización geográfica | Datos por cultivo, provincia,
-
-y construcción de periodos mensuales. | distrito, variable y periodo.
-
-Exportaciones | Verificación de columnas, normalización de | Registros de exportación
-
-Danper | países y fechas, conversión de valores FOB. | estructurados.
-
-Exportaciones | Extracción de series mensuales, | Datos por cultivo, año, mes e
-
-regionales | identificación de indicadores y comprobación | indicador de exportación.
-
-de totales.
-
-Agroindustria | Extracción de cuadros Excel y organización de | Series de actividad
-
-cantidades por año, mes, cultivo y proceso. | agroindustrial.
-
-Costos agrícolas | Normalización de regiones, tipos de costo, | Registros mensuales de costos
-
-periodos y valores numéricos. | de referencia.
-
-Abastecimiento | Extracción de boletines PDF y organización | Registros de abastecimiento
-
-mayorista | de fechas, productos, ingresos y precios. | por fecha y producto.
-
-ENA 2025 | Selección de módulos y variables, | Tablas temáticas de
-
-preparación de tipos de datos y validación de | producción, insumos y uso de
-
-campos. | tierra.
-
-<!-- Página 43 del PDF -->
+| Fuente de datos | Transformación principal | Resultado |
+|---|---|---|
+| Producción agrícola | Extracción de Excel, normalización geográfica y construcción de periodos mensuales | Datos por cultivo, provincia, distrito, variable y periodo |
+| Exportaciones Danper | Verificación de columnas, normalización de países y fechas, conversión de valores FOB | Registros de exportación estructurados |
+| Exportaciones regionales | Extracción de series mensuales, identificación de indicadores y comprobación de totales | Datos por cultivo, año, mes e indicador de exportación |
+| Agroindustria | Extracción de cuadros Excel y organización de cantidades por año, mes, cultivo y proceso | Series de actividad agroindustrial (incluye el ingreso de materia prima a planta) |
+| Costos agrícolas | Normalización de regiones, tipos de costo, periodos y valores numéricos | Registros mensuales de costos de referencia |
+| Abastecimiento mayorista (GMML) | Extracción de los reportes PDF y organización de fechas, productos, ingresos y precios. Procesamiento incremental: solo los PDF nuevos | Registros de abastecimiento por fecha y producto |
+| ENA 2025 | Selección de módulos y variables, preparación de tipos de datos y validación de campos | Tablas temáticas de producción, insumos y uso de tierra |
 
 ![Imagen de la página 43](Danper_G07_imagenes/pagina_43_imagen_07.png)
 
@@ -1650,73 +1531,38 @@ Como se observa en la Figura 3.5, el procesamiento mediante PySpark permitió tr
 
 Integración de datos y construcción de la capa Gold
 
-Una vez preparados los conjuntos Silver, se desarrolló la integración analítica mediante el script scripts/procesamiento_gold.py. Este procedimiento utiliza Apache Spark para leer los datos almacenados en Parquet y realizar operaciones de filtrado, agrupación, transformación y unión entre tablas compatibles.
+Una vez preparados los conjuntos Silver, se desarrolló la integración analítica mediante el script `scripts/procesamiento_gold.py`. Este procedimiento utiliza Apache Spark para leer los datos almacenados en Parquet y realizar operaciones de filtrado, agrupación, transformación y unión entre tablas compatibles.
 
 La integración considera las características propias de cada fuente. Por ejemplo, los registros de producción se organizan por provincia, distrito, cultivo y periodo, mientras que las exportaciones regionales se agrupan por cultivo, año y mes. Por su parte, las exportaciones asociadas a Danper se agrupan por país y periodo, sin atribuirles automáticamente un cultivo cuando la fuente no contiene una identificación suficiente.
 
-Para relacionar los conjuntos se construyeron dimensiones como tiempo, cultivo, ubicación de producción, región de costos, país de exportación y mercado. Estas dimensiones permiten establecer relaciones entre los datos y las tablas de hechos correspondientes.
+Para relacionar los conjuntos se construyeron dimensiones como tiempo, cultivo, ubicación de producción, región de costos, país de exportación y mercado. Estas dimensiones permiten establecer relaciones entre los datos y las tablas de hechos correspondientes. El procesamiento también generó indicadores agregados, entre ellos producción agrícola anual, exportaciones regionales anuales, exportaciones Danper por año, actividad agroindustrial, costos y abastecimiento.
 
-El procesamiento también generó indicadores agregados, entre ellos producción agrícola anual, exportaciones regionales anuales, exportaciones Danper por año, actividad agroindustrial, costos y abastecimiento.
-
-<!-- Página 44 del PDF -->
-
-Como resultado, la capa Gold dispone de 26 componentes: siete conjuntos analíticos, seis dimensiones, siete tablas de hechos y seis tablas de indicadores KPI.
+**Reconstrucción segura de Gold (Write-Audit-Publish).** Cuando Silver recibe datos nuevos, `procesamiento_gold.py --rebuild` recalcula Gold en una carpeta aparte (`/danper/gold_nuevo`), valida cada componente (columnas, claves obligatorias y duplicados) y solo si todo es correcto reemplaza a la versión anterior. Si una validación falla, Gold queda como estaba y el error se informa.
 
 Resultados del procesamiento
 
-La documentación técnica del proyecto registra once conjuntos Silver, con un total de 79 498 filas procedentes de diferentes fuentes y granularidades. Estos registros no representan una única población y, por tanto, deben interpretarse individualmente según su origen.
+Los once conjuntos Silver suman 79 498 filas en la carga base, procedentes de diferentes fuentes y granularidades. Estos registros no representan una única población y, por tanto, deben interpretarse individualmente según su origen. Gold dispone de 26 componentes analíticos almacenados en Parquet dentro de HDFS, que son la base del análisis exploratorio, del modelo predictivo y de los indicadores del tablero.
 
-La implementación Gold permitió organizar los datos seleccionados en componentes analíticos almacenados en formato Parquet dentro de HDFS. Estos resultados constituyen la base utilizada para el análisis exploratorio, la evaluación del modelo predictivo inicial y la construcción de indicadores agrocomerciales.
-
-En conjunto, las transformaciones realizadas permitieron convertir información originalmente dispersa y heterogénea en datos estructurados y preparados para el análisis. No obstante, permanecen limitaciones relacionadas con valores faltantes, unidades de medida no confirmadas y diferencias de cobertura temporal y geográfica, las cuales deben considerarse al interpretar los resultados. Las verificaciones específicas de estas condiciones se presentan en el apartado 3.4. Control de calidad de los datos.
+En conjunto, las transformaciones realizadas permitieron convertir información originalmente dispersa y heterogénea en datos estructurados y preparados para el análisis. No obstante, permanecen limitaciones relacionadas con valores faltantes, unidades de medida no confirmadas y diferencias de cobertura temporal y geográfica, las cuales deben considerarse al interpretar los resultados. Las verificaciones específicas de estas condiciones se presentan en el apartado 3.4.
 
 ### 3.4. Control de calidad de los datos
+
+<!-- ACTUALIZADO -->
 
 El control de calidad de los datos se realizó durante el desarrollo del pipeline de procesamiento implementado con Apache Spark y PySpark, siguiendo la arquitectura de datos Bronze, Silver y Gold. Su propósito fue identificar posibles inconsistencias, valores faltantes y errores en los datasets utilizados para el análisis de la producción, costos y exportaciones agrícolas relacionadas con Danper. Este proceso permite mejorar la confiabilidad de la información antes de utilizarla para generar indicadores y apoyar la toma de decisiones.
 
 Durante el procesamiento se definieron reglas de calidad relacionadas con la completitud, validez, consistencia y coherencia de los datos. Estas reglas permiten identificar registros que podrían afectar los resultados y establecer criterios para su tratamiento.
 
-Tabla 3.3 Reglas de control de calidad aplicadas a los datos
+**Tabla 3.3 Reglas de control de calidad aplicadas a los datos**
 
-Regla de calidad | Descripción | Criterio de validación
-
-Validación de | Verificar que los datasets contengan las | Presencia de los campos
-
-estructura | columnas necesarias para su lectura, | requeridos en cada dataset.
-
-transformación e integración mediante PySpark.
-
-Completitud de | Identificar valores nulos en campos como | Cantidad y porcentaje de registros
-
-campos críticos | producto, región, año, mes, producción, | completos e incompletos por
-
-costos y exportaciones. | campo crítico.
-
-<!-- Página 45 del PDF -->
-
-Validación de tipos | Comprobar que los campos numéricos y | Valores numéricos válidos y
-
-de datos | temporales tengan formatos adecuados | fechas o períodos con formatos
-
-para realizar cálculos, agrupaciones y | correctos.
-
-comparaciones.
-
-Comprobación de | Detectar valores negativos en producción, | Cantidades no negativas, meses
-
-rangos | superficie agrícola y exportaciones, así | entre 1 y 12 y años dentro del
-
-como períodos fuera de los límites | período analizado.
-
-esperados.
-
-Consistencia y | Revisar la uniformidad de productos, | Nombres normalizados, claves de
-
-coherencia | regiones y períodos, además de identificar | integración coherentes y ausencia
-
-posibles registros duplicados durante la | de duplicados no justificados.
-
-integración.
+| Regla de calidad | Descripción | Criterio de validación |
+|---|---|---|
+| Validación de estructura | Verificar que los datasets contengan las columnas necesarias para su lectura, transformación e integración mediante PySpark | Presencia de los campos requeridos en cada dataset |
+| Completitud de campos críticos | Identificar valores nulos en campos como producto, región, año, mes, producción, costos y exportaciones | Cantidad y porcentaje de registros completos e incompletos por campo crítico |
+| Validación de tipos de datos | Comprobar que los campos numéricos y temporales tengan formatos adecuados para realizar cálculos, agrupaciones y comparaciones | Valores numéricos válidos y fechas o periodos con formatos correctos |
+| Comprobación de rangos | Detectar valores negativos en producción, superficie agrícola y exportaciones, así como periodos fuera de los límites esperados | Cantidades no negativas, meses entre 1 y 12 y años dentro del periodo analizado |
+| Consistencia y coherencia | Revisar la uniformidad de productos, regiones y periodos, además de identificar posibles registros duplicados durante la integración | Nombres normalizados, claves de integración coherentes y ausencia de duplicados no justificados |
+| Integridad de la publicación | Comprobar que cada tabla publicada en PostgreSQL tenga las mismas filas que en Gold | Conteo de filas en el esquema de staging igual al de Gold antes de publicar |
 
 Hemos validado la estructura, claves obligatorias y registros duplicados mediante PySpark.
 
@@ -1726,253 +1572,230 @@ Figura 3.6 Validación de estructura, claves obligatorias y duplicados mediante 
 
 Como parte de la revisión de calidad, se comprobó la disponibilidad y lectura de los 26 conjuntos de datos generados en la zona Gold. Esta verificación permitió confirmar que los archivos analíticos se encontraban accesibles para su posterior utilización.
 
-Asimismo, se evaluó la completitud del campo produccion_t del dataset produccion_mensual, identificándose un total de 561 registros. De ellos, 267 presentaron valores no nulos, mientras que 294 contenían valores faltantes. Los resultados se presentan en la siguiente tabla.
+Asimismo, se evaluó la completitud del campo produccion_t del dataset produccion_mensual, identificándose un total de 561 registros. De ellos, 267 presentaron valores no nulos, mientras que 294 contenían valores faltantes. Los resultados se presentan en la siguiente figura.
 
 ![Imagen de la página 45](Danper_G07_imagenes/pagina_45_imagen_09.png)
 
-<!-- Página 46 del PDF -->
-
 Figura 3.7 Resultados de completitud del campo producción y disponibilidad de conjuntos Gold.
 
-Los resultados obtenidos mediante PySpark muestran que, de los 561 registros evaluados en el dataset produccion_mensual, 267 contienen información en el campo produccion_t, lo que representa una completitud del 47,59 %. Por otro lado, se identificaron 294 registros con valores nulos, equivalentes al 52,41 % del total. Esta situación evidencia una limitación en la disponibilidad de información sobre los volúmenes de producción agrícola, por lo que es importante considerar estos valores faltantes al realizar cálculos e interpretar los indicadores generados. Se verificó que los 26 conjuntos de datos de la zona Gold se encuentran disponibles y pueden ser leídos correctamente mediante PySpark. El pipeline incorpora comprobaciones de claves obligatorias, registros duplicados, periodos y valores numéricos. Como se observa en la Figura 3.8, las reglas evaluadas registraron cero incumplimientos de las condiciones verificadas. Por otro lado, se identificaron 294 valores nulos en el campo produccion_t, que fueron conservados como información faltante y no deben contabilizarse automáticamente como registros rechazados. Aunque se verificaron estas reglas, todavía no se dispone de un conteo global consolidado de los registros rechazados
-
-durante todas las transformaciones Bronze | → | Silver | → | Gold.
-
-La veracidad de los datos se evidencia mediante la identificación de valores faltantes, la definición de reglas de validación y la verificación de disponibilidad de los conjuntos de datos procesados. Estas comprobaciones permiten reconocer posibles limitaciones en la información antes de utilizarla en los análisis de producción, costos y exportaciones agrícolas relacionados con Danper.
-
-De esta manera, el control de calidad contribuye a mejorar la confiabilidad de los resultados del pipeline, al permitir identificar datos incompletos y establecer criterios para su tratamiento. Asimismo, demuestra la importancia de evaluar la calidad de la información antes de generar indicadores que sirvan de apoyo a la toma de decisiones.
+Los resultados obtenidos mediante PySpark muestran que, de los 561 registros evaluados en el dataset produccion_mensual, 267 contienen información en el campo produccion_t, lo que representa una completitud del 47,59 %. Por otro lado, se identificaron 294 registros con valores nulos, equivalentes al 52,41 % del total. Esta situación evidencia una limitación en la disponibilidad de información sobre los volúmenes de producción agrícola, por lo que es importante considerar estos valores faltantes al realizar cálculos e interpretar los indicadores generados. Como se observa en la Figura 3.8, las reglas evaluadas registraron cero incumplimientos de las condiciones verificadas. Los 294 valores nulos se conservaron como información faltante y no se contabilizan como registros rechazados.
 
 ![Imagen de la página 46](Danper_G07_imagenes/pagina_46_imagen_10.png)
 
 Figura 3.8 Resultados de las reglas de calidad y coherencia de los datos en la capa Gold.
 
+**Hallazgos de calidad en la serie usada por el modelo.** Al preparar el modelo predictivo (sección 4.3) se revisó la serie de ingreso de materia prima a planta (2010–2024) y se encontraron tres problemas del archivo de origen, que se tratan de forma explícita:
+
+- Años completos en cero (espárrago 2016 y alcachofa 2017–2018): son vacíos del registro, no producción nula, y se tratan como faltantes.
+- Espárrago 2024 es una copia celda a celda de 2023 en el Excel original, por lo que se excluye.
+- Espárrago 2017 es bajo (40 742 t), pero se conserva porque coincide con el Niño Costero de ese año.
+
+La veracidad de los datos se evidencia mediante la identificación de valores faltantes, la definición de reglas de validación, el registro de incidencias en `/danper/calidad` y la verificación de los conjuntos procesados. Estas comprobaciones permiten reconocer las limitaciones de la información antes de utilizarla en los análisis y en el modelo.
+
 ### 3.5. Almacenamiento de datos procesados
 
-El almacenamiento de los datos procesados se realizó mediante Apache Hadoop HDFS, siguiendo la arquitectura de tres capas definida para la plataforma de Big Data y Analítica Agrocomercial de Danper Trujillo S.A.C. Esta organización permite conservar los archivos originales en Bronze y mantener separados los conjuntos estructurados de Silver y los productos analíticos de Gold.
+<!-- ACTUALIZADO -->
 
-Para las capas Silver y Gold se utilizó el formato Apache Parquet, debido a que permite almacenar información estructurada de manera eficiente y facilita su posterior lectura y procesamiento mediante
+El almacenamiento de los datos procesados se realizó mediante Apache Hadoop HDFS, siguiendo la arquitectura de tres capas definida para la plataforma. Esta organización permite conservar los archivos originales en Bronze y mantener separados los conjuntos estructurados de Silver y los productos analíticos de Gold. Para el consumo del tablero, Gold se publica además en una base de datos PostgreSQL.
 
-<!-- Página 47 del PDF -->
-
-Apache Spark/PySpark. La selección de este formato responde a la necesidad de trabajar con fuentes agrocomerciales heterogéneas, cuyas variables deben consultarse y agruparse por producto, ubicación geográfica y periodo.
+Para las capas Silver y Gold se utilizó el formato Apache Parquet, debido a que permite almacenar información estructurada de manera eficiente y facilita su posterior lectura y procesamiento mediante Apache Spark/PySpark. La selección de este formato responde a la necesidad de trabajar con fuentes agrocomerciales heterogéneas, cuyas variables deben consultarse y agruparse por producto, ubicación geográfica y periodo.
 
 Ubicación de los datos procesados
 
-Los conjuntos de datos limpios y estructurados se almacenaron en la ruta /danper/silver de HDFS. Esta capa contiene información procedente de producción agrícola, exportaciones, abastecimiento mayorista, mercado de productores, agroindustria, costos agrícolas, Encuesta Nacional Agropecuaria 2025 y sostenibilidad.
-
-Por otro lado, los conjuntos integrados y preparados para el análisis se almacenaron en /danper/gold. En esta zona se organizaron tablas analíticas, dimensiones, tablas de hechos e indicadores KPI destinados a facilitar las consultas y el análisis agrocomercial.
+Los conjuntos de datos limpios y estructurados se almacenaron en la ruta `/danper/silver` de HDFS. Esta capa contiene información procedente de producción agrícola, exportaciones, abastecimiento mayorista, mercado de productores, agroindustria, costos agrícolas, Encuesta Nacional Agropecuaria 2025 y sostenibilidad. Los conjuntos integrados y preparados para el análisis se almacenaron en `/danper/gold`.
 
 **Tabla 3.4. Organización del almacenamiento de datos procesados**
 
-Capa | Ruta HDFS | Formato | Contenido
+| Capa | Ruta o esquema | Formato | Contenido |
+|---|---|---|---|
+| Silver | `/danper/silver/produccion` | Parquet | Registros estructurados de producción agrícola |
+| Silver | `/danper/silver/exportaciones` | Parquet | Exportaciones de Danper y exportaciones regionales |
+| Silver | `/danper/silver/abastecimiento` | Parquet | Abastecimiento del GMML (carga incremental) |
+| Silver | `/danper/silver/costos` | Parquet | Registros de costos agrícolas |
+| Silver | `/danper/silver/agroindustria` | Parquet | Series mensuales de actividad agroindustrial |
+| Silver | `/danper/silver/ena_2025` | Parquet | Conjuntos temáticos de producción, insumos y uso de tierra |
+| Gold | `/danper/gold` | Parquet | Tablas analíticas, dimensiones, hechos, indicadores KPI y tablas del modelo |
+| Consumo | PostgreSQL, base `danper`, esquema `gold` | Tablas relacionales | Las 29 tablas de Gold, publicadas para el tablero de Grafana |
 
-Silver | /danper/silver/produccion | Parquet | Registros estructurados de producción
-
-agrícola.
-
-Silver | /danper/silver/exportaciones | Parquet | Exportaciones de Danper y exportaciones
-
-regionales.
-
-Silver | /danper/silver/costos | Parquet | Registros de costos agrícolas.
-
-Silver | /danper/silver/agroindustria | Parquet | Series mensuales de actividad agroindustrial.
-
-Silver | /danper/silver/ena_2025 | Parquet | Conjuntos temáticos de producción, insumos y
-
-uso de tierra.
-
-Gold | /danper/gold | Parquet | Tablas analíticas, dimensiones, hechos e
-
-indicadores KPI.
-
-La documentación del proyecto registra once conjuntos de datos Silver, con un total de 79 498 filas provenientes de diferentes fuentes. Asimismo, la capa Gold contiene 26 componentes analíticos: siete tablas analíticas, seis dimensiones, siete tablas de hechos y seis tablas de indicadores KPI. Estos componentes se almacenan por separado para mantener identificable la función y granularidad de cada conjunto.
-
-Criterio de organización y particionado
-
-<!-- Página 48 del PDF -->
+Criterio de organización y archivos pequeños
 
 El criterio de almacenamiento implementado se basa principalmente en la separación física por capa y conjunto de datos. Cada fuente procesada dispone de su propio directorio, lo que facilita su identificación, lectura y mantenimiento.
 
-En el código revisado no se identificó un particionado físico explícito mediante partitionBy() por año, mes o región. Por tanto, la organización actual no debe confundirse con una estrategia de particionado por columnas. Las variables temporales y geográficas sí forman parte de los esquemas de datos y permiten realizar operaciones de filtrado y agrupación durante las consultas.
+En el código no se aplica un particionado físico mediante `partitionBy()` por año, mes o región. Las variables temporales y geográficas forman parte de los esquemas de datos y permiten filtrar y agrupar durante las consultas. Con el volumen actual, un particionado por periodo generaría muchas carpetas con muy pocas filas, por lo que no se consideró conveniente.
 
-En el script procesamiento_gold.py se contempla, además, el uso de coalesce() para controlar la cantidad de archivos de salida de determinados componentes Gold. Esta operación permite reducir el número de particiones antes de la escritura y busca evitar la generación innecesaria de archivos pequeños.
-
-La decisión de no aplicar un particionado físico más detallado resulta razonable para la escala actual del prototipo, aunque no constituye una demostración de que sea la estrategia óptima. Si el volumen de datos aumenta, será necesario evaluar el particionado por periodo o región mediante pruebas de rendimiento y considerando la cantidad de registros que tendría cada partición.
+Para evitar la acumulación de archivos pequeños, que en HDFS ocupan memoria del NameNode y vuelven lentas las lecturas, se aplicaron dos medidas. En Gold se usa `coalesce()` para controlar la cantidad de archivos de salida. En la carga incremental del GMML, cada lote nuevo se escribe en un solo archivo Parquet y, cuando la carpeta supera 10 archivos, se compacta en uno: se escribe una copia temporal, se verifica que tenga las mismas filas y recién entonces reemplaza a la anterior. Antes, cada PDF nuevo generaba tres archivos para solo dos filas.
 
 Justificación del formato columnar Parquet
 
-A diferencia de CSV y Excel, formatos utilizados principalmente para la obtención e intercambio de información, Apache Parquet organiza los datos por columnas y permite aplicar mecanismos de compresión y optimización de lectura.
+A diferencia de CSV y Excel, formatos utilizados principalmente para la obtención e intercambio de información, Apache Parquet organiza los datos por columnas y permite aplicar mecanismos de compresión y optimización de lectura. Esta característica resulta conveniente para el proyecto porque muchas consultas agrocomerciales necesitan trabajar únicamente con determinadas variables. Por ejemplo, un análisis de producción agrícola podría utilizar cultivo, provincia, periodo y toneladas producidas, sin requerir todas las columnas del conjunto original. Asimismo, Parquet conserva el esquema de los datos, incluyendo los tipos de las columnas, lo que facilita su lectura mediante Spark.
 
-Esta característica resulta conveniente para el proyecto porque muchas consultas agrocomerciales necesitan trabajar únicamente con determinadas variables. Por ejemplo, un análisis de producción agrícola podría utilizar cultivo, provincia, periodo y toneladas producidas, sin requerir todas las columnas del conjunto original.
+Publicación en PostgreSQL sin tablas vacías
 
-Asimismo, Parquet conserva información sobre el esquema de los datos, incluyendo los tipos de las columnas, lo que facilita su lectura mediante Spark y reduce la necesidad de interpretar nuevamente los formatos originales.
+El script `publicar_postgres.py` copia las tablas de Gold a PostgreSQL para el tablero. Aplica el mismo patrón Write-Audit-Publish de Gold:
 
-En consecuencia, su utilización contribuye a una gestión más eficiente de los conjuntos procesados, especialmente cuando se realizan filtros, agrupaciones y consultas repetidas sobre los resultados de Silver y Gold. No obstante, los beneficios específicos de rendimiento deben comprobarse mediante mediciones y no atribuirse únicamente al formato de almacenamiento.
+1. **Escribir:** Spark escribe cada tabla por JDBC en un esquema aparte, `gold_staging`.
+2. **Auditar:** se comprueba que cada tabla de staging tenga las mismas filas que en Gold.
+3. **Publicar:** en una sola transacción, cada tabla de staging reemplaza a la publicada en `gold`, se devuelven los permisos de lectura al usuario del tablero y la publicación se registra en `gold.control_publicacion`.
+
+Así, el tablero ve siempre una versión completa: la anterior o la nueva, nunca una tabla vacía o a medio cargar. En una prueba se hicieron 444 lecturas desde el tablero durante una publicación y ninguna encontró una tabla vacía.
+
+> **[CAPTURA PENDIENTE] Figura 3.9-B.** Salida de `python scripts/publicar_postgres.py`: las líneas "Auditoría: 29 tablas con las mismas filas que Gold", "Publicado en una transacción" y "PUBLICACION COMPLETA". Al lado, `SELECT * FROM gold.control_publicacion ORDER BY publicado_en DESC LIMIT 5;`.
 
 Verificación del almacenamiento
 
-La existencia de las rutas Silver y Gold se comprobó mediante consultas realizadas en HDFS. Adicionalmente, el reporte técnico de calidad Gold registra la verificación de los 26 componentes analíticos, incluyendo su disponibilidad, lectura en formato Parquet y cantidad esperada de registros.
-
-<!-- Página 49 del PDF -->
+La existencia de las rutas Silver y Gold se comprobó mediante consultas realizadas en HDFS. Adicionalmente, el reporte técnico de calidad Gold (`docs/reporte_calidad_gold.md`) registra la verificación de los 26 componentes analíticos, incluyendo su disponibilidad, lectura en formato Parquet y cantidad de registros.
 
 ![Imagen de la página 49](Danper_G07_imagenes/pagina_49_imagen_11.png)
 
 Figura 3.9. Almacenamiento y verificación de datos procesados en formato Parquet en HDFS.
 
-Esta validación permite establecer que los conjuntos procesados se encuentran disponibles para su utilización en etapas posteriores del proyecto. La verificación de contenido y calidad de los campos se desarrolla de manera complementaria en el apartado 3.4.
-
-En conjunto, el almacenamiento mediante HDFS y Parquet permite mantener una separación entre los datos originales, los conjuntos estructurados y los resultados analíticos. Esta organización facilita la trazabilidad, el reprocesamiento y el acceso a la información necesaria para el análisis de producción, precios, costos, abastecimiento, agroindustria y exportaciones, contribuyendo al desarrollo de una plataforma de datos organizada para Danper Trujillo S.A.C.
+En conjunto, el almacenamiento mediante HDFS, Parquet y PostgreSQL mantiene separados los datos originales, los conjuntos estructurados, los resultados analíticos y la capa de consumo. Esta organización facilita la trazabilidad, el reprocesamiento y el acceso a la información necesaria para el análisis de producción, precios, costos, abastecimiento, agroindustria y exportaciones.
 
 ### 3.6. Optimización del rendimiento
 
-Con la finalidad de mejorar la eficiencia del procesamiento de datos agrocomerciales, se aplicó una técnica de optimización mediante el almacenamiento temporal de DataFrames en memoria caché de Apache Spark. Esta técnica permite reutilizar información previamente cargada, evitando realizar nuevamente determinadas lecturas y operaciones cuando se ejecutan consultas repetidas.
+<!-- ACTUALIZADO: reemplaza la prueba de caché anterior (notebook Optimizacion_Rendimiento.ipynb, figuras 3.10 a 3.12) -->
 
-La prueba se realizó en Debian 12, utilizando PySpark 3.5.1 y el conjunto de producción agrícola de la capa Silver, almacenado en /danper/silver/produccion. Este contiene 65 922 registros y 13 columnas. Para evaluar
+Con la finalidad de mejorar la eficiencia del procesamiento, se evaluó el almacenamiento temporal de DataFrames en la memoria caché de Apache Spark. Esta técnica permite reutilizar información ya calculada, evitando repetir lecturas y transformaciones cuando se ejecutan consultas repetidas sobre la misma tabla.
 
-<!-- Página 50 del PDF -->
+La prueba anterior (reducción de 1,548 a 0,609 s) se reemplazó porque se hizo en otra máquina, con una sola ejecución por escenario y sin un script que permitiera repetirla. La nueva prueba está en `scripts/prueba_escalabilidad.py --prueba cache` y guarda sus resultados en `reportes/escalabilidad/cache.csv`.
 
-el rendimiento, se ejecutó una operación de agrupación por cultivo, año y variable, calculando la suma de los valores y la cantidad de registros de cada grupo. La operación produjo 834 grupos.
+**Método de la prueba**
 
-Comparación del procesamiento sin caché y con caché Se realizaron cinco ejecuciones de la misma operación sin caché y otras cinco utilizando cache(). En el segundo escenario, los datos se almacenaron temporalmente en memoria y se reutilizaron durante las consultas posteriores. Se registraron los tiempos para comprobar si esta optimización generaba una mejora medible.
+- Se prepara una tabla analítica de producción (pivot de las 7 variables por distrito, cultivo y mes) sobre el volumen real (×1) y sobre réplicas de 100 y 1 000 veces su tamaño.
+- Sobre esa tabla se ejecutan 5 consultas de KPI: una vez sin caché (cada consulta vuelve a leer y transformar desde HDFS) y otra con caché (la tabla se guarda una vez en memoria).
+- Cada modo se ejecuta como un programa de Spark independiente, con 1 ejecución de calentamiento y 3 mediciones. Se reporta la mediana.
+- El tiempo de preparar la caché se mide aparte, porque se paga una sola vez.
 
-**Tabla 3.5 Comparación de tiempos de procesamiento con y sin caché**
+**Tabla 3.5 Tiempo de las consultas repetidas sin caché y con caché (8 hilos)**
 
-Indicador | Sin caché | Con caché
+| Factor | Filas de entrada | Sin caché | Con caché | Reducción | Preparar la caché (una vez) |
+|---|---:|---:|---:|---:|---:|
+| ×1 | 78 515 | 1,80 s | 1,26 s | 30 % | 3,0 s |
+| ×100 | 7 851 500 | 4,25 s | 1,56 s | 63 % | 4,6 s |
+| ×1000 | 78 515 000 | 20,15 s | 1,92 s | 90 % | 10,1 s |
 
-Tiempo promedio de cinco ejecuciones | 1,5480 s | 0,6090 s
+> **[CAPTURA PENDIENTE] Figura 3.10.** Gráfico de barras agrupadas con los datos de la Tabla 3.5 (sin caché y con caché por factor), generado desde `reportes/escalabilidad/cache.csv`.
 
-Tiempo promedio sin la primera ejecución | 0,8307 s | 0,5218 s
+Los resultados muestran que la ventaja de la caché crece con el volumen: con caché, el tiempo de las consultas casi no depende del tamaño de los datos. En ×1000, preparar la caché y ejecutar una vez las consultas (10,1 + 1,9 s) ya cuesta menos que ejecutarlas sin caché (20,2 s).
 
-Tiempo mediano | 0,8969 s | 0,5293 s
+Durante la prueba se encontró un detalle importante: la tabla sale del pivot con 200 particiones. Si se guarda en caché así, cada consulta debe coordinar 200 tareas muy pequeñas y la caché resulta **más lenta** que no usarla (5,5 s frente a 3,1 s en ×10). Por eso, antes de guardarla en caché, la tabla se reagrupa en 2 particiones por núcleo.
 
-Tiempo total medido, incluida la preparación de caché | 7,7400 s | 6,1337 s
+La optimización conviene cuando un mismo conjunto de datos se consulta varias veces, como ocurre con las tablas del tablero. Su aplicación requiere memoria disponible y no aporta cuando los datos se usan una sola vez. La reducción medida vale para consultas repetidas sobre la misma tabla, no para la duración de todo el pipeline.
 
-PRUEBA SIN CACHÉ
+Ejecución distribuida: el patrón MapReduce dentro de Spark
 
-![Imagen de la página 50](Danper_G07_imagenes/pagina_50_imagen_12.png)
+Spark no reemplaza la idea de MapReduce: la ejecuta en memoria y en un solo plan. Cada agregación de Gold sigue las fases del paradigma, y el plan físico de Spark (`explain`) y las métricas de sus etapas lo muestran. Como ejemplo se tomó el cálculo de toneladas por cultivo, año y proceso a partir del ingreso mensual de agroindustria (`docs/evidencia_mapreduce.md`).
 
-Figura 3.10 Resultados del procesamiento de datos sin utilizar memoria caché.
+**Tabla 3.5-B. Fases de MapReduce en una agregación de Gold**
 
-PRUEBA CON CACHE
+| Fase | Operador en el plan de Spark | Qué hace en Danper |
+|---|---|---|
+| Map | `FileScan`, `Filter`, `Project` | Cada tarea lee un bloque de HDFS, normaliza el cultivo y descarta los que no son espárrago ni alcachofa |
+| Combiner | `HashAggregate (partial_sum, partial_count)` | Cada tarea suma localmente sus filas por cultivo, año y proceso antes de enviarlas |
+| Shuffle | `Exchange hashpartitioning` | Envía cada clave a la tarea que la reduce |
+| Reduce | `HashAggregate (sum, count)` | Suma los parciales de cada clave y produce el total |
 
-![Imagen de la página 50](Danper_G07_imagenes/pagina_50_imagen_13.png)
+**Tabla 3.5-C. Métricas de las etapas (API de monitoreo de Spark)**
 
-Figura 3.11 Resultados del procesamiento de datos utilizando memoria caché.
+| Datos | Tareas map | Filas leídas | Filas enviadas al shuffle | Tareas reduce | Filas resultado | Tiempo |
+|---|---:|---:|---:|---:|---:|---:|
+| Silver real | 8 | 3 134 | 187 | 1 | 120 | 2,0 s |
+| Silver ×1000 | 8 | 3 134 000 | 120 000 | 3 | 120 000 | 2,8 s |
 
-<!-- Página 51 del PDF -->
+El combiner reduce en 94 % las filas que viajan por la red con los datos reales y en 96 % con ×1000, porque cada tarea envía sus sumas parciales y no cada fila. Además, la ejecución adaptativa de Spark ajusta el número de tareas de reduce al volumen (1 con los datos reales y 3 con ×1000). En el cluster, YARN reparte las tareas de map entre los workers y prefiere el nodo que guarda cada bloque de HDFS.
 
-Los resultados muestran que el tiempo promedio de procesamiento disminuyó de 1,5480 a 0,6090 segundos, lo que representa una reducción del 60,66 %. Esta mejora se explica porque Spark puede reutilizar los datos almacenados temporalmente en memoria, evitando repetir parte del trabajo necesario para procesar el DataFrame.
-
-Sin embargo, la preparación inicial de la caché requirió 3,0887 segundos, por lo que este costo debe considerarse antes de utilizar la técnica. Además, al excluir la primera ejecución de cada escenario, la reducción del tiempo promedio fue del 37,19 %. Esto demuestra que parte de la diferencia inicial puede estar relacionada con el calentamiento del entorno de ejecución y no únicamente con la aplicación de caché.
-
-Comparación final
-
-![Imagen de la página 51](Danper_G07_imagenes/pagina_51_imagen_14.png)
-
-Figura 3.12 Comparación de tiempos de procesamiento con y sin memoria caché.
-
-La optimización resulta conveniente cuando un mismo conjunto de datos se utiliza repetidamente para realizar consultas o transformaciones. Pero su aplicación también requiere memoria disponible y puede resultar menos beneficiosa cuando los datos se utilizan una sola vez. Esta prueba nos permitió comprobar una mejora medible en las consultas repetidas sobre los datos agrícolas de la capa Silver.
+> **[CAPTURA PENDIENTE] Figura 3.11.** Plan físico de la agregación (`kpi.explain()`), con las fases señaladas: FileScan/Filter (map), HashAggregate partial (combiner), Exchange (shuffle) y HashAggregate final (reduce). El código para obtenerlo está al final de `docs/evidencia_mapreduce.md`.
 
 ### 3.7. Prueba de escalabilidad
 
-En la prueba de escalabilidad tuvimos como finalidad evaluar el comportamiento del procesamiento de datos ante un incremento del volumen de información. Para ello, se utilizaron siete conjuntos de datos reales de la capa Silver y se generaron réplicas equivalentes a 10 y 100 veces su tamaño original. Estas réplicas se emplearon exclusivamente para evaluar el rendimiento del sistema, sin incorporarse al análisis exploratorio, al entrenamiento del modelo predictivo ni a las conclusiones de negocio.
+<!-- ACTUALIZADO: reemplaza la prueba anterior (54,98 / 55,03 / 53,35 s), la Tabla 3.6 y las figuras 3.13 a 3.16 -->
 
-La evaluación se realizó en una máquina virtual Debian 12, con 5 CPU virtuales y aproximadamente 8 GiB de memoria RAM, utilizando Apache Spark 3.5.1 y Hadoop HDFS. Se ejecutó el procesamiento de Silver a Gold en tres escenarios: ×1, ×10 y ×100, registrando el tiempo de ejecución y el consumo máximo observado de recursos.
+La prueba de escalabilidad tiene como finalidad medir cómo cambia el tiempo del procesamiento Silver → Gold cuando crece el volumen de datos y cuando crece el paralelismo disponible.
 
-**Tabla 3.6 Resultados de la prueba de escalabilidad del procesamiento Silver a Gold**
+**Por qué se rehízo la prueba.** La versión anterior informaba 54,98, 55,03 y 53,35 s para ×1, ×10 y ×100, pero esas cifras no estaban respaldadas por ningún script ni registro del repositorio. Además, las réplicas eran copias idénticas que se fusionaban en las agregaciones de Gold, de modo que ×100 hacía casi el mismo trabajo que ×1, y la memoria se midió con `psutil` (proceso de Python) y no con métricas de Spark. La nueva prueba corrige esos tres problemas.
 
-<!-- Página 52 del PDF -->
+**Método**
 
-Indicador | ×1 | ×10 | ×100
+1. **Réplicas ×1, ×10, ×100 y ×1000** de las cinco fuentes principales de Silver (producción, exportaciones regionales, agroindustria, costos y exportaciones de Danper). Cada copia lleva una columna `replica` que forma parte de todas las claves de agrupación, ventana y unión, y sus valores se alteran levemente. Así las réplicas no se fusionan y el trabajo crece con el factor. El script comprueba que las filas de salida sean exactamente F veces las de ×1.
+2. **Trabajo medido**, representativo de Gold: pivot de producción (7 variables) y de exportaciones regionales, agregaciones de agroindustria y exportaciones de Danper, ventana `lag` sobre costos, dimensión de tiempo y su unión, KPI anual de producción y escritura de 6 tablas en HDFS.
+3. **Escenarios independientes:** cada combinación de factor y número de núcleos se ejecuta como un programa de Spark separado, que arranca con memoria vacía. Dentro de cada escenario hay 1 ejecución de calentamiento y 3 mediciones; se reporta la mediana.
+4. **Métricas de Spark**, leídas de su API de monitoreo: tiempo de executors, datos del shuffle, tareas y memoria pico de la JVM.
+5. **Entorno de esta medición:** Intel Core i7-6700HQ (4 núcleos físicos, 8 hilos), 15 GB de RAM, Ubuntu 24.04, Spark 3.5.1 en modo local y HDFS de un nodo. Las réplicas solo se usan para medir rendimiento: no entran al análisis, al modelo ni a las conclusiones de negocio.
 
-Tiempo de ejecución (s) | 54,98 | 55,03 | 53,35
+**Tabla 3.6 Volumen creciente (8 hilos)**
 
-Pico de RAM del sistema (GiB) | 5,42 | 5,59 | 5,36
+| Factor | Filas de entrada | Filas de salida | Tiempo (mediana) | Tiempo de executors | Shuffle escrito | Memoria pico |
+|---|---:|---:|---:|---:|---:|---:|
+| ×1 | 78 515 | 11 208 | 4,8 s | 2,0 s | 0,7 MB | 347 MB |
+| ×10 | 785 150 | 112 080 | 7,2 s | 8,7 s | 6,3 MB | 525 MB |
+| ×100 | 7 851 500 | 1 120 800 | 10,3 s | 36,3 s | 57 MB | 1 556 MB |
+| ×1000 | 78 515 000 | 11 208 000 | 32,4 s | 213 s | 574 MB | 2 100 MB |
 
-Pico de RAM de procesos (MiB) | 1 063,24 | 1 152,34 | 954,01
+**Tabla 3.7 Paralelismo creciente (×1000)**
 
-Pico de CPU del sistema (%) | 83,9 | 76,8 | 84,5
+| Hilos | Tiempo (mediana) | Tiempo de executors | Aceleración |
+|---:|---:|---:|---:|
+| 1 | 81,9 s | 79 s | 1,0× |
+| 2 | 50,2 s | 88 s | 1,6× |
+| 4 | 31,0 s | 107 s | 2,6× |
+| 8 | 32,4 s | 213 s | 2,5× |
 
-Componentes Gold generados | 26 | 26 | 26
+> **[CAPTURA PENDIENTE] Figuras 3.12 y 3.13.** Dos gráficos de líneas desde `reportes/escalabilidad/escalabilidad.csv`: tiempo frente al factor de volumen (Tabla 3.6, eje en escala logarítmica) y tiempo frente al número de hilos con ×1000 (Tabla 3.7).
 
-Estado de ejecución | Correcto | Correcto | Correcto
+**Interpretación**
 
-![Imagen de la página 52](Danper_G07_imagenes/pagina_52_imagen_15.png)
+- **Volumen:** con 1 000 veces más datos, el tiempo crece unas 7 veces. Hasta ×10 domina el costo fijo de Spark (planificar, lanzar tareas y escribir archivos). Desde ×100 el trabajo real crece con el volumen, como muestran el tiempo de executors y el shuffle, que crecen casi 10 veces por cada salto.
+- **Paralelismo:** pasar de 1 a 4 núcleos acelera 2,6 veces. De 4 a 8 hilos no hay mejora, porque el equipo tiene 4 núcleos físicos (los otros 4 son hyperthreading) y un solo disco. El tiempo de executors se duplica porque los hilos compiten por los mismos núcleos.
+- **Límite de una sola máquina:** con ×1000, agregar hilos ya no acelera el trabajo. Para seguir escalando hacen falta más máquinas, cada una con núcleos, disco y DataNode propios. Esa es la medición que se hará en el cluster.
 
-Figura 3.13 Resultados de la prueba de escalabilidad con el volumen original de datos (×1).
+**Medición en el cluster**
 
-![Imagen de la página 52](Danper_G07_imagenes/pagina_52_imagen_16.png)
+> **[PENDIENTE AWS] Tabla 3.8.** El mismo script se ejecutará en el cluster de Amazon EC2 con `--executores 1 2 3 --entorno aws`, es decir, con 1, 2 y 3 workers. Agregar aquí la tabla de tiempos con ×1000 y la captura de la interfaz de YARN y del Spark History Server con los tres escenarios.
 
-Figura 3.14 Resultados de la prueba de escalabilidad con diez veces el volumen de datos (×10).
+**Limitaciones**
 
-![Imagen de la página 52](Danper_G07_imagenes/pagina_52_imagen_17.png)
+- La medición local valida el método, pero no la escalabilidad horizontal; esa se medirá variando el número de workers.
+- Se mide la etapa Silver → Gold con un trabajo representativo, no las 26 tablas de `procesamiento_gold.py` ni el recorrido desde Bronze, porque las réplicas romperían las validaciones de unicidad de Gold.
+- Las réplicas reproducen la estructura de los datos reales, no su diversidad.
 
-Figura 3.15 Resultados de la prueba de escalabilidad con cien veces el volumen de datos (×100).
-
-Las Figuras 3.13, 3.14 y 3.15 presentan una prueba complementaria de agregación de registros de producción agrícola con diferentes volúmenes de datos. Sus tiempos corresponden únicamente a esa operación y no
-
-<!-- Página 53 del PDF -->
-
-representan la duración total del procesamiento de la capa Gold. Por otro lado, la Tabla 3.6 y la Figura 3.16
-
-muestran los resultados de la prueba principal de escalabilidad Silver | → | Gold, que comprende la generación
-
-y validación de 26 componentes analíticos. Esta distinción permite interpretar correctamente las mediciones y evita comparar operaciones de diferente alcance.
-
-Los resultados muestran que los tres escenarios finalizaron correctamente y generaron los 26 componentes analíticos de Gold. Este comportamiento puede relacionarse con el costo fijo de inicialización de Spark, las operaciones de agrupación que reducen la cantidad de registros y la repetición de datos con las mismas claves. Por ello, los resultados no significan que el sistema mantendrá necesariamente el mismo rendimiento ante un crecimiento de datos reales y diversos.
-
-En cuanto al consumo de recursos, el máximo de memoria RAM del sistema se mantuvo entre 5,36 y 5,59 GiB, mientras que los picos de CPU estuvieron entre 76,8 % y 84,5 %. Esto indica que la máquina virtual pudo procesar los tres escenarios evaluados sin que se registraran fallos por falta de recursos.
-
-![Imagen de la página 53](Danper_G07_imagenes/pagina_53_imagen_18.png)
-
-Figura 3.16 Comparación de tiempos y consumo de recursos durante la prueba de escalabilidad.
-
-Respecto a la capacidad de una sola máquina, no se identificó un punto exacto a partir del cual dejaría de ser suficiente, debido a que los tres escenarios terminaron correctamente. Para determinar ese límite sería necesario realizar pruebas adicionales con mayores volúmenes, datos más variados y mediciones repetidas.
+El detalle del método y de cada ejecución está en `docs/reporte_escalabilidad_gold.md`.
 
 ### 3.8. Seguridad de la plataforma
 
-La seguridad de la plataforma constituye un componente importante del proyecto, debido a que permite proteger la información utilizada durante los procesos de ingesta, transformación, almacenamiento y análisis de datos. Para ello, se consideran medidas orientadas a garantizar la integridad, confidencialidad y disponibilidad de los datasets relacionados con la producción, costos y exportaciones agrícolas de Danper.
+<!-- ACTUALIZADO -->
 
-El proyecto utiliza una infraestructura on-premise basada en Apache Hadoop HDFS para el almacenamiento distribuido y Apache Spark con PySpark para el procesamiento de datos. En este entorno, la seguridad se aborda mediante el control de permisos de acceso, la protección de las comunicaciones y la gestión de credenciales, diferenciando las configuraciones existentes de aquellas previstas para un despliegue productivo.
+La seguridad de la plataforma protege la información utilizada durante los procesos de ingesta, transformación, almacenamiento, publicación y consumo. Se distingue entre los controles que ya están configurados y los que se aplicarán en el despliegue en la nube.
 
-Tabla 3.7 Medidas de seguridad de la plataforma de datos
+**Tabla 3.9 Controles de seguridad implementados**
 
-<!-- Página 54 del PDF -->
+| Medida | Estado en el entorno actual |
+|---|---|
+| Control de acceso en HDFS | `dfs.permissions.enabled=true`. Las capas tienen permisos 755: solo el propietario escribe y los demás usuarios leen |
+| Integridad de los datos | Huella SHA-256 de cada archivo en Bronze y en la tabla de control; validación de estructura, claves y duplicados en Gold; conteo de filas antes de publicar en PostgreSQL |
+| Mínimo privilegio en la base de datos | El tablero se conecta con el usuario `grafana_lector`, que solo puede leer el esquema `gold` y no puede crear, modificar ni borrar tablas |
+| Gestión de credenciales | La contraseña de PostgreSQL de Grafana se guarda en `dashboard/.env`, que está excluido del repositorio; la del pipeline, en `~/.pgpass` o en una variable de entorno. Ninguna contraseña está en el código |
+| Exposición de servicios | Grafana escucha solo en la máquina local (`127.0.0.1:3000`) |
+| Privacidad en el repositorio | Se quitaron del repositorio los nombres de usuario y de equipo que aparecían en notebooks, reportes y CSV |
 
-Medida | Descripción
+Según el diagnóstico de `docs/reporte_seguridad_plataforma.md`, el entorno local usa autenticación simple de Hadoop (sin Kerberos), no tiene zonas de cifrado en HDFS y sus servicios web usan HTTP. Estas limitaciones son aceptables en un equipo local de desarrollo, pero no en un entorno compartido.
 
-Control de acceso | Gestión de propietarios, grupos y permisos de lectura, escritura y ejecución sobre los
+**Controles previstos para el despliegue en AWS**
 
-directorios de HDFS.
+Los scripts del cluster ya están preparados y probados en contenedores; su aplicación en AWS se documentará al terminar el despliegue.
 
-Integridad de los | Validación de la estructura de los conjuntos Gold y comprobación de claves obligatorias
+- **Mínimo privilegio en AWS:** el master tiene un rol que solo puede leer los datasets del bucket, guardar respaldos y leer las contraseñas de Danper en Parameter Store, y tiene prohibido borrar en S3. Los workers no tienen acceso al bucket ni a las contraseñas.
+- **Mínimo privilegio en la base:** en RDS, el usuario `etl_escritor` solo publica en `gold` y `gold_staging`; `grafana_lector` solo lee `gold`, en modo de solo lectura. Ningún otro usuario puede conectarse a la base.
+- **Credenciales:** las contraseñas se guardan cifradas en SSM Parameter Store y los scripts las leen al ejecutarse; no quedan en archivos del servidor.
+- **Cifrado en tránsito:** el pipeline y Grafana se conectan a RDS con SSL obligatorio.
+- **Red:** no se abre ningún puerto a internet. Se entra a las máquinas y al tablero por AWS Systems Manager Session Manager. El puerto 8088 de YARN nunca se expone, porque su API permite enviar trabajos sin autenticación.
 
-datos | y duplicados durante su creación.
-
-Cifrado en reposo | Protección de los archivos almacenados en HDFS mediante mecanismos de cifrado.
-
-Cifrado en tránsito Protección de las comunicaciones entre los servicios mediante TLS/HTTPS.
-
-Gestión | de | Protección de contraseñas, claves y archivos de configuración utilizados para acceder a
-
-credenciales | los servicios.
-
-Principio | de | Asignación de los permisos estrictamente necesarios según las funciones de cada
-
-mínimo privilegio | usuario.
-
-El control de acceso a los datos almacenados en HDFS se gestiona mediante permisos asociados a usuarios y grupos del sistema. Estos permisos permiten establecer quién puede leer, modificar o acceder a los directorios correspondientes a las zonas Bronze, Silver y Gold. Para un entorno productivo se propone aplicar el principio de mínimo privilegio, de manera que los responsables de los procesos ETL dispongan de permisos de escritura únicamente en las zonas necesarias, mientras que los usuarios encargados del análisis puedan consultar los datos sin modificarlos.
-
-El cifrado en reposo tiene como finalidad proteger los archivos almacenados frente a accesos no autorizados. Para un despliegue productivo se contempla utilizar las zonas de cifrado de HDFS, que permiten proteger los datos almacenados mediante claves administradas. En cuanto al cifrado en tránsito, se plantea habilitar TLS/HTTPS para proteger las comunicaciones entre clientes, servicios de Hadoop y componentes de procesamiento. También se recomienda configurar adecuadamente la transferencia cifrada de datos entre los servicios de HDFS.
-
-<!-- Página 55 del PDF -->
+> **[PENDIENTE AWS] Figura 3.14.** Capturas de los grupos de seguridad sin reglas abiertas a internet, de los dos roles IAM con sus políticas y de los permisos de los usuarios de la base (`\dp gold.*` en `psql`).
 
 ![Imagen de la página 55](Danper_G07_imagenes/pagina_55_imagen_19.png)
 
-Figura 3.17 Verificación de permisos y directorios de almacenamiento en Hadoop HDFS.
+Figura 3.15 Verificación de permisos y directorios de almacenamiento en Hadoop HDFS.
 
-La Figura 3.17 muestra los permisos y directorios disponibles en el entorno HDFS consultado. En esta instalación se identificaron las capas Silver y Gold, mientras que Bronze fue verificada en el entorno de otro integrante, como se documenta en la sección 3.2. Por tanto, esta captura evidencia los permisos observados en el entorno específico, pero no constituye una comprobación de las tres capas en una misma instalación.
+> **[CAPTURA PENDIENTE]** Si se reemplaza la Figura 3.15 por una captura del entorno actual (`hdfs dfs -ls /danper`), revisar que no aparezcan nombres de usuario.
 
 # 4. Análisis, modelado y capa de consumo
 
@@ -2037,6 +1860,10 @@ Esta distribución evidencia una concentración territorial importante de los vo
 En este punto el análisis exploratorio permitió identificar tres hallazgos principales: variaciones mensuales de producción durante 2025, diferencias considerables entre los cultivos analizados y una mayor concentración territorial de los volúmenes registrados en la provincia de Virú. Losresultados proporcionan información inicial para comprender el comportamiento productivo de los cultivos de interés agrocomercial y sirven como punto de partida para el desarrollo de modelos predictivos. Asimismo, se identificó una limitación importante de completitud, debido a que 294 de los 561 registros del conjunto Gold carecen de valores de producción.
 
 ### 4.2. Modelo base
+
+<!-- ACTUALIZADO -->
+
+> Este es el modelo base presentado en la Semana 7 y se conserva como línea base técnica. El modelo definitivo, con otra variable objetivo y Spark MLlib, se presenta en la sección 4.3.
 
 Se implementó un modelo de regresión lineal orientado a estimar el volumen de producción agrícola expresado en toneladas. Se seleccionó este modelo debido a su interpretabilidad, permitiendo establecer una referencia inicial para comparar posteriormente otros modelos de mayor complejidad.
 
@@ -2108,23 +1935,100 @@ Se establece como línea base técnica inicial un MAE de 1 868,54 toneladas, cor
 
 ### 4.3. Modelo definitivo, selección y evaluación
 
-Justifique el modelo final frente a al menos una alternativa descartada y documente la preparación de datos, la partición entre entrenamiento y prueba y el ajuste de hiperparámetros. Reporte las métricas e interprete cada una en términos del negocio; la interpretación es lo que se evalúa, no el valor numérico. Contraste el resultado con la línea base técnica declarada en la Semana 7.
+<!-- ACTUALIZADO: reemplaza el texto guía de la plantilla -->
 
-Un modelo con 85 % de exactitud sobre una población donde solo el 5 % abandona puede ser peor que inútil. Explique qué significa cada error para la organización: qué cuesta un falso positivo, qué cuesta un falso negativo, y cuál de los dos prefiere la operación.
+**Cambio de la variable objetivo.** El modelo base de la Semana 7 (sección 4.2) pronosticaba la producción agrícola de 2025, pero esa serie solo tenía un año con datos válidos, lo que impedía evaluar un patrón estacional. Para el modelo definitivo se eligió una variable más ligada a la decisión de Danper y con historia suficiente: el **ingreso mensual de materia prima a las plantas agroindustriales de La Libertad** (Gold `agroindustria_mensual`, proceso INGRESO: alcachofa "para procesar" y espárrago "natural"; fuente GRLL-OIA, 2010–2024). Es el volumen regional que las empresas del sector, entre ellas Danper, deben asegurar con proveedores. El modelo lo pronostica **con 3 meses de anticipación**, el plazo con que se programa la compra.
+
+**Preparación de los datos**
+
+- 360 meses (2 cultivos × 15 años), de los cuales 312 son válidos después de tratar los problemas de calidad descritos en la sección 3.4.
+- Variables, todas conocidas al momento de planificar: cultivo, mes, tamaño estacional del mes, tendencia de los últimos 3 meses observados frente al año anterior, el mismo mes 1 y 2 años antes respecto del promedio, y la tendencia de las exportaciones regionales del cultivo.
+- Los modelos pronostican cuánto se aparta el mes de su nivel estacional (logaritmo de la razón), con cada mes ponderado por sus toneladas, y luego se convierte a toneladas. Así se evita que los modelos de árboles queden limitados a los valores vistos durante el entrenamiento.
+
+**Métodos comparados** (script `scripts/modelo_abastecimiento.py`, Spark MLlib)
+
+| Método | Descripción |
+|---|---|
+| `naive_anual` (línea base) | Mismo mes del año anterior |
+| `prom_3a` (línea base) | Promedio del mismo mes en los 3 años anteriores |
+| `gbt` | `GBTRegressor` de Spark MLlib (árboles con boosting) |
+| `rf` | `RandomForestRegressor` de Spark MLlib |
+| `lineal` | `LinearRegression` de Spark MLlib con regularización elastic net |
+
+**Partición entre entrenamiento y prueba: validación hacia adelante.** Para cada año de 2019 a 2024 se entrena solo con los meses anteriores y se pronostica ese año completo. Son 6 cortes y 132 meses de prueba, y todos los métodos se evalúan sobre los mismos meses. Esta partición respeta el orden del tiempo: el modelo nunca ve el futuro que debe pronosticar. El modelo no se ajustó mirando los años de prueba, para no inflar el resultado.
+
+**Métricas**
+
+- **MAE:** error medio mensual, en toneladas.
+- **WAPE:** suma de errores absolutos dividida entre la suma real. Indica qué porcentaje del volumen total se planifica mal y no se distorsiona en los meses de poco ingreso, como sí ocurre con el MAPE.
+- **Error anual:** cuánto se desvía el total del año pronosticado respecto del real. Un valor negativo significa que se planifica menos materia prima de la que llega.
+
+**Tabla 4.3 Resultados con horizonte de 3 meses, años de prueba 2019–2024**
+
+| Método | Alcachofa WAPE | Espárrago WAPE | MAE total | WAPE total | Error anual |
+|---|---:|---:|---:|---:|---:|
+| `prom_3a` (línea base) | 41,6 % | 29,7 % | 3 272 t | 36,9 % | −16,0 % |
+| `naive_anual` (línea base) | 45,6 % | 27,0 % | 3 385 t | 38,1 % | −10,4 % |
+| `lineal` (MLlib) | 43,9 % | 30,8 % | 3 428 t | 38,6 % | −19,0 % |
+| `rf` (MLlib) | 44,4 % | 35,3 % | 3 616 t | 40,7 % | −21,2 % |
+| `gbt` (MLlib) | 47,2 % | 34,8 % | 3 747 t | 42,2 % | −23,3 % |
+
+Fuente: `reportes/modelo/metricas.csv`, que también contiene el detalle por año.
+
+> **[CAPTURA PENDIENTE] Figura 4.6.** Panel "Pronóstico frente al real" del tablero de Grafana (2019–2024) o gráfico de líneas del valor real y de los pronósticos de `prom_3a` y `gbt` por mes, desde la tabla `ml_prediccion_ingreso`.
+
+**Selección del modelo e interpretación para el negocio.** **Ningún modelo de aprendizaje automático supera a la línea base estacional.** El método seleccionado es `prom_3a`, que obtuvo el menor WAPE total (36,9 %). Los modelos de MLlib se descartan para uso operativo. También se probó modelar las toneladas directamente y con un horizonte de 1 mes, con el mismo resultado.
+
+- **Por qué no se supera la línea base:** la serie depende de choques anuales que no están en su propia historia, como el clima (Niño Costero 2017) y las decisiones de siembra y de mercado. Por ejemplo, el ingreso de alcachofa fue de 139 mil t en 2022, 91 mil t en 2023 y 156 mil t en 2024. Con 312 meses válidos no hay muestra suficiente para aprender esos choques. El resultado se reporta tal cual, en lugar de ajustar el modelo mirando los años de prueba.
+- **Qué significa el error para Danper:** un WAPE de 36,9 % indica que, en promedio, cerca de un tercio del volumen mensual se planifica mal. Más importante es el signo: **todos los métodos subestiman el volumen anual (entre −10 % y −23 %)**. Planificar solo con la historia lleva a asegurar menos materia prima de la que finalmente llega, lo que coincide con lo ocurrido en 2023, cuando la compra de alcachofa a terceros quedó 16,8 % por debajo de la meta.
+- **Costo de cada tipo de error:** subestimar obliga a comprar a última hora, a precios más altos o en menor calidad, y puede dejar capacidad de planta ociosa. Sobrestimar genera compromisos de compra que no se usan y materia prima perecible en exceso. Para el espárrago y la alcachofa, que se procesan frescos, la operación prefiere evitar la subestimación, por lo que el sesgo anual es un indicador del tablero (sección 4.4).
+- **Contraste con la línea base técnica de la Semana 7:** el modelo base de regresión lineal tampoco superaba a una referencia simple (MAE 1 868,54 t frente a 1 745,51 t de la mediana). La diferencia es que ahora la evaluación es más sólida: 15 años de historia en vez de uno, 6 años de prueba y comparación con dos líneas base.
+
+**Uso del resultado.** Con el método seleccionado se calcula el plan de ingreso del año siguiente al último dato (tabla `ml_plan_ingreso`): para cada mes, el promedio de los 3 últimos años válidos con una banda de ± WAPE histórico. Mejorar el pronóstico requiere variables que anticipen los choques, como intenciones de siembra, superficie instalada o clima, con varios años de historia.
 
 ### 4.4. Modelo dimensional y capa de consumo
 
-Diseñe la capa que consumirá el negocio: modelo dimensional con su tabla de hechos, sus dimensiones y la
+<!-- ACTUALIZADO: reemplaza el texto guía de la plantilla -->
 
-granularidad declarada, más un tablero con | tres a cinco | indicadores derivados de los objetivos de la sección
+**Modelo dimensional.** La capa Gold sigue un modelo en estrella: tablas de hechos con las medidas numéricas y dimensiones que describen cultivo, tiempo, ubicación y mercado. Se publica en PostgreSQL (base `danper`, esquema `gold`) para que el tablero la consulte.
 
-⟨ | ⟩
+**Tabla 4.4 Tablas de hechos y su granularidad**
 
-<!-- Página 62 del PDF -->
+| Tabla de hechos | Granularidad (una fila por…) | Medidas principales | Dimensiones |
+|---|---|---|---|
+| `fact_produccion_mensual` | Distrito, cultivo y mes | Producción (t), precio en chacra (S/ por kg), siembras, cosechas, superficie y rendimiento | `dim_tiempo`, `dim_cultivo`, `dim_ubicacion_produccion` |
+| `fact_agroindustria_mensual` | Cultivo, proceso, presentación y mes | Cantidad procesada o ingresada (t) | `dim_tiempo`, `dim_cultivo` |
+| `fact_exportaciones_regionales` | Cultivo y mes | Volumen exportado (t), valor FOB (miles de US$) y precio FOB (US$ por kg) | `dim_tiempo`, `dim_cultivo` |
+| `fact_exportaciones_danper` | País de destino y mes | Valor FOB (US$) y número de registros aduaneros | `dim_tiempo`, `dim_pais_exportacion` |
+| `fact_costos_mensuales` | Región, tipo de costo y mes | Valor del costo y su unidad | `dim_tiempo`, `dim_region_costos` |
+| `fact_abastecimiento_mayorista` | Mercado, cultivo y día del reporte | Ingreso (t) y precios mayoristas (S/) | `dim_tiempo`, `dim_cultivo`, `dim_mercado` |
+| `fact_precios_mercado_productores` | Mercado, producto y día del reporte | Precios (S/) y variación porcentual | `dim_tiempo`, `dim_mercado` |
 
-1. Cada indicador debe tener definición, fórmula, frecuencia de actualización y responsable de la decisión asociada.
+Además del modelo en estrella, Gold contiene 6 tablas de indicadores anuales (`kpi_*`) y las 3 tablas del modelo predictivo (`ml_prediccion_ingreso`, `ml_metricas_modelo` y `ml_plan_ingreso`).
 
-Un tablero no es un conjunto de gráficos atractivos: es el instrumento con el que alguien toma una decisión periódica. Si no puede nombrar quién mira cada indicador y qué hace cuando se mueve, el indicador sobra.
+> **[CAPTURA PENDIENTE] Figura 4.7.** Diagrama del modelo en estrella: las tablas de hechos al centro y las 6 dimensiones alrededor, con sus claves.
+
+**Tablero.** La capa de consumo es un tablero de Grafana 12.4.3 ("Danper – Analítica agrocomercial"). Se conecta a PostgreSQL con el usuario de solo lectura `grafana_lector` y se refresca cada 5 segundos, por lo que muestra cada publicación del pipeline sin recargar la página. Tiene filtros por cultivo y región. Su primera fila contiene los indicadores de abastecimiento, que apoyan la decisión de cuánta materia prima asegurar con proveedores terceros.
+
+**Tabla 4.5 Indicadores de abastecimiento del tablero**
+
+| KPI | Definición y fórmula | Frecuencia de actualización | Responsable de la decisión |
+|---|---|---|---|
+| 1. Plan 2025 (t) | Volumen a asegurar en el año siguiente al último dato: promedio del mismo mes en los 3 últimos años válidos, con banda de ± WAPE histórico | Anual, al cargar datos nuevos | Planeamiento y extensión agrícola |
+| 2. Error WAPE | Suma de errores absolutos / suma real del método recomendado, validación 2019–2024 | Anual | Planeamiento |
+| 3. Sesgo | (Pronóstico anual − real) / real. Negativo significa que se planifica menos de lo que llega. Meta: entre −5 % y +5 % | Anual | Planeamiento y compras |
+| 4. Pico agosto–octubre | Ingreso de agosto a octubre / ingreso del año, último año válido de cada cultivo. Indica la capacidad de planta y de compra necesaria en campaña | Anual | Operaciones de planta |
+| 5. Meta 2023 | Volumen logrado / meta de compra de materia prima a terceros (alcachofa 21 315 / 25 623 t; espárrago 5 965 / 6 117 t), según el Reporte de Sostenibilidad Danper 2023 | Anual | Compras |
+
+Cómo se usan: si el sesgo sale negativo, el área de compras debería asegurar un volumen mayor que el plan base; si el pico de agosto a octubre crece, operaciones debe prever más capacidad de planta y de recepción para la campaña.
+
+El tablero incluye además el plan 2025 por mes, el pronóstico frente al valor real de 2019–2024, el error de cada método por año, el estado del pipeline (última publicación, filas y fecha del último reporte GMML), el abastecimiento y los precios del GMML, las exportaciones de Danper y regionales, la producción y el ingreso a planta, los costos agrícolas por región y los precios del Mercado de Productores.
+
+> **[CAPTURA PENDIENTE] Figura 4.8.** Tablero de Grafana completo, con la fila de KPI de abastecimiento visible.
+
+> **[CAPTURA PENDIENTE] Figura 4.9.** Panel "Estado del pipeline" antes y después de copiar un PDF GMML nuevo con `run_pipeline.py --vigilar` en ejecución: deben cambiar "Última publicación en PostgreSQL", "Registros de abastecimiento GMML" y "Último reporte GMML".
+
+> **[PENDIENTE OE3]** Agregar aquí la comparación de tiempos de la consulta de línea base (manual frente a plataforma) cuando el equipo la mida.
 
 # 5. Ética, privacidad y gobierno de datos
 
@@ -2232,6 +2136,12 @@ Gemini (Google) | exploratorio y en la
 
 interpretación de conceptos resultados obtenidos relacionados con los modelos en JupyterLab. predictivos. Los integrantes declaran que el contenido de este informe fue revisado y verificado por el equipo, y asumen la responsabilidad académica correspondiente.
 
+<!-- ACTUALIZADO: fila nueva de la tabla del Anexo A -->
+
+| Herramienta | Uso que se le dio | Sección del informe | Verificación realizada |
+|---|---|---|---|
+| Claude (Anthropic) | Asistencia para corregir y ampliar el código del pipeline (carga incremental, publicación en PostgreSQL, tablero, modelo con Spark MLlib, pruebas de escalabilidad y caché, scripts del cluster) y para actualizar la redacción del informe | 0, 1.4, 2, 3.2 a 3.8, 4.3 y 4.4 | Ejecución de los scripts en el entorno del equipo; las cifras del informe se contrastaron con los reportes que generan los scripts (`reportes/`) y con las tablas de PostgreSQL |
+
 ![Imagen de la página 64](Danper_G07_imagenes/pagina_64_imagen_25.jpg)
 
 ![Imagen de la página 64](Danper_G07_imagenes/pagina_64_imagen_26.png)
@@ -2266,9 +2176,7 @@ haring&ouid=107862472151977588900&rtpof=true&sd=true
 
 Repositorio donde se encuentran nuestros avances del código.
 
-Enlace de acceso del repositorio: | https://github.com/vfabrizio95-oss/G07-BigData-AnaliticaAgrocomercial-
-
-Danper/tree/develop
+Enlace de acceso del repositorio: https://github.com/vfabrizio95-oss/G07-BigData-AnaliticaAgrocomercial-Danper (rama principal `main`). <!-- ACTUALIZADO -->
 
 ## Referencias sugeridas
 
