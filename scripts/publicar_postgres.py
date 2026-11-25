@@ -151,8 +151,13 @@ def main():
         staging = f"{esquema}_staging"
         conexion = conectar(spark, propiedades)
         st = conexion.createStatement()
-        st.execute(f'CREATE SCHEMA IF NOT EXISTS "{esquema}"')
-        st.execute(f'CREATE SCHEMA IF NOT EXISTS "{staging}"')
+        # Solo se crea el esquema si falta: CREATE SCHEMA IF NOT EXISTS exige
+        # permiso CREATE sobre la base aunque el esquema ya exista, y en AWS
+        # etl_escritor no lo tiene (infra/aws/sql/roles_postgres.sql crea los
+        # esquemas a su nombre).
+        for nombre_esquema in (esquema, staging):
+            if not consultar(conexion, "SELECT to_regnamespace(?)::text", nombre_esquema)[0]:
+                st.execute(f'CREATE SCHEMA "{nombre_esquema}"')
         print("===== PUBLICAR GOLD EN POSTGRESQL =====")
         print("Destino:", config.PG_URL, "esquema", esquema, "(vía", staging + ")")
 
