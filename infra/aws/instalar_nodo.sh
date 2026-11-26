@@ -237,7 +237,9 @@ if [[ $ROL == master ]]; then
         sleep 2
     done
     como_danper /opt/hadoop/bin/hdfs dfsadmin -safemode wait
+    # Capas del data lake: ingesta_bronze.py lista /danper/bronze antes de subir nada
     como_danper /opt/hadoop/bin/hdfs dfs -mkdir -p /danper/spark-events /danper/yarn-logs \
+        /danper/bronze /danper/silver /danper/gold /danper/calidad /danper/control \
         /tmp "/user/$USUARIO"
     como_danper /opt/hadoop/bin/hdfs dfs -chmod 1777 /tmp /danper/yarn-logs
     systemctl restart danper-resourcemanager danper-historyserver
