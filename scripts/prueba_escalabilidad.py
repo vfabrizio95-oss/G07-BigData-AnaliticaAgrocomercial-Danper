@@ -112,9 +112,19 @@ class MetricasSpark:
         # El script corre en la máquina del driver (modo client). Se usa
         # 127.0.0.1: el nombre del equipo puede resolver primero a IPv6 y la
         # interfaz de Spark escucha en IPv4 (cada consulta esperaría un timeout).
-        puerto = self.sc.uiWebUrl.rsplit(":", 1)[1]
-        self.base = (f"http://127.0.0.1:{puerto}/api/v1/applications/"
-                     f"{self.sc.applicationId}")
+        app = self.sc.applicationId
+        if self.sc.master.startswith("yarn"):
+            # En YARN la interfaz del driver redirige las consultas directas a
+            # una página HTML del ResourceManager; la API REST se lee por su
+            # proxy: http://<ResourceManager>:8088/proxy/<app>/api/v1/...
+            jvm = spark._jvm
+            yarn_conf = jvm.org.apache.hadoop.yarn.conf.YarnConfiguration(
+                self.sc._jsc.hadoopConfiguration())
+            rm = yarn_conf.get("yarn.resourcemanager.webapp.address")
+            self.base = f"http://{rm}/proxy/{app}/api/v1/applications/{app}"
+        else:
+            puerto = self.sc.uiWebUrl.rsplit(":", 1)[1]
+            self.base = f"http://127.0.0.1:{puerto}/api/v1/applications/{app}"
 
     def _get(self, ruta):
         with urllib.request.urlopen(f"{self.base}/{ruta}", timeout=30) as r:
