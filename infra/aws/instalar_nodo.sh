@@ -17,7 +17,8 @@
 #   6. Crea servicios de systemd que arrancan solos al encender la máquina:
 #        master: danper-namenode, danper-resourcemanager, danper-historyserver
 #        worker: danper-datanode, danper-nodemanager
-#   7. En el master: formatea HDFS (solo la primera vez) y crea las carpetas /danper.
+#   7. En el master: formatea HDFS (solo la primera vez), crea las carpetas /danper
+#      y sube las librerías de Spark a HDFS (spark.yarn.archive).
 #
 # Se puede volver a ejecutar: no descarga de nuevo lo que ya existe y no vuelve
 # a formatear HDFS. No abre puertos ni guarda contraseñas.
@@ -242,6 +243,16 @@ if [[ $ROL == master ]]; then
         /danper/bronze /danper/silver /danper/gold /danper/calidad /danper/control \
         /tmp "/user/$USUARIO"
     como_danper /opt/hadoop/bin/hdfs dfs -chmod 1777 /tmp /danper/yarn-logs
+    # Librerías de Spark en HDFS para spark.yarn.archive (se suben una sola vez)
+    if ! como_danper /opt/hadoop/bin/hdfs dfs -test -e /danper/spark-libs/spark-libs.zip; then
+        echo "Subiendo librerías de Spark a HDFS"
+        ZIP=$(mktemp --suffix=.zip)
+        (cd /opt/spark/jars && python3 -m zipfile -c "$ZIP" ./*.jar)
+        chmod 644 "$ZIP"
+        como_danper /opt/hadoop/bin/hdfs dfs -mkdir -p /danper/spark-libs
+        como_danper /opt/hadoop/bin/hdfs dfs -put "$ZIP" /danper/spark-libs/spark-libs.zip
+        rm -f "$ZIP"
+    fi
     systemctl restart danper-resourcemanager danper-historyserver
 else
     systemctl restart "${SERVICIOS[@]}"

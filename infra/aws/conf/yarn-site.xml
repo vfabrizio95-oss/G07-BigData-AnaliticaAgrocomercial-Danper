@@ -52,4 +52,11 @@
     <name>yarn.nodemanager.remote-app-log-dir</name>
     <value>/danper/yarn-logs</value>
   </property>
+  <!-- Límite de la caché local de archivos de aplicaciones (por defecto 10 GB):
+       los discos de 20 GB se llenaban y los NodeManager quedaban UNHEALTHY.
+       YARN borra lo más antiguo al pasar este tamaño. -->
+  <property>
+    <name>yarn.nodemanager.localizer.cache.target-size-mb</name>
+    <value>2048</value>
+  </property>
 </configuration>
