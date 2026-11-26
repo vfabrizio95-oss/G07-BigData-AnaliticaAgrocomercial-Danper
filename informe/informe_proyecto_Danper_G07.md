@@ -14,6 +14,15 @@ Cómo encontrar los cambios para pasarlos al .docx:
   - [PENDIENTE AWS]: lo que se completará cuando el cluster en AWS esté desplegado.
 - Las figuras que ya no corresponden a lo implementado se eliminaron (pruebas de caché y
   escalabilidad anteriores) o se conservaron como antecedente (modelo base de la Semana 7).
+
+Actualización del 26/11/2026 (rama feature/aws):
+- Se agregó lo hecho en la consola de AWS (etapas 1 a 4: cuenta, red, S3, IAM, RDS y
+  Parameter Store) en las secciones 0.2, 0.3, 0.4, 2.4 y 3.8, y se redactaron las
+  secciones 5.1 a 5.5 y 6.4 con lo que ya está en el repositorio.
+- Las secciones 6.1 a 6.3 (trazabilidad del valor, conclusiones y recomendaciones) se
+  redactan al cerrar el proyecto, cuando estén los resultados en AWS y la medición del OE3.
+- Donde la imagen YA ESTÁ TOMADA hay un bloque "[FOTO GUARDADA]" con el nombre del archivo
+  (carpeta BIG DATA/capturas_aws/) y su pie de figura listo para copiar.
 -->
 
 <!-- Página 1 del PDF -->
@@ -237,7 +246,7 @@ Con la finalidad de evaluar el avance del proyecto, se realizó un seguimiento d
 | Optimización del procesamiento | 11 | Prueba de caché reproducible con `scripts/prueba_escalabilidad.py`. | Con 1 000 veces el volumen, la caché reduce 90 % el tiempo de las consultas repetidas (sección 3.6). |
 | Evaluación de escalabilidad | No diferenciada en el cronograma original | Prueba local con réplicas ×1 a ×1000 y de 1 a 8 hilos, con métricas de Spark. | Reemplaza a la prueba anterior, que no tenía respaldo en el código (sección 3.7). La medición con 1, 2 y 3 workers se hará en AWS. |
 | Capa de consumo | 12 | Gold publicado en PostgreSQL (29 tablas) y tablero en Grafana con 5 KPI de abastecimiento. | El tablero se actualiza solo cada 5 s (sección 4.4). |
-| Despliegue en la nube | No prevista | Scripts de instalación y configuración del cluster preparados y probados en contenedores. | [PENDIENTE AWS] Despliegue en Amazon EC2 con 1 master y 3 workers. |
+| Despliegue en la nube | No prevista | Scripts de instalación y configuración del cluster preparados y probados en contenedores. Entre el 25 y el 26/11/2026 se creó en AWS la infraestructura base: red privada, bucket S3 con los 181 archivos, roles de acceso, base de datos RDS PostgreSQL y contraseñas cifradas en Parameter Store (secciones 2.4 y 3.8). | [PENDIENTE AWS] Lanzar las 4 instancias EC2 (1 master y 3 workers), instalar Hadoop y Spark y ejecutar el pipeline en el cluster. |
 
 ### 0.3. Riesgos y mitigación
 
@@ -326,6 +335,7 @@ Durante el desarrollo del proyecto se identificaron situaciones relacionadas con
 | Bajo rendimiento del modelo analítico | La regresión lineal de la Semana 7 no superó a la mediana. El modelo definitivo con Spark MLlib tampoco supera a la línea base estacional. | Se cambió a una variable objetivo con 15 años de historia, se compararon tres algoritmos con validación hacia adelante y el resultado se reporta sin ajustarlo a los años de prueba (sección 4.3). |
 | Limitaciones de recursos tecnológicos | La prueba de escalabilidad anterior no tenía respaldo en el código y sus réplicas se fusionaban en las agregaciones. | Se rehízo con un script versionado y réplicas que no se fusionan. En una sola máquina, pasar de 4 a 8 hilos no acelera el trabajo, lo que justifica medir con varios workers en AWS. |
 | Fallos en el entorno de procesamiento distribuido | HDFS no queda activo después de reiniciar el equipo local. | Se documentó el arranque en el README. En AWS, los servicios de Hadoop y Spark se instalan como servicios que arrancan solos con la máquina. |
+| Costos y restricciones de la nube | La cuenta del plan gratuito de AWS solo permite la región us-east-2, no incluye Amazon EMR y restringe la base de datos a la capa gratuita. | Se eligieron recursos de la capa gratuita (RDS `db.t4g.micro` con 20 GB, sin escalado automático ni réplicas), una red sin NAT Gateway y una alerta de presupuesto de US$ 10. Las instancias EC2 se detienen al terminar cada sesión. |
 
 El seguimiento permitió comprobar que los riesgos de disponibilidad y calidad de los datos se presentaron y fueron atendidos con fuentes públicas, reglas de validación y registro de incidencias. El rendimiento limitado del modelo se identificó al compararlo con una referencia sencilla y se documentó con sus causas. En cuanto a los recursos, la nueva prueba mostró el límite de una sola máquina: con 1 000 veces el volumen, el tiempo deja de mejorar al pasar de 4 a 8 hilos porque el equipo tiene 4 núcleos físicos.
 
@@ -497,6 +507,10 @@ Silver | → | Gold.
 | 23/11/2026 | Publicar en PostgreSQL vía un esquema de staging en una sola transacción | Vaciar y recargar cada tabla | El tablero no debe mostrar tablas vacías durante una publicación | Grafana ve siempre una versión completa: la anterior o la nueva. |
 | 25/11/2026 | Desplegar en un cluster propio en Amazon EC2 | Amazon EMR | La cuenta del plan gratuito de AWS no permite EMR; un cluster propio demuestra HDFS y YARN con los mismos scripts | [PENDIENTE AWS] Despliegue con 1 master y 3 workers. |
 | 25/11/2026 | Guardar las contraseñas en SSM Parameter Store (SecureString) | AWS Secrets Manager | El proyecto no requiere rotación automática y Parameter Store no tiene costo | Ninguna contraseña queda en archivos del servidor ni del repositorio. |
+| 26/11/2026 | Desplegar en la región us-east-2 (Ohio) | us-east-1 (N. Virginia), prevista al inicio | El proyecto del plan gratuito de AWS quedó asignado a us-east-2 y no permite otras regiones | Se corrigió la región en la política IAM del master y en los scripts (commit `34192dd`). |
+| 26/11/2026 | Amazon RDS for PostgreSQL 16 en la capa gratuita | Aurora PostgreSQL; PostgreSQL instalado en el master | Aurora no entra en la capa gratuita; RDS separa la base del cluster, que se detiene entre sesiones, y mantiene la versión 16 usada en el proyecto | El tablero y el pipeline se conectan a una base que no se apaga con el cluster. |
+| 26/11/2026 | Red sin NAT Gateway: máquinas en subredes públicas sin puertos abiertos y base de datos en subredes privadas | Máquinas en subredes privadas con NAT Gateway | El NAT Gateway cobra por hora (unos US$ 32 al mes); con grupos de seguridad sin reglas de entrada desde internet se logra el mismo aislamiento | Las máquinas descargan programas por el Internet Gateway y leen S3 por un endpoint privado sin costo. |
+| 26/11/2026 | Instancias EC2 `m7i-flex.large` (2 vCPU, 8 GB) | `t3.small`, `t3.micro` y `c7i-flex.large` (1 a 4 GB) | Es el único tipo de la capa gratuita con memoria suficiente para un executor de Spark de 4 GB por worker | Se mantiene la configuración de YARN y Spark preparada para el cluster. |
 
 
 # 1. La empresa, el problema y la línea base
@@ -955,9 +969,29 @@ Se seleccionó Spark como motor principal porque permite desarrollar transformac
 
 ## Equivalencia entre rutas de despliegue
 
-Aunque la solución será implementada en infraestructura local, se identificaron servicios equivalentes de Amazon Web Services para evaluar una eventual migración hacia un entorno gestionado.
+<!-- ACTUALIZADO (26/11/2026): la ruta pasó de on-premise a la nube con un cluster propio -->
 
-**Tabla 2.5 Equivalencia entre las rutas de despliegue on-premise y en la nube**
+La solución se desarrolló en infraestructura local y se está desplegando en Amazon Web Services con los mismos componentes (Hadoop HDFS, YARN y Spark), instalados en un cluster propio de máquinas virtuales. Los servicios gestionados de la Tabla 2.6 se mantienen como alternativa de migración.
+
+**Tabla 2.5 Componentes del despliegue en AWS**
+
+| Función | Componente en el entorno local | Componente en AWS (región us-east-2, Ohio) | Estado al 26/11/2026 |
+|---|---|---|---|
+| Origen de los datos | Carpeta `datasets/` del equipo | Bucket Amazon S3 `danper-g07-…/datasets/` (181 archivos, 577 MB), con acceso público bloqueado y cifrado SSE-S3 | Creado y cargado |
+| Almacenamiento distribuido | HDFS en una sola máquina | HDFS en 3 workers con replicación 2 | [PENDIENTE AWS] |
+| Procesamiento | Spark en modo local | Spark sobre YARN: 3 executors de 2 núcleos y 4 GB, uno por worker | [PENDIENTE AWS] |
+| Máquinas | Equipo del integrante | 4 instancias Amazon EC2 `m7i-flex.large` (2 vCPU, 8 GB): 1 master y 3 workers | [PENDIENTE AWS] |
+| Base de datos de consumo | PostgreSQL 16 local | Amazon RDS for PostgreSQL 16.16 (`db.t4g.micro`, 20 GB), sin acceso público | Creada |
+| Contraseñas | `~/.pgpass` y `dashboard/.env` | AWS Systems Manager Parameter Store (SecureString, cifradas con KMS) | Creadas |
+| Red | Equipo local | VPC propia con subredes públicas (máquinas) y privadas (base de datos), sin NAT Gateway | Creada |
+| Acceso de administración | Terminal local | AWS Systems Manager Session Manager, sin puertos abiertos a internet | Roles creados; uso [PENDIENTE AWS] |
+| Tablero | Grafana en Docker | Grafana en Docker en el master, consultado por un túnel de Session Manager | [PENDIENTE AWS] |
+
+> **[CAPTURA PENDIENTE] Figura 2.2. Diagrama de despliegue en AWS.** Se elabora al terminar el cluster: VPC con las subredes, las 4 instancias EC2, RDS en la subred privada, el bucket S3 y Parameter Store, con las conexiones entre ellos. Es el único diagrama que cambia respecto de la arquitectura de la Figura 2.1.
+
+A continuación se identifican, además, los servicios gestionados equivalentes que podrían reemplazar a los componentes propios en una migración futura.
+
+**Tabla 2.6 Equivalencia entre las rutas de despliegue on-premise y en la nube**
 
 Función | Componente on-premise | Servicio gestionado equivalente
 
@@ -986,6 +1020,21 @@ La estimación considera un escenario hipotético de 10 GB almacenados, 20 ejecu
 Bajo tarifas referenciales de US East (N. Virginia), y considerando únicamente el almacenamiento, las horas de vCPU, la memoria y los datos examinados en consultas, se obtiene un subtotal aproximado de US$ 3.50 mensuales. Este valor no incluye todos los posibles cargos por solicitudes, registros, transferencias, almacenamiento adicional o impuestos, por lo que no constituye una cotización completa.
 
 La estimación deberá validarse en AWS Pricing Calculator, utilizando las tarifas vigentes y los recursos realmente necesarios una vez que se disponga de los tiempos de ejecución y el tamaño consolidado de los datasets.
+
+<!-- ACTUALIZADO (26/11/2026): costo de la ruta realmente adoptada -->
+
+**Costo de la ruta adoptada (cluster propio en EC2).** Las tarifas siguientes son las que muestra la consola de AWS para la región us-east-2 al 26/11/2026:
+
+| Recurso | Tarifa | Cuándo cobra |
+|---|---|---|
+| 4 instancias EC2 `m7i-flex.large` (Linux) | US$ 0,09576 por hora cada una; US$ 0,383 por hora el cluster | Solo mientras están encendidas |
+| Amazon RDS `db.t4g.micro` con 20 GB | Cubierto por la capa gratuita (750 horas al mes) | Sin costo durante el plan gratuito |
+| Amazon S3 (0,58 GB de datasets) | Centavos de dólar al mes | Siempre |
+| Parameter Store (nivel estándar), VPC, grupos de seguridad e IAM | Sin costo | — |
+
+La cuenta usada es del plan gratuito de AWS, con US$ 120 de créditos y una alerta de presupuesto de US$ 10 mensuales. Para no consumir créditos en inactividad, las instancias se detienen al terminar cada sesión de trabajo; detenidas solo cobran sus discos.
+
+> **[PENDIENTE AWS]** Agregar el tamaño de los discos de las instancias, las horas de cluster usadas y el costo real del despliegue tomado de la facturación de AWS, y compararlo con la estimación anterior.
 
 El costo calculado representa únicamente una aproximación para el prototipo académico y no el costo de implementar una plataforma empresarial completa en Danper. Una evaluación productiva debería incorporar los requerimientos de disponibilidad, seguridad, actualización de información, mantenimiento y crecimiento futuro.
 
@@ -1779,17 +1828,44 @@ La seguridad de la plataforma protege la información utilizada durante los proc
 
 Según el diagnóstico de `docs/reporte_seguridad_plataforma.md`, el entorno local usa autenticación simple de Hadoop (sin Kerberos), no tiene zonas de cifrado en HDFS y sus servicios web usan HTTP. Estas limitaciones son aceptables en un equipo local de desarrollo, pero no en un entorno compartido.
 
-**Controles previstos para el despliegue en AWS**
+<!-- ACTUALIZADO (26/11/2026): controles ya configurados en AWS, con la Figura 3.14 -->
 
-Los scripts del cluster ya están preparados y probados en contenedores; su aplicación en AWS se documentará al terminar el despliegue.
+**Controles configurados en AWS**
 
-- **Mínimo privilegio en AWS:** el master tiene un rol que solo puede leer los datasets del bucket, guardar respaldos y leer las contraseñas de Danper en Parameter Store, y tiene prohibido borrar en S3. Los workers no tienen acceso al bucket ni a las contraseñas.
-- **Mínimo privilegio en la base:** en RDS, el usuario `etl_escritor` solo publica en `gold` y `gold_staging`; `grafana_lector` solo lee `gold`, en modo de solo lectura. Ningún otro usuario puede conectarse a la base.
-- **Credenciales:** las contraseñas se guardan cifradas en SSM Parameter Store y los scripts las leen al ejecutarse; no quedan en archivos del servidor.
-- **Cifrado en tránsito:** el pipeline y Grafana se conectan a RDS con SSL obligatorio.
-- **Red:** no se abre ningún puerto a internet. Se entra a las máquinas y al tablero por AWS Systems Manager Session Manager. El puerto 8088 de YARN nunca se expone, porque su API permite enviar trabajos sin autenticación.
+Los controles de red, de acceso y de credenciales del despliegue ya están creados en la cuenta de AWS (región us-east-2).
 
-> **[PENDIENTE AWS] Figura 3.14.** Capturas de los grupos de seguridad sin reglas abiertas a internet, de los dos roles IAM con sus políticas y de los permisos de los usuarios de la base (`\dp gold.*` en `psql`).
+**Tabla 3.10 Controles de seguridad configurados en AWS**
+
+| Medida | Configuración en AWS | Evidencia |
+|---|---|---|
+| Red sin puertos abiertos a internet | Grupo de seguridad `danper-cluster`: los nodos solo aceptan tráfico entre ellos. Ninguna regla de entrada admite `0.0.0.0/0`, de modo que el puerto 8088 de YARN, cuya API permite enviar trabajos sin autenticación, nunca queda expuesto | Figura 3.14 a |
+| Base de datos aislada | Grupo `danper-db`: la base solo acepta PostgreSQL (puerto 5432) desde `danper-cluster`. RDS está en subredes privadas y sin acceso público | Figuras 3.14 b y e |
+| Mínimo privilegio para las máquinas | El master tiene el rol `danper-master-rol`: lee `datasets/` del bucket, escribe en `respaldos/`, lee solo los parámetros `/danper/*` y tiene prohibido borrar en S3. Los workers (`danper-worker-rol`) solo pueden usar Session Manager; no acceden al bucket ni a las contraseñas | Figuras 3.14 c y d; política en `infra/aws/iam/politica_master.json` |
+| Credenciales cifradas | Las cuatro contraseñas (administrador de RDS, `etl_escritor`, `grafana_lector` y administrador de Grafana) se guardan como SecureString en Parameter Store, cifradas con AWS KMS. Los scripts las leen al ejecutarse; no quedan en archivos del servidor ni del repositorio | Figura 3.14 f |
+| Datos en S3 protegidos | El bucket tiene bloqueado todo acceso público y cifra los objetos con SSE-S3 | Configuración del bucket |
+| Cifrado en reposo de la base | El disco de RDS se cifra con la clave `aws/rds` de KMS | Configuración de RDS |
+
+> **[FOTO GUARDADA] Figura 3.14 a)** Archivo `figura_3_14_a_danper_cluster.png`. Pie: *a) Grupo de seguridad `danper-cluster`: solo admite tráfico entre los nodos del cluster.*
+>
+> **[FOTO GUARDADA] Figura 3.14 b)** Archivo `figura_3_14_b_danper_db.png`. Pie: *b) Grupo de seguridad `danper-db`: solo admite PostgreSQL (5432) desde `danper-cluster`.*
+>
+> **[FOTO GUARDADA] Figura 3.14 c)** Archivo `figura_3_14_c_rol_master.png`. Pie: *c) Rol del master: Session Manager y una política propia que limita el acceso a S3 (lectura de `datasets/`, escritura en `respaldos/`, sin borrado) y a los parámetros `/danper/*`.*
+>
+> **[FOTO GUARDADA] Figura 3.14 d)** Archivo `figura_3_14_d_rol_worker.png`. Pie: *d) Rol de los workers: solo Session Manager.*
+>
+> **[FOTO GUARDADA] Figura 3.14 e)** Archivo `figura_3_14_e_rds_conectividad.png`. Pie: *e) Base de datos RDS `danper-postgres` (PostgreSQL 16): sin acceso público, en las subredes privadas de `danper-vpc` y protegida por `danper-db`.*
+>
+> **[FOTO GUARDADA] Figura 3.14 f)** Archivo `figura_3_14_f_parameter_store.png`. Pie: *f) Parámetros del proyecto en Parameter Store: las cuatro contraseñas se guardan como SecureString, cifradas con AWS KMS.*
+>
+> Título general: **Figura 3.14. Controles de seguridad del despliegue en AWS.** Ninguna regla de entrada permite acceso desde internet (0.0.0.0/0).
+
+**Controles que se verificarán al desplegar el cluster**
+
+- **Mínimo privilegio en la base:** el script `infra/aws/preparar_rds.sh` creará en RDS el usuario `etl_escritor`, que solo publica en `gold` y `gold_staging`, y `grafana_lector`, que solo lee `gold` en modo de solo lectura. Ningún otro usuario podrá conectarse a la base.
+- **Cifrado en tránsito:** el pipeline y Grafana se conectarán a RDS con SSL obligatorio (`sslmode=require`).
+- **Acceso de administración:** se entrará a las máquinas y al tablero por AWS Systems Manager Session Manager, sin claves SSH ni puertos abiertos.
+
+> **[PENDIENTE AWS] Figura 3.14 g).** Salida de `\dp gold.*` en `psql` conectado a RDS, con los permisos de `etl_escritor` y `grafana_lector`.
 
 ![Imagen de la página 55](Danper_G07_imagenes/pagina_55_imagen_19.png)
 
@@ -2032,31 +2108,86 @@ El tablero incluye además el plan 2025 por mes, el pronóstico frente al valor 
 
 # 5. Ética, privacidad y gobierno de datos
 
+<!-- ACTUALIZADO (26/11/2026): secciones 5.1 a 5.5 redactadas con lo que contiene el repositorio; reemplazan el texto guía de la plantilla -->
+
 ### 5.1. Datos sensibles y protección aplicada
 
-Identifique qué datos personales o sensibles contiene su conjunto. Describa y evidencie la técnica de protección aplicada —anonimización, seudonimización, enmascaramiento o hashing— y explique qué riesgo de reidentificación permanece después de aplicarla.
+**Qué datos sensibles hay.** El proyecto no usa datos personales nominativos: no hay nombres, DNI, teléfonos ni direcciones de personas naturales. Las fuentes son estadísticas públicas agregadas (producción, agroindustria, exportaciones regionales, costos, precios mayoristas), reportes publicados por Danper y registros aduaneros de una persona jurídica. Se identificaron tres casos que requieren cuidado:
+
+| Fuente | Dato sensible o identificable | Riesgo |
+|---|---|---|
+| Microdatos de la ENA 2025 (INEI) | Cada fila es una unidad agropecuaria encuestada, con el código interno del productor (`ID_PROD`), el segmento de muestreo (`NSEGM`), el distrito, el cultivo y la superficie | El INEI publica estos microdatos anonimizados, pero la combinación de distrito, cultivo y superficie podría permitir reconocer a un productor en un distrito con pocos productores de espárrago o alcachofa |
+| Exportaciones aduaneras de Danper (SUNAT) | RUC y razón social del exportador y el agente registrado en cada operación | Son datos de personas jurídicas, públicos en las fuentes aduaneras; no son datos personales |
+| Repositorio y capturas | Nombres de usuario y de equipo de los integrantes, ID de la cuenta de AWS, direcciones internas | Exponer a los integrantes o la infraestructura |
+
+**Protección aplicada.**
+
+- **Minimización:** la ENA se filtra en Silver a La Libertad y a los dos cultivos del proyecto (`scripts/transformacion_ena_2025_silver.py`), y solo se conservan las columnas necesarias.
+- **Agregación y aislamiento:** los microdatos de la ENA se quedan en la capa Silver de HDFS. Ninguna tabla Gold, ninguna tabla de PostgreSQL y ningún panel del tablero contiene registros individuales de productores; las exportaciones de Danper llegan a Gold agregadas por país de destino y mes.
+- **Control de acceso:** el tablero usa el usuario `grafana_lector`, que solo puede leer el esquema `gold` (sección 3.8). En AWS, solo el master puede leer el bucket de datasets.
+- **Enmascaramiento en la documentación:** se quitaron del repositorio los nombres de usuario y de equipo que aparecían en notebooks, reportes y CSV, y en las capturas del despliegue se tapan el ID de la cuenta de AWS y el endpoint de la base de datos.
+
+**Riesgo que permanece.** El código `ID_PROD` se conserva en Silver tal como lo publica el INEI; no se le aplicó un hash propio. Como Silver no se publica, el riesgo es bajo, pero un usuario con acceso a HDFS podría cruzar esos registros con otra fuente del mismo distrito. La medida pendiente es reemplazar `ID_PROD` por un hash con sal en Silver, o eliminarlo, porque el análisis no lo necesita (sección 6.4).
 
 ### 5.2. Linaje y gobierno del dato
 
-Documente la trazabilidad del dato desde su origen hasta el indicador final: quién es el responsable de cada conjunto, qué transformaciones lo modificaron y cómo se auditaría un valor concreto del tablero hasta su registro de origen.
+**Responsables.** Según los roles de la Unidad 2 (sección 0.1), el área de Ingeniería de datos responde por la ingesta y las capas Bronze, Silver y Gold; Análisis y modelado, por el modelo y el tablero; y Calidad y documentación, por las reglas de calidad y la ficha de procedencia de cada fuente (sección 3.1).
+
+**Cómo se registra el linaje.**
+
+1. **Bronze:** cada archivo de origen se copia sin cambios a HDFS y se registra en la tabla de control `/danper/control/archivos.csv` con su ruta, su huella SHA-256, su tamaño, la fecha de carga y si ya pasó a Silver, a Gold y a PostgreSQL (`scripts/control.py`).
+2. **Silver:** las tablas guardan la columna `archivo_origen` con el archivo del que salió cada registro, y los registros rechazados quedan en `/danper/calidad` con el motivo.
+3. **Gold:** se reconstruye con Write-Audit-Publish: se escribe aparte, se valida y recién entonces reemplaza a la versión anterior.
+4. **PostgreSQL:** `scripts/publicar_postgres.py` comprueba que cada tabla tenga las mismas filas que en Gold antes de publicar, y publica todas en una sola transacción.
+
+**Ejemplo de auditoría de un valor del tablero.** El panel "Último reporte GMML" muestra la fecha más reciente de `gold.abastecimiento_mayorista`. Para auditar un precio de ese día:
+
+1. En PostgreSQL se ubica la fila de `gold.abastecimiento_mayorista` por `fecha_reporte`, `mercado` y `producto`.
+2. La misma fila está en la tabla Gold `/danper/gold/abastecimiento_mayorista`, que la publicación verificó con el conteo de filas.
+3. En Silver (`/danper/silver/abastecimiento`), la fila con esa fecha y producto indica en `archivo_origen` el PDF del que se extrajo.
+4. La tabla de control da la ruta de ese PDF en Bronze y su SHA-256. Si el SHA-256 del PDF en `datasets/` (o en el bucket S3) coincide, el valor del tablero corresponde exactamente al documento publicado por MIDAGRI.
+
+**Limitación detectada.** El indicador "Meta 2023" del tablero toma las cifras del Reporte de Sostenibilidad 2023 escritas directamente en la consulta del panel (`dashboard/grafana/dashboards/danper.json`), no de una tabla Gold. Su origen está documentado en la descripción del panel y en la sección 1.4, pero no pasa por la tabla de control. Se corregirá llevando esas cifras a la tabla Silver de sostenibilidad (sección 6.4).
 
 ### 5.3. Sesgos y consecuencias del modelo
 
-Analice qué sesgos puede contener el modelo, a quiénes podrían perjudicar y qué grupos quedan sub-representados en los datos de entrenamiento. Indique qué salvaguarda propondría antes de un uso real.
+**Sesgos identificados.**
 
-Pregunta guía: si esta solución se pusiera en producción mañana y se equivocara sistemáticamente, ¿quién sería el perjudicado y quién respondería por ello?
+- **Sesgo de subestimación:** todos los métodos evaluados subestiman el volumen anual de ingreso a planta, entre −10 % y −23 % (Tabla 4.3). Si se planificara solo con el modelo, se aseguraría menos materia prima de la que llega.
+- **Cobertura de la fuente:** la serie de ingreso a planta de GRLL-OIA proviene de los registros de las empresas agroindustriales de La Libertad. Las plantas pequeñas o informales que no reportan quedan sub-representadas, y la serie es regional: no distingue cuánto corresponde a Danper.
+- **Alcance limitado:** solo cubre espárrago y alcachofa en La Libertad. No sirve para otros cultivos de Danper (por ejemplo, palta o arándano) ni para otras regiones.
+- **Años atípicos:** la historia incluye choques como el Niño Costero de 2017, que el modelo no puede anticipar porque no tiene variables de clima ni de siembra.
+
+**A quién perjudicaría un error sistemático.** Si la solución se usara mañana para fijar las compras y subestimara de forma sistemática, el área de compras de Danper aseguraría menos materia prima de la necesaria y tendría que comprar a última hora, a mayor precio o con menor calidad. Los más afectados serían los proveedores terceros, en su mayoría agricultores de Virú y alrededores: tendrían menos compromisos de compra anticipados y venderían su cosecha en peores condiciones. Responde por la decisión el área de Planeamiento y compras, no el modelo, porque la herramienta solo apoya la planificación.
+
+**Salvaguardas antes de un uso real.**
+
+- Usar el plan con su banda de ± WAPE histórico y no como una cifra exacta.
+- Revisar cada año el indicador de sesgo del tablero: si sale fuera de ±5 %, ajustar el plan manualmente.
+- Validar el plan con el conocimiento de campo del área de extensión agrícola antes de firmar compromisos con proveedores.
+- No usar el modelo para decisiones sobre proveedores individuales, porque se entrena con datos regionales.
 
 ### 5.4. Marco normativo aplicable
 
-Identifique la normativa que rige el tratamiento de estos datos. Como mínimo, la Ley N.º 29733 de Protección de Datos Personales del Perú y su reglamento; cuando corresponda, referencias internacionales como el RGPD europeo. No basta citar la norma: indique qué obligación concreta le aplica a su proyecto y cómo la cumple.
+| Norma | Obligación concreta para el proyecto | Cómo se cumple |
+|---|---|---|
+| Ley N.º 29733, Ley de Protección de Datos Personales, y su Reglamento (D.S. N.º 016-2024-JUS) | Tratar datos de personas naturales solo con consentimiento o base legal, con finalidad determinada y proporcionalidad; registrar los bancos de datos personales ante la Autoridad Nacional de Protección de Datos Personales; cumplir las reglas de flujo transfronterizo si los datos se guardan fuera del Perú | El proyecto no crea un banco de datos personales: usa estadísticas agregadas, microdatos anonimizados por el INEI y datos de personas jurídicas. Por eso no requiere consentimiento ni registro. Aunque los datos se almacenan en AWS en Estados Unidos (región us-east-2), no hay datos personales sujetos a flujo transfronterizo. Si Danper incorporara datos de sus proveedores personas naturales, tendría que registrar el banco de datos, informar la finalidad y cumplir las reglas de flujo transfronterizo antes de cargarlos en la nube |
+| Secreto estadístico del INEI (Decreto Legislativo N.º 604, Primera Disposición Transitoria y Final, y artículo 97 de su Reglamento, D.S. N.º 043-2001-PCM) | No usar los microdatos de la ENA para identificar a los informantes | Los microdatos se usan solo con fines estadísticos, no se cruzan con otras fuentes para identificar productores y no se publican registros individuales (sección 5.1) |
+| Ley N.º 27806, Ley de Transparencia y Acceso a la Información Pública | Las fuentes de MIDAGRI, GRLL, INEI y SUNAT son información pública; su reutilización debe citar la fuente | Cada fuente tiene su ficha de procedencia con la entidad publicadora (sección 3.1) |
+| RGPD de la Unión Europea (referencia) | Los datos anonimizados quedan fuera de su alcance | Coincide con el tratamiento de la ENA: se usan datos ya anonimizados y se evita reidentificarlos |
 
 ### 5.5. Aporte al desarrollo sostenible de la región
 
-Explique de qué manera los hallazgos pueden aportar al desarrollo de la empresa, de su sector y de la región. Sea concreto y evite las afirmaciones genéricas sobre transformación digital.
+- **Para Danper:** en 2023, la compra de alcachofa a terceros quedó 16,8 % por debajo de lo planificado (21 315 t frente a 25 623 t; sección 1.4). La plataforma entrega el plan mensual de ingreso con su margen de error y muestra que planificar solo con la historia subestima el volumen entre 10 % y 23 %. Con esa información, el área de compras puede asegurar volúmenes con proveedores antes de la campaña en vez de comprar a última hora.
+- **Para los proveedores terceros:** una planificación más anticipada da a los agricultores de Virú compromisos de compra más estables. Esto se relaciona con la meta 2.3 de los Objetivos de Desarrollo Sostenible (aumentar la productividad y los ingresos de los pequeños productores).
+- **Para el sector y la región:** el ingreso de alcachofa a planta en La Libertad varió de 139 mil t en 2022 a 91 mil t en 2023 y 156 mil t en 2024. El indicador de pico de agosto a octubre ayuda a dimensionar la recepción en planta durante la campaña, lo que reduce el riesgo de que el producto fresco se deteriore por falta de capacidad (meta 12.3: reducir las pérdidas de alimentos en las cadenas de suministro).
+- **Replicabilidad:** la plataforma usa solo fuentes públicas de MIDAGRI, GRLL-OIA, INEI y SUNAT, por lo que otras agroexportadoras o la Gerencia Regional de Agricultura podrían reutilizarla para planificar el abastecimiento de otros cultivos de La Libertad.
 
 # 6. Valor generado, conclusiones y recomendaciones
 
 Esta es la sección que decide si el proyecto aportó valor o se quedó en el uso de tecnología. Es también la que más pesa en la medición final.
+
+> **[PENDIENTE CIERRE]** Las secciones 6.1, 6.2 y 6.3 se redactan al terminar el proyecto, porque dependen de la prueba de escalabilidad y de la corrida completa en el cluster de AWS, y de la medición del tiempo de la consulta manual (OE3). Al redactarlas se elimina el texto guía de la plantilla que sigue.
 
 ### 6.1. Trazabilidad del valor
 
@@ -2094,7 +2225,17 @@ concentra el 31 % de la facturación en riesgo. Responsable: jefatura comercial.
 
 ### 6.4. Trabajo futuro
 
-Señale qué haría a continuación con recursos adicionales: nuevas fuentes, modelos alternativos, automatización del pipeline o puesta en producción. Sea específico sobre qué problema resolvería cada mejora.
+<!-- ACTUALIZADO (26/11/2026): reemplaza el texto guía; revisar al cerrar el proyecto -->
+
+| Mejora | Problema que resolvería |
+|---|---|
+| Incorporar variables que anticipen los choques: intención de siembra y superficie instalada (MIDAGRI) y clima (SENAMHI), con varios años de historia | Ningún modelo supera hoy a la línea base estacional porque la serie depende de choques de clima y de siembra que no están en su propia historia (sección 4.3) |
+| Usar datos internos de Danper: contratos con proveedores, volumen comprado por mes y por fundo | La serie actual es regional y no separa cuánto corresponde a Danper; con datos propios el plan y el sesgo se medirían sobre la operación real. Requiere el cumplimiento de la Ley N.º 29733 descrito en la sección 5.4 |
+| Descargar automáticamente los reportes GMML y subirlos al bucket S3 | Hoy los PDF se agregan manualmente a la carpeta de datos; con la descarga automática y `run_pipeline.py --vigilar` el tablero se actualizaría sin intervención |
+| Llevar las metas de compra del Reporte de Sostenibilidad a la tabla Silver de sostenibilidad | El indicador "Meta 2023" está escrito en la consulta del tablero y no pasa por la tabla de control (sección 5.2) |
+| Reemplazar `ID_PROD` de la ENA por un hash con sal en Silver, o eliminarlo | Reduce el riesgo de reidentificación que permanece en Silver (sección 5.1) |
+| Ampliar el modelo a otros cultivos de Danper y a otras regiones | El modelo actual solo cubre espárrago y alcachofa en La Libertad (sección 5.3) |
+| Evaluar servicios gestionados (Amazon EMR o EMR Serverless) si crece el volumen y la cuenta lo permite | El cluster propio requiere instalar y mantener Hadoop y Spark; un servicio gestionado reduciría esa carga (Tabla 2.6) |
 
 # 7. Anexos
 
@@ -2140,7 +2281,7 @@ interpretación de conceptos resultados obtenidos relacionados con los modelos e
 
 | Herramienta | Uso que se le dio | Sección del informe | Verificación realizada |
 |---|---|---|---|
-| Claude (Anthropic) | Asistencia para corregir y ampliar el código del pipeline (carga incremental, publicación en PostgreSQL, tablero, modelo con Spark MLlib, pruebas de escalabilidad y caché, scripts del cluster) y para actualizar la redacción del informe | 0, 1.4, 2, 3.2 a 3.8, 4.3 y 4.4 | Ejecución de los scripts en el entorno del equipo; las cifras del informe se contrastaron con los reportes que generan los scripts (`reportes/`) y con las tablas de PostgreSQL |
+| Claude (Anthropic) | Asistencia para corregir y ampliar el código del pipeline (carga incremental, publicación en PostgreSQL, tablero, modelo con Spark MLlib, pruebas de escalabilidad y caché, scripts del cluster) y para actualizar la redacción del informe | 0, 1.4, 2, 3.2 a 3.8, 4.3, 4.4, 5 y 6.4 | Ejecución de los scripts en el entorno del equipo; las cifras del informe se contrastaron con los reportes que generan los scripts (`reportes/`) y con las tablas de PostgreSQL |
 
 ![Imagen de la página 64](Danper_G07_imagenes/pagina_64_imagen_25.jpg)
 
