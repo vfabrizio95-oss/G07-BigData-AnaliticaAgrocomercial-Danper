@@ -21,7 +21,7 @@
     <value>file:///data/hadoop/datanode</value>
   </property>
   <!-- El NameNode escucha en todas las interfaces de la VPC; el acceso lo
-       limita el grupo de seguridad sg-cluster, no esta configuración -->
+       limita el grupo de seguridad danper-cluster, no esta configuración -->
   <property>
     <name>dfs.namenode.rpc-bind-host</name>
     <value>0.0.0.0</value>
