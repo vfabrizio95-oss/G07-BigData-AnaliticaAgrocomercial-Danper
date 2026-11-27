@@ -73,6 +73,21 @@
           "text": "LA LIBERTAD",
           "value": "LA LIBERTAD"
         }
+      },
+      {
+        "name": "anio_plan",
+        "label": "Año del plan",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "danper-gold"
+        },
+        "query": "SELECT max(anio) FROM gold.ml_plan_ingreso",
+        "definition": "SELECT max(anio) FROM gold.ml_plan_ingreso",
+        "refresh": 2,
+        "hide": 2,
+        "multi": false,
+        "includeAll": false
       }
     ]
   },
@@ -93,8 +108,8 @@
     {
       "id": 25,
       "type": "stat",
-      "title": "1 · Plan 2025 (t)",
-      "description": "Plan de ingreso 2025 (t). Volumen a asegurar en el año siguiente al último dato: promedio del mismo mes en los 3 últimos años válidos (método recomendado). Frecuencia anual. Responsable: Planeamiento / Extensión agrícola. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "title": "1 · Plan ${anio_plan} (t)",
+      "description": "Plan de ingreso del año en curso (t). Volumen a asegurar en el año siguiente al último año completo: promedio del mismo mes en los 3 últimos años válidos (método recomendado). Frecuencia anual. Responsable: Planeamiento / Extensión agrícola. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "danper-gold"
@@ -411,8 +426,8 @@
     {
       "id": 30,
       "type": "trend",
-      "title": "Plan de ingreso 2025 por mes, con banda de error (t)",
-      "description": "Eje horizontal: mes del año (1 = enero). Plan (línea continua) y rango ± WAPE histórico (líneas punteadas). Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "title": "Plan de ingreso ${anio_plan} por mes, con banda de error y real (t)",
+      "description": "Eje horizontal: mes del año (1 = enero). Plan (línea continua), rango ± WAPE histórico (líneas punteadas) e ingreso real de los meses que ya llegaron (línea gruesa). Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "danper-gold"
@@ -433,7 +448,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT mes AS \"Mes\", max(plan_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa plan\", max(minimo_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa mínimo\", max(maximo_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa máximo\", max(plan_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago plan\", max(minimo_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago mínimo\", max(maximo_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago máximo\" FROM gold.ml_plan_ingreso GROUP BY mes ORDER BY mes"
+          "rawSql": "SELECT mes AS \"Mes\", max(plan_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa plan\", max(minimo_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa mínimo\", max(maximo_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa máximo\", max(plan_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago plan\", max(minimo_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago mínimo\", max(maximo_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago máximo\", max(real_t) FILTER (WHERE cultivo = 'ALCACHOFA' AND cultivo IN ($cultivo)) AS \"Alcachofa real\", max(real_t) FILTER (WHERE cultivo = 'ESPARRAGO' AND cultivo IN ($cultivo)) AS \"Espárrago real\" FROM gold.ml_plan_ingreso GROUP BY mes ORDER BY mes"
         }
       ],
       "fieldConfig": {
@@ -497,6 +512,22 @@
               {
                 "id": "max",
                 "value": 12
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* real$"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 4
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 9
               }
             ]
           }
@@ -602,6 +633,222 @@
       "timeFrom": "8y"
     },
     {
+      "id": 33,
+      "type": "timeseries",
+      "title": "Pronóstico vigente: próximos 3 meses después del último dato (t)",
+      "description": "Ingreso real de los últimos 12 meses y pronóstico de los 3 meses siguientes al último dato. El modelo ya entrenado y guardado (Spark MLlib, PipelineModel) se aplica con transform() cada vez que llegan datos nuevos, sin reentrenar. Promedio 3 años es el método recomendado; la banda es ± su WAPE histórico. Fuente: scripts/modelo_abastecimiento.py (Gold ml_*), ingreso a planta agroindustrial de La Libertad (GRALL-OIA).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 16,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT periodo::timestamp AS time, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' real' AS metric, cantidad_t AS value FROM gold.agroindustria_mensual WHERE proceso = 'INGRESO' AND ((cultivo = 'ALCACHOFA' AND presentacion = 'PARA PROCESAR') OR (cultivo = 'ESPARRAGO' AND presentacion = 'NATURAL' AND anio <> 2024)) AND cultivo IN ($cultivo) AND periodo > (SELECT max(ultimo_registro) FROM gold.ml_pronostico_vigente) - interval '12 months' UNION ALL SELECT periodo::timestamp, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' promedio 3 años', pred_prom_3a FROM gold.ml_pronostico_vigente WHERE cultivo IN ($cultivo) UNION ALL SELECT periodo::timestamp, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' mínimo', minimo_t FROM gold.ml_pronostico_vigente WHERE cultivo IN ($cultivo) UNION ALL SELECT periodo::timestamp, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' máximo', maximo_t FROM gold.ml_pronostico_vigente WHERE cultivo IN ($cultivo) UNION ALL SELECT periodo::timestamp, replace(initcap(cultivo), 'Esparrago', 'Espárrago') || ' MLlib lineal', pred_lineal FROM gold.ml_pronostico_vigente WHERE cultivo IN ($cultivo) ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "masst",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "always",
+            "pointSize": 5,
+            "spanNulls": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* real$"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 3
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*(mínimo|máximo)$"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    6,
+                    4
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* MLlib lineal$"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    6,
+                    4
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "timeFrom": "3y"
+    },
+    {
+      "id": 34,
+      "type": "stat",
+      "title": "Último dato de ingreso a planta",
+      "description": "Último mes registrado por cultivo en Gold (agroindustria). Cambia cuando el pipeline incorpora un archivo nuevo de ingreso a planta.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 15,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT replace(initcap(cultivo), 'Esparrago', 'Espárrago') AS nombre, to_char(max(ultimo_registro), 'MM/YYYY') AS valor FROM gold.ml_pronostico_vigente GROUP BY cultivo ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^valor$/",
+          "values": true
+        }
+      }
+    },
+    {
+      "id": 35,
+      "type": "stat",
+      "title": "Modelo MLlib entrenado con datos hasta",
+      "description": "El PipelineModel se entrenó una vez y se guardó en HDFS (/danper/modelos). Los datos nuevos solo se le aplican (transform); por eso esta fecha no cambia en la demostración.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "danper-gold"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 20,
+        "w": 8,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "danper-gold"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT to_char(max(modelo_entrenado_hasta), 'MM/YYYY') AS valor FROM gold.ml_pronostico_vigente"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^valor$/",
+          "values": true
+        }
+      }
+    },
+    {
       "id": 32,
       "type": "barchart",
       "title": "Error de pronóstico (WAPE) por año de prueba y método – ambos cultivos",
@@ -612,7 +859,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 15,
+        "y": 24,
         "w": 24,
         "h": 8
       },
@@ -666,7 +913,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 32
       },
       "panels": []
     },
@@ -683,7 +930,7 @@
         "h": 4,
         "w": 6,
         "x": 0,
-        "y": 24
+        "y": 33
       },
       "targets": [
         {
@@ -735,7 +982,7 @@
         "h": 4,
         "w": 6,
         "x": 6,
-        "y": 24
+        "y": 33
       },
       "targets": [
         {
@@ -786,7 +1033,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 24
+        "y": 33
       },
       "targets": [
         {
@@ -838,7 +1085,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 24
+        "y": 33
       },
       "targets": [
         {
@@ -889,7 +1136,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 28
+        "y": 37
       },
       "targets": [
         {
@@ -940,7 +1187,7 @@
         "h": 8,
         "w": 16,
         "x": 8,
-        "y": 28
+        "y": 37
       },
       "targets": [
         {
@@ -987,7 +1234,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 45
       },
       "panels": []
     },
@@ -1004,7 +1251,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 37
+        "y": 46
       },
       "targets": [
         {
@@ -1059,7 +1306,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 37
+        "y": 46
       },
       "targets": [
         {
@@ -1114,7 +1361,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 46
+        "y": 55
       },
       "targets": [
         {
@@ -1161,7 +1408,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 62
       },
       "panels": []
     },
@@ -1178,7 +1425,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 54
+        "y": 63
       },
       "targets": [
         {
@@ -1233,7 +1480,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 54
+        "y": 63
       },
       "targets": [
         {
@@ -1288,7 +1535,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 54
+        "y": 63
       },
       "targets": [
         {
@@ -1338,7 +1585,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 63
+        "y": 72
       },
       "panels": []
     },
@@ -1355,7 +1602,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 64
+        "y": 73
       },
       "targets": [
         {
@@ -1410,7 +1657,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 64
+        "y": 73
       },
       "targets": [
         {
@@ -1464,7 +1711,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 73
+        "y": 82
       },
       "targets": [
         {
@@ -1519,7 +1766,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 73
+        "y": 82
       },
       "targets": [
         {
@@ -1570,7 +1817,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 82
+        "y": 91
       },
       "panels": []
     },
@@ -1587,7 +1834,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 83
+        "y": 92
       },
       "targets": [
         {
@@ -1641,7 +1888,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 83
+        "y": 92
       },
       "targets": [
         {
