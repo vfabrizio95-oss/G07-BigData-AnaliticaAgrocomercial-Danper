@@ -17,6 +17,12 @@
       "Resource": "arn:aws:s3:::NOMBRE_BUCKET/datasets/*"
     },
     {
+      "Sid": "PortalSubeDatasetsNuevos",
+      "Effect": "Allow",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::NOMBRE_BUCKET/datasets/*"
+    },
+    {
       "Sid": "EscribirYLeerRespaldos",
       "Effect": "Allow",
       "Action": ["s3:GetObject", "s3:PutObject"],
