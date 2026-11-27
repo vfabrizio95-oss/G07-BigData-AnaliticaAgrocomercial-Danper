@@ -31,6 +31,7 @@ import time
 
 import config
 import control
+import estado
 
 SCRIPTS = Path(__file__).resolve().parent
 
@@ -53,6 +54,16 @@ class ErrorEtapa(RuntimeError):
     pass
 
 
+# Avance de la corrida en curso, publicado en ESTADO/pipeline.json (ver estado.py)
+AVANCE = {"estado": "sin corridas", "etapas": []}
+
+
+def publicar_avance(**cambios):
+    AVANCE.update(cambios)
+    AVANCE["actualizado"] = estado.ahora()
+    estado.escribir("pipeline", AVANCE)
+
+
 def log(mensaje):
     print(f"[{datetime.now():%H:%M:%S}] {mensaje}", flush=True)
 
@@ -60,11 +71,19 @@ def log(mensaje):
 def ejecutar(etapa, comando):
     inicio = time.time()
     log(f"{etapa}: iniciando")
+    paso = {"etapa": etapa, "estado": "en curso", "inicio": estado.ahora()}
+    AVANCE["etapas"].append(paso)
+    publicar_avance(etapa_actual=etapa)
     proceso = subprocess.run(comando, cwd=SCRIPTS, capture_output=True, text=True)
     duracion = time.time() - inicio
+    paso["segundos"] = round(duracion, 1)
     if proceso.returncode != 0:
         print(proceso.stdout[-3000:], proceso.stderr[-3000:], sep="\n")
+        paso["estado"] = "error"
+        publicar_avance()
         raise ErrorEtapa(f"{etapa} falló (código {proceso.returncode}) tras {duracion:.1f} s")
+    paso["estado"] = "ok"
+    publicar_avance()
     log(f"{etapa}: OK en {duracion:.1f} s")
     return duracion
 
@@ -106,9 +125,24 @@ def etapa_silver(registros):
     return total
 
 
-def una_pasada(con_postgres=True):
+def una_pasada(con_postgres=True, nuevos=()):
     inicio = time.time()
     log("===== PIPELINE DANPER =====")
+    AVANCE["etapas"] = []
+    publicar_avance(estado="procesando", inicio=estado.ahora(), fin=None, segundos=None,
+                    archivos_nuevos=list(nuevos), mensaje=None, etapa_actual=None)
+    try:
+        tiempos = _pasada(con_postgres)
+    except ErrorEtapa as error:
+        publicar_avance(estado="error", fin=estado.ahora(), mensaje=str(error), etapa_actual=None)
+        raise
+    publicar_avance(estado="terminado", fin=estado.ahora(), etapa_actual=None,
+                    segundos=round(time.time() - inicio, 1))
+    resumen = ", ".join(f"{k} {v:.1f} s" for k, v in tiempos.items())
+    log(f"===== FIN: {time.time() - inicio:.1f} s ({resumen}) =====")
+
+
+def _pasada(con_postgres):
     tiempos = {}
 
     tiempos["bronze"] = ejecutar("Bronze", python("ingesta_bronze.py", "--ejecutar"))
@@ -134,9 +168,7 @@ def una_pasada(con_postgres=True):
             control.guardar(registros)
         else:
             log("PostgreSQL: sin cambios en Gold")
-
-    resumen = ", ".join(f"{k} {v:.1f} s" for k, v in tiempos.items())
-    log(f"===== FIN: {time.time() - inicio:.1f} s ({resumen}) =====")
+    return tiempos
 
 
 def archivos_locales():
@@ -150,7 +182,7 @@ def vigilar(intervalo, con_postgres):
     log(f"Vigilando {config.DATASETS} cada {intervalo} s (Ctrl+C para salir)")
     capas = ("silver_ok", "gold_ok", "postgres_ok") if con_postgres else ("silver_ok", "gold_ok")
 
-    def estado():
+    def revisar():
         registros = control.leer()
         conocidos = {r["ruta_local"] for r in registros.values()}
         pendientes = any(
@@ -159,7 +191,12 @@ def vigilar(intervalo, con_postgres):
         )
         return conocidos, pendientes
 
-    conocidos, hay_pendientes = estado()
+    conocidos, hay_pendientes = revisar()
+    anterior = estado.leer("pipeline")  # conservar la última corrida al reiniciar
+    if anterior:
+        AVANCE.update(anterior)
+        if anterior.get("estado") == "procesando":
+            AVANCE.update(estado="interrumpido", etapa_actual=None)
 
     while True:
         nuevos = sorted(archivos_locales() - conocidos)
@@ -169,10 +206,11 @@ def vigilar(intervalo, con_postgres):
             if nuevos:
                 time.sleep(2)  # dar tiempo a que termine de copiarse
             try:
-                una_pasada(con_postgres)
+                una_pasada(con_postgres, nuevos)
             except ErrorEtapa as error:
                 log(f"ERROR: {error}. Se reintentará en la próxima revisión.")
-            conocidos, hay_pendientes = estado()
+            conocidos, hay_pendientes = revisar()
+        publicar_avance(ultima_revision=estado.ahora(), vigilando_cada_s=intervalo)
         time.sleep(intervalo)
 
 

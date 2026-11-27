@@ -77,6 +77,7 @@ from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.window import Window
 
 import config
+import estado
 
 SERIES = {"ALCACHOFA": "PARA PROCESAR", "ESPARRAGO": "NATURAL"}
 FALTANTES = {"ESPARRAGO": [2016, 2024], "ALCACHOFA": [2017, 2018]}
@@ -410,9 +411,23 @@ def aplicar(spark, horizonte):
     vigente.coalesce(1).write.mode("overwrite").parquet(f"{gold}/ml_pronostico_vigente")
     plan_siguiente(spark, met).coalesce(1).write.mode("overwrite").parquet(f"{gold}/ml_plan_ingreso")
 
+    filas = spark.read.parquet(f"{gold}/ml_pronostico_vigente").orderBy("cultivo", "periodo").collect()
+    # Resumen para la página /estado del portal (ver estado.py)
+    estado.escribir("modelo", {
+        "generado_en": estado.ahora(),
+        "modelo": MODELO_GUARDADO,
+        "modelo_entrenado_hasta": str(ficha["entrenado_hasta"]),
+        "ultimo_registro": {f["cultivo"]: str(f["ultimo_registro"]) for f in filas},
+        "pronostico_vigente": [
+            {"cultivo": f["cultivo"], "mes": f"{f['periodo']:%Y-%m}",
+             "prom_3a_t": None if f["pred_prom_3a"] is None else round(f["pred_prom_3a"], 1),
+             f"{MODELO_GUARDADO}_t": None if f[pred_ml] is None else round(f[pred_ml], 1)}
+            for f in filas],
+    })
+
     print(f"Modelo aplicado: {ruta} (entrenado con datos hasta {ficha['entrenado_hasta']})")
     print(f"{'cultivo':<10} {'mes':<8} {'prom_3a t':>10} {MODELO_GUARDADO + ' t':>10}")
-    for f in spark.read.parquet(f"{gold}/ml_pronostico_vigente").orderBy("cultivo", "periodo").collect():
+    for f in filas:
         prom = f"{f['pred_prom_3a']:,.0f}" if f["pred_prom_3a"] is not None else "-"
         ml = f"{f[pred_ml]:,.0f}" if f[pred_ml] is not None else "-"
         print(f"{f['cultivo']:<10} {f['periodo']:%Y-%m}  {prom:>10} {ml:>10}")

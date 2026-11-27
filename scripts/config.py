@@ -27,6 +27,8 @@ DATASETS = Path(
     os.environ.get("DANPER_DATASETS", Path.home() / "proyecto_danper" / "datasets")
 ).expanduser()
 SPARK_MASTER = os.environ.get("DANPER_SPARK_MASTER") or None
+# Carpeta local donde el pipeline deja su avance en JSON (lo lee web/portal.py)
+ESTADO = Path(os.environ.get("DANPER_ESTADO", DATASETS.parent / "estado")).expanduser()
 
 BRONZE = f"{HDFS_BASE}/bronze"
 SILVER = f"{HDFS_BASE}/silver"
