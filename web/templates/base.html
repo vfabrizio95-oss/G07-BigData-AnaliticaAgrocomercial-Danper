@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% block cabecera %}{% endblock %}
+<title>{% block titulo %}Danper G07{% endblock %} · Plataforma agrocomercial</title>
+<style>
+  :root { --fondo:#f6f7f9; --texto:#1d232b; --suave:#5b6572; --borde:#d9dee4; --acento:#1f6f4a; --error:#b42318; --ok:#1f6f4a; }
+  @media (prefers-color-scheme: dark) { :root { --fondo:#15181d; --texto:#e6e9ee; --suave:#9aa4b1; --borde:#2c333c; --acento:#5cc38f; --error:#f97066; --ok:#5cc38f; } }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 system-ui, sans-serif; background:var(--fondo); color:var(--texto); }
+  header { padding:16px; border-bottom:1px solid var(--borde); display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+  header strong { margin-right:auto; }
+  header a { color:var(--acento); text-decoration:none; font-weight:600; }
+  main { max-width:860px; margin:0 auto; padding:16px; }
+  section { border:1px solid var(--borde); border-radius:8px; padding:16px; margin:16px 0; }
+  h1 { font-size:1.4rem; margin:8px 0; } h2 { font-size:1.1rem; margin:0 0 8px; }
+  .suave { color:var(--suave); }
+  .aviso { padding:10px 12px; border-radius:6px; margin:12px 0; border:1px solid var(--borde); }
+  .aviso.error { border-color:var(--error); color:var(--error); }
+  .aviso.ok { border-color:var(--ok); color:var(--ok); }
+  label { display:block; margin:8px 0 4px; font-weight:600; }
+  input, select { font:inherit; padding:8px; width:100%; max-width:420px; border:1px solid var(--borde); border-radius:6px; background:transparent; color:inherit; }
+  button { font:inherit; font-weight:600; padding:10px 16px; margin-top:12px; border:0; border-radius:6px; background:var(--acento); color:#fff; cursor:pointer; }
+  table { border-collapse:collapse; width:100%; } td, th { text-align:left; padding:6px 8px; border-bottom:1px solid var(--borde); vertical-align:top; }
+  code { font-size:.9em; }
+</style>
+</head>
+<body>
+<header>
+  <strong>Danper G07 · Plataforma agrocomercial</strong>
+  <a href="/">Tablero</a>
+  <a href="/carga">Cargar datos</a>
+  <a href="/estado">Estado del pipeline</a>
+</header>
+<main>
+  {% with mensajes = get_flashed_messages(with_categories=true) %}
+    {% for categoria, mensaje in mensajes %}<div class="aviso {{ categoria }}" role="status">{{ mensaje }}</div>{% endfor %}
+  {% endwith %}
+  {% block contenido %}{% endblock %}
+</main>
+</body>
+</html>

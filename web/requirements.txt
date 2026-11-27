@@ -1,0 +1,5 @@
+# Dependencias del portal web (web/portal.py), además de las de requirements.txt.
+# En el master las instala infra/aws/instalar_portal.sh en /opt/danper/.venv.
+flask==3.1.2
+gunicorn==23.0.0
+boto3==1.40.70

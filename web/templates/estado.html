@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block cabecera %}<meta http-equiv="refresh" content="10">{% endblock %}
+{% block titulo %}Estado del pipeline{% endblock %}
+{% block contenido %}
+{% set p = e.pipeline %}{% set m = e.modelo %}
+<h1>Estado del pipeline</h1>
+<p class="suave">Se actualiza sola cada 10 segundos. Versión en JSON: <a href="/api/estado">/api/estado</a>.</p>
+
+<section>
+  <h2>Ahora</h2>
+  <table>
+    <tr><th>Fase</th><td><strong>{{ e.fase }}</strong>{% if p.etapa_actual %} · etapa: {{ p.etapa_actual }}{% endif %}</td></tr>
+    <tr><th>Servicio de ingesta</th><td>{{ "activo (revisa S3 cada minuto)" if e.servicio_ingesta_activo else "sin actividad reciente" }}</td></tr>
+    <tr><th>Última revisión</th><td>{{ p.ultima_revision or "-" }}</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>Última carga recibida</h2>
+  {% if e.ultima_carga %}
+    <p>{{ e.ultima_carga.recibido }} · {{ e.ultima_carga.origen }}</p>
+    <ul>{% for a in e.ultima_carga.archivos %}<li><code>{{ a.archivo }}</code> · {{ a.detalle }}</li>{% endfor %}</ul>
+  {% else %}<p class="suave">Todavía no se cargó ningún archivo desde este portal.</p>{% endif %}
+</section>
+
+<section>
+  <h2>Última corrida del pipeline</h2>
+  {% if p.inicio %}
+    <p>Inicio {{ p.inicio }} · fin {{ p.fin or "-" }} · {{ p.segundos or "-" }} s · estado: <strong>{{ p.estado }}</strong></p>
+    {% if p.archivos_nuevos %}<p>Archivos: {% for a in p.archivos_nuevos %}<code>{{ a }}</code> {% endfor %}</p>{% endif %}
+    {% if p.mensaje %}<div class="aviso error">{{ p.mensaje }}</div>{% endif %}
+    <table>
+      <tr><th>Etapa</th><th>Estado</th><th>Segundos</th></tr>
+      {% for s in p.etapas %}<tr><td>{{ s.etapa }}</td><td>{{ s.estado }}</td><td>{{ s.segundos or "-" }}</td></tr>{% endfor %}
+    </table>
+  {% else %}<p class="suave">Sin corridas registradas.</p>{% endif %}
+</section>
+
+<section>
+  <h2>Modelo (resultado que llega al tablero)</h2>
+  {% if m %}
+    <p>Modelo <code>{{ m.modelo }}</code> entrenado con datos hasta <strong>{{ m.modelo_entrenado_hasta }}</strong> (no se reentrena al llegar datos nuevos).
+       Aplicado: {{ m.generado_en }}.</p>
+    <p>Último dato de ingreso a planta:
+      {% for c, f in m.ultimo_registro.items() %}{{ c }} <strong>{{ f[:7] }}</strong>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+    <table>
+      <tr><th>Cultivo</th><th>Mes</th><th>Promedio 3 años (t, recomendado)</th><th>MLlib (t)</th></tr>
+      {% for r in m.pronostico_vigente %}<tr><td>{{ r.cultivo }}</td><td>{{ r.mes }}</td><td>{{ r.prom_3a_t }}</td><td>{{ r[m.modelo ~ "_t"] }}</td></tr>{% endfor %}
+    </table>
+  {% else %}<p class="suave">El modelo todavía no se aplicó en este servidor.</p>{% endif %}
+</section>
+
+<p><a href="/">Ir al tablero</a></p>
+{% endblock %}

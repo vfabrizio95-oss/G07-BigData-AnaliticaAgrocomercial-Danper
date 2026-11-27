@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block titulo %}Cargar datos{% endblock %}
+{% block contenido %}
+<h1>Carga de datos nuevos</h1>
+<p>Cada archivo que se carga aquí recorre todo el pipeline en unos 5 minutos:
+Bronze → Silver → Gold → modelo ya entrenado (solo se aplica, no se reentrena) → PostgreSQL → tablero.
+Sigue el avance en <a href="/estado">Estado del pipeline</a>.</p>
+
+<section>
+  <h2>Opción 1. Inyectar un dato de prueba (recomendada)</h2>
+  <p>Genera y carga dos meses <strong>simulados</strong> de ingreso de materia prima a planta (alcachofa y espárrago),
+  con el formato de la fuente oficial y marcados como DEMO. Cada vez se usan los dos meses siguientes,
+  así que se puede repetir. En el tablero cambian «Último dato de ingreso a planta», el «Pronóstico vigente»
+  y el ingreso real frente al plan.</p>
+  <form method="post" action="/carga/prueba">
+    <button type="submit">Inyectar dato de prueba</button>
+  </form>
+</section>
+
+<section>
+  <h2>Opción 2. Subir un archivo</h2>
+  <form method="post" action="/carga/archivo" enctype="multipart/form-data">
+    <label for="fuente">Fuente</label>
+    <select id="fuente" name="fuente">
+      <option value="agroindustria">Ingreso a planta agroindustrial (Excel .xlsx, cuadros 7 o 64)</option>
+      <option value="abastecimiento">Reporte diario del Gran Mercado Mayorista de Lima (PDF de MIDAGRI)</option>
+    </select>
+    <label for="archivo">Archivo (máximo {{ max_mb }} MB)</label>
+    <input id="archivo" name="archivo" type="file" accept=".xlsx,.pdf" required>
+    <button type="submit">Subir archivo</button>
+  </form>
+  <p class="suave">Ejemplos con el formato correcto (meses siguientes, simulados):
+    <a href="/carga/ejemplo/alcachofa">Excel de alcachofa</a> ·
+    <a href="/carga/ejemplo/esparrago">Excel de espárrago</a>.
+    Un PDF del GMML debe conservar el nombre con que lo publica MIDAGRI (termina en «-DD-MM-AAAA.pdf»).</p>
+</section>
+
+{% if demos %}
+<section>
+  <h2>Datos de prueba ya cargados</h2>
+  <ul>{% for d in demos %}<li><code>{{ d }}</code></li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<form method="post" action="/carga/salir"><button type="submit">Cerrar sesión</button></form>
+{% endblock %}

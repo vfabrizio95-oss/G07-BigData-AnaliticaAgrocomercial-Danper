@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titulo %}Ingresar{% endblock %}
+{% block contenido %}
+<h1>Carga de datos nuevos</h1>
+<p class="suave">Para subir datos hay que iniciar sesión. El usuario y la contraseña están en la guía del evaluador del informe.</p>
+<section>
+  <form method="post" action="/carga/ingresar">
+    <label for="usuario">Usuario</label>
+    <input id="usuario" name="usuario" autocomplete="username" required>
+    <label for="clave">Contraseña</label>
+    <input id="clave" name="clave" type="password" autocomplete="current-password" required>
+    <button type="submit">Ingresar</button>
+  </form>
+</section>
+{% endblock %}
