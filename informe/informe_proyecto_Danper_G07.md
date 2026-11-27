@@ -1830,13 +1830,15 @@ El mismo script se ejecutó el 26/11/2026 en el cluster de Amazon EC2 con `--exe
 
 **Tabla 3.8 Paralelismo creciente en el cluster de AWS (×1000)**
 
-| Workers (executors) | Núcleos | Tiempo (mediana) | Aceleración | Eficiencia |
-|---:|---:|---:|---:|---:|
-| 1 | 2 | 56,0 s | 1,0× | 100 % |
-| 2 | 4 | 33,9 s | 1,65× | 83 % |
-| 3 | 6 | 24,0 s | 2,34× | 78 % |
+| Workers (executors) | Núcleos | Tiempo (mediana) | Mín. – máx. | Aceleración | Eficiencia | Shuffle escrito | Memoria pico por executor |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 2 | 56,0 s | 53,2 – 57,7 s | 1,0× | 100 % | 534 MB | 1 439 MB |
+| 2 | 4 | 33,9 s | 32,4 – 36,1 s | 1,65× | 83 % | 557 MB | 1 270 MB |
+| 3 | 6 | 24,0 s | 23,3 – 28,7 s | 2,34× | 78 % | 568 MB | 948 MB |
 
-La eficiencia es la aceleración dividida entre el número de workers.
+La eficiencia es la aceleración dividida entre el número de workers. Los tres escenarios produjeron las mismas 11 208 000 filas de salida. El shuffle casi no cambia porque el volumen de datos es el mismo; la memoria pico por executor baja porque el trabajo se reparte entre más máquinas.
+
+> **[FOTO GUARDADA] Figura 3.13-A.** Archivo `figura_3_13_a_escalabilidad_aws_x1000.png`: primera tabla de la salida de `grep -B1 -A6 "factor.*núcleos" ~/escalabilidad.log` (factor 1000). Pie: *Figura 3.13-A. Prueba de paralelismo en el cluster de AWS con ×1000: el tiempo baja de 56,0 s con 1 worker a 24,0 s con 3 workers (aceleración de 2,34×), con las mismas 11 208 000 filas de salida.*
 
 **Tabla 3.8-B Volumen creciente: entorno local frente al cluster (3 workers)**
 
@@ -1855,7 +1857,7 @@ En las cuatro escalas, las filas de salida coincidieron exactamente con las espe
 
 **Interpretación de la medición en el cluster**
 
-- **Escalabilidad horizontal:** con ×1000, agregar workers reduce el tiempo de 56,0 a 24,0 s. La aceleración es casi lineal (2,34 veces con 3 workers, eficiencia del 78 %). La pérdida respecto de 3,0× corresponde a la coordinación de YARN y al shuffle por la red entre máquinas.
+- **Escalabilidad horizontal (Figura 3.13-A):** con ×1000, agregar workers reduce el tiempo de 56,0 a 24,0 s. La aceleración es casi lineal (2,34 veces con 3 workers, eficiencia del 78 %). La pérdida respecto de 3,0× corresponde a la coordinación de YARN y al shuffle por la red entre máquinas.
 - **Cluster frente a una sola máquina:** con 3 workers (6 núcleos), el cluster tarda 24,0 s frente a 31,0 s de la mejor configuración local (4 hilos). Además, a diferencia del equipo local, que dejó de mejorar después de 4 hilos, el cluster sigue mejorando al agregar workers.
 - **Volúmenes pequeños:** con ×1 a ×100, el cluster no es más rápido que el equipo local, porque el costo fijo de lanzar la aplicación en YARN y de mover datos por la red pesa más que el cálculo. El beneficio aparece cuando el volumen crece, que es el caso previsto en la sección 1.7.
 - **Incidente durante la prueba:** en una repetición de ×100, la aplicación esperó unos 700 s sin recursos porque los workers quedaron fuera de servicio con el disco lleno (Tabla 0.4). La mediana de 13,1 s no se ve afectada; por la misma causa, Spark contó 4 executors en ese escenario, uno de ellos de reemplazo, aunque nunca trabajaron más de 3 a la vez.
