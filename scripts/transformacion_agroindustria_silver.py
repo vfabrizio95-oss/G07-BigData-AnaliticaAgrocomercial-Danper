@@ -21,6 +21,32 @@ SILVER = f"{config.SILVER}/agroindustria"
 CALIDAD = f"{config.CALIDAD}/agroindustria"
 
 
+def fechas_bronze():
+    """Fecha de carga en Bronze (ms) de cada Excel de agroindustria."""
+    salida = subprocess.run(
+        ["hdfs", "dfs", "-stat", "%Y %n", f"{BRONZE}/*.xlsx"],
+        check=True, capture_output=True, text=True
+    ).stdout
+    fechas = {}
+    for linea in salida.splitlines():
+        marca, _, nombre = linea.partition(" ")
+        fechas[nombre] = int(marca)
+    return fechas
+
+
+def quitar_solapes(datos, fechas):
+    """Si dos archivos traen el mismo cultivo, cuadro, año y mes, gana el más
+    reciente en Bronze (por ejemplo, un Excel "2010-2025" que reemplaza al
+    "2010-2024"). Así un archivo actualizado no duplica los años repetidos.
+    Los duplicados dentro de un mismo archivo siguen siendo un error."""
+    clave = ["cultivo", "cuadro_origen", "anio", "numero_mes"]
+    orden = datos.assign(_carga=datos["archivo_origen"].map(fechas).fillna(0))
+    ganador = (orden.sort_values(["_carga", "archivo_origen"])
+               .groupby(clave)["archivo_origen"].transform("last"))
+    conservar = orden["archivo_origen"] == ganador.reindex(orden.index)
+    return datos[conservar].reset_index(drop=True), int((~conservar).sum())
+
+
 def validar_totales(ruta, datos, incidencias):
     resultados = []
 
@@ -140,8 +166,11 @@ def main():
                 ruta, datos, incidencias
             )
 
+        datos, reemplazados = quitar_solapes(datos, fechas_bronze())
+
         print("===== EXTRACCION =====")
         print("Registros:", len(datos))
+        print("Reemplazados por un archivo mas reciente:", reemplazados)
         print("Cuadros:", len(cuadros))
         print("Valores no numericos:", len(incidencias))
 
