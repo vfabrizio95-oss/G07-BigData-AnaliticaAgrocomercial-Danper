@@ -1,5 +1,27 @@
 # G07 - Big Data y Analítica Agrocomercial para Danper
 
+## Aplicación en vivo: guía del evaluador
+
+La plataforma está desplegada en AWS (cluster de 1 master y 3 workers en Amazon EC2, Amazon RDS y Amazon S3) y se puede probar sin instalar nada. La **URL** y la **contraseña** de la carga de datos están en el informe del proyecto (Anexo: guía del evaluador); aquí aparecen como `<URL>` y `<CONTRASEÑA>`.
+
+| Qué | Dirección | Acceso |
+|---|---|---|
+| Tablero (Grafana) | `<URL>/` | Libre, solo lectura |
+| Carga de datos nuevos | `<URL>/carga` | Usuario `evaluador` y `<CONTRASEÑA>` |
+| Estado del pipeline | `<URL>/estado` | Libre; se actualiza sola cada 10 s |
+| Estado en JSON | `<URL>/api/estado` | Libre |
+
+**Prueba de punta a punta (unos 6 minutos):**
+
+1. En `<URL>/estado`, anotar el **último dato de ingreso a planta** (por ejemplo, `2024-12`), los meses del **pronóstico vigente** y la fecha **«entrenado con datos hasta»** del modelo.
+2. En `<URL>/carga`, ingresar con `evaluador` y la contraseña, y pulsar **«Inyectar dato de prueba»**. Se cargan dos meses **simulados** de ingreso de materia prima a planta (alcachofa y espárrago), con el formato de la fuente oficial y marcados `DEMO`.
+3. En `<URL>/estado`, la fase pasa de «esperando la sincronización con S3» a «procesando», con cada etapa (Bronze → Silver → Gold → Modelo (aplicar) → PostgreSQL) y sus segundos, y a «terminado» unos 5 minutos después.
+4. Comprobar el resultado: el último dato y el pronóstico vigente avanzaron dos meses, y la fecha de entrenamiento del modelo **no cambió** (el modelo ya entrenado se aplica con `transform()`, no se reentrena). En el tablero, sin recargar la página, cambian «Último dato de ingreso a planta», el panel «Pronóstico vigente» y el ingreso real frente al plan anual.
+
+La prueba se puede repetir: cada vez se cargan los dos meses siguientes. También se puede subir un archivo propio en `<URL>/carga`: un Excel `.xlsx` de ingreso a planta con el formato de la fuente (cuadro 7 o 64; hay ejemplos descargables en la misma página) o un PDF del Gran Mercado Mayorista de Lima con su nombre original de MIDAGRI (`...-DD-MM-AAAA.pdf`). Un archivo con otro formato se rechaza con un mensaje que explica el motivo.
+
+El detalle de los campos de `/api/estado` está en [docs/guia_evaluador.md](docs/guia_evaluador.md). Para recrear la plataforma desde cero, seguir las secciones 7 en adelante (entorno local) y el despliegue en AWS.
+
 ## 1. Descripción del proyecto
 
 Proyecto académico desarrollado para la asignatura Big Data y Analítica de Datos de la Universidad Privada Antenor Orrego (UPAO), durante el semestre 2026-20.
