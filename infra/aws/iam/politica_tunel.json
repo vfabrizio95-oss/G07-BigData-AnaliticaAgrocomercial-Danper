@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "TunelAlMaster",
+      "Effect": "Allow",
+      "Action": "ssm:StartSession",
+      "Resource": [
+        "arn:aws:ec2:us-east-2:ID_CUENTA:instance/ID_INSTANCIA_MASTER",
+        "arn:aws:ssm:us-east-2::document/AWS-StartPortForwardingSession"
+      ]
+    },
+    {
+      "Sid": "SusPropiasSesiones",
+      "Effect": "Allow",
+      "Action": ["ssm:TerminateSession", "ssm:ResumeSession"],
+      "Resource": "arn:aws:ssm:us-east-2:ID_CUENTA:session/${aws:username}-*"
+    }
+  ]
+}
