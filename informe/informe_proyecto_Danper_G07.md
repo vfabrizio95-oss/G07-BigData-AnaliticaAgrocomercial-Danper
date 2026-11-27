@@ -23,6 +23,9 @@ Actualización del 26/11/2026 (rama feature/aws):
   redactan al cerrar el proyecto, cuando estén los resultados en AWS y la medición del OE3.
 - Donde la imagen YA ESTÁ TOMADA hay un bloque "[FOTO GUARDADA]" con el nombre del archivo
   (carpeta BIG DATA/capturas_aws/) y su pie de figura listo para copiar.
+- Etapas 5 y 6 (26/11/2026): cluster de 4 instancias EC2, corrida completa, carga
+  incremental y prueba de escalabilidad en AWS (secciones 0.2, 0.3, 0.4, 1.6, 1.7,
+  2.2, 2.4, 3.2, 3.5, 3.7 y 3.8). Queda pendiente la etapa 7 (Grafana en AWS).
 -->
 
 <!-- Página 1 del PDF -->
@@ -246,7 +249,7 @@ Con la finalidad de evaluar el avance del proyecto, se realizó un seguimiento d
 | Optimización del procesamiento | 11 | Prueba de caché reproducible con `scripts/prueba_escalabilidad.py`. | Con 1 000 veces el volumen, la caché reduce 90 % el tiempo de las consultas repetidas (sección 3.6). |
 | Evaluación de escalabilidad | No diferenciada en el cronograma original | Prueba local con réplicas ×1 a ×1000 y de 1 a 8 hilos, con métricas de Spark. | Reemplaza a la prueba anterior, que no tenía respaldo en el código (sección 3.7). La medición con 1, 2 y 3 workers se hará en AWS. |
 | Capa de consumo | 12 | Gold publicado en PostgreSQL (29 tablas) y tablero en Grafana con 5 KPI de abastecimiento. | El tablero se actualiza solo cada 5 s (sección 4.4). |
-| Despliegue en la nube | No prevista | Scripts de instalación y configuración del cluster preparados y probados en contenedores. Entre el 25 y el 26/11/2026 se creó en AWS la infraestructura base: red privada, bucket S3 con los 181 archivos, roles de acceso, base de datos RDS PostgreSQL y contraseñas cifradas en Parameter Store (secciones 2.4 y 3.8). | [PENDIENTE AWS] Lanzar las 4 instancias EC2 (1 master y 3 workers), instalar Hadoop y Spark y ejecutar el pipeline en el cluster. |
+| Despliegue en la nube | No prevista | Scripts de instalación y configuración del cluster preparados y probados en contenedores. Entre el 25 y el 26/11/2026 se creó en AWS la infraestructura base: red privada, bucket S3 con los 181 archivos, roles de acceso, base de datos RDS PostgreSQL y contraseñas cifradas en Parameter Store (secciones 2.4 y 3.8). El 26/11/2026 se lanzó el cluster de 4 instancias EC2 (1 master y 3 workers) con Hadoop y Spark sobre YARN, se ejecutó la corrida completa (1 844 s), una carga incremental (215,9 s) y la prueba de escalabilidad con 1, 2 y 3 workers (secciones 3.2 y 3.7). | Las métricas del modelo en el cluster son idénticas a las del entorno local. [PENDIENTE AWS] Tablero de Grafana conectado a RDS. |
 
 ### 0.3. Riesgos y mitigación
 
@@ -334,10 +337,10 @@ Durante el desarrollo del proyecto se identificaron situaciones relacionadas con
 | Calidad insuficiente de los datos | Valores faltantes, años completos en cero y una serie copiada de un año a otro en el Excel original (espárrago 2024 igual a 2023). | Limpieza y validación con PySpark. Los vacíos del registro se tratan como faltantes y no como producción cero; las incidencias se guardan en `/danper/calidad`. |
 | Bajo rendimiento del modelo analítico | La regresión lineal de la Semana 7 no superó a la mediana. El modelo definitivo con Spark MLlib tampoco supera a la línea base estacional. | Se cambió a una variable objetivo con 15 años de historia, se compararon tres algoritmos con validación hacia adelante y el resultado se reporta sin ajustarlo a los años de prueba (sección 4.3). |
 | Limitaciones de recursos tecnológicos | La prueba de escalabilidad anterior no tenía respaldo en el código y sus réplicas se fusionaban en las agregaciones. | Se rehízo con un script versionado y réplicas que no se fusionan. En una sola máquina, pasar de 4 a 8 hilos no acelera el trabajo, lo que justifica medir con varios workers en AWS. |
-| Fallos en el entorno de procesamiento distribuido | HDFS no queda activo después de reiniciar el equipo local. | Se documentó el arranque en el README. En AWS, los servicios de Hadoop y Spark se instalan como servicios que arrancan solos con la máquina. |
+| Fallos en el entorno de procesamiento distribuido | HDFS no queda activo después de reiniciar el equipo local. En AWS, durante la prueba de escalabilidad, los 3 workers quedaron fuera de servicio (`UNHEALTHY`) con el disco casi lleno: cada aplicación de Spark subía unos 300 MB de librerías que YARN guardaba en una caché de hasta 10 GB por nodo, en discos de 20 GB. | Se documentó el arranque en el README. En AWS, los servicios de Hadoop y Spark se instalan como servicios que arrancan solos con la máquina. Para el disco, se limpió la caché y se corrigió la configuración: las librerías de Spark se suben una sola vez a HDFS (`spark.yarn.archive`) y la caché de YARN queda limitada a 2 GB por nodo (commit `29fe49b`). |
 | Costos y restricciones de la nube | La cuenta del plan gratuito de AWS solo permite la región us-east-2, no incluye Amazon EMR y restringe la base de datos a la capa gratuita. | Se eligieron recursos de la capa gratuita (RDS `db.t4g.micro` con 20 GB, sin escalado automático ni réplicas), una red sin NAT Gateway y una alerta de presupuesto de US$ 10. Las instancias EC2 se detienen al terminar cada sesión. |
 
-El seguimiento permitió comprobar que los riesgos de disponibilidad y calidad de los datos se presentaron y fueron atendidos con fuentes públicas, reglas de validación y registro de incidencias. El rendimiento limitado del modelo se identificó al compararlo con una referencia sencilla y se documentó con sus causas. En cuanto a los recursos, la nueva prueba mostró el límite de una sola máquina: con 1 000 veces el volumen, el tiempo deja de mejorar al pasar de 4 a 8 hilos porque el equipo tiene 4 núcleos físicos.
+El seguimiento permitió comprobar que los riesgos de disponibilidad y calidad de los datos se presentaron y fueron atendidos con fuentes públicas, reglas de validación y registro de incidencias. El rendimiento limitado del modelo se identificó al compararlo con una referencia sencilla y se documentó con sus causas. En cuanto a los recursos, la nueva prueba mostró el límite de una sola máquina: con 1 000 veces el volumen, el tiempo deja de mejorar al pasar de 4 a 8 hilos porque el equipo tiene 4 núcleos físicos. En el cluster de AWS, el mismo trabajo se aceleró 2,34 veces al pasar de 1 a 3 workers (sección 3.7).
 
 ### 0.4. Bitácora de decisiones
 
@@ -505,7 +508,7 @@ Silver | → | Gold.
 | 19/11/2026 | Cambiar la variable objetivo del modelo al ingreso mensual de materia prima a planta y usar Spark MLlib | Producción mensual 2025 con scikit-learn | La producción solo tenía un año válido; el ingreso a planta tiene 15 años y se relaciona con la decisión de compra de Danper | Validación hacia adelante 2019–2024; resultado honesto frente a la línea base. |
 | 20/11/2026 | Rehacer la prueba de escalabilidad con un script versionado y réplicas que no se fusionan | Conservar las cifras anteriores | Las cifras anteriores no estaban respaldadas por código y las réplicas colapsaban en las agregaciones | Resultados reproducibles en `reportes/escalabilidad/`. |
 | 23/11/2026 | Publicar en PostgreSQL vía un esquema de staging en una sola transacción | Vaciar y recargar cada tabla | El tablero no debe mostrar tablas vacías durante una publicación | Grafana ve siempre una versión completa: la anterior o la nueva. |
-| 25/11/2026 | Desplegar en un cluster propio en Amazon EC2 | Amazon EMR | La cuenta del plan gratuito de AWS no permite EMR; un cluster propio demuestra HDFS y YARN con los mismos scripts | [PENDIENTE AWS] Despliegue con 1 master y 3 workers. |
+| 25/11/2026 | Desplegar en un cluster propio en Amazon EC2 | Amazon EMR | La cuenta del plan gratuito de AWS no permite EMR; un cluster propio demuestra HDFS y YARN con los mismos scripts | Cluster de 1 master y 3 workers con HDFS (replicación 2) y Spark sobre YARN; el pipeline corrió sin cambios en el código, solo con variables de entorno. |
 | 25/11/2026 | Guardar las contraseñas en SSM Parameter Store (SecureString) | AWS Secrets Manager | El proyecto no requiere rotación automática y Parameter Store no tiene costo | Ninguna contraseña queda en archivos del servidor ni del repositorio. |
 | 26/11/2026 | Desplegar en la región us-east-2 (Ohio) | us-east-1 (N. Virginia), prevista al inicio | El proyecto del plan gratuito de AWS quedó asignado a us-east-2 y no permite otras regiones | Se corrigió la región en la política IAM del master y en los scripts (commit `34192dd`). |
 | 26/11/2026 | Amazon RDS for PostgreSQL 16 en la capa gratuita | Aurora PostgreSQL; PostgreSQL instalado en el master | Aurora no entra en la capa gratuita; RDS separa la base del cluster, que se detiene entre sesiones, y mantiene la versión 16 usada en el proyecto | El tablero y el pipeline se conectan a una base que no se apaga con el cluster. |
@@ -672,7 +675,7 @@ El proyecto incluirá la ingesta, limpieza, transformación e integración de lo
 
 <!-- ACTUALIZADO -->
 
-La implementación se desarrolló en la ruta on-premise, utilizando Debian 12 y Ubuntu 24.04 como sistemas operativos, Hadoop HDFS para el almacenamiento de datos, Apache Spark/PySpark para la limpieza, transformación, integración y el modelo predictivo, PostgreSQL para publicar los resultados y Grafana para el tablero. Las ejecuciones documentadas hasta ahora se realizaron en un solo equipo, con Spark en modo local. Los scripts ya no fijan el modo de ejecución, de modo que el mismo código podrá ejecutarse sobre YARN en un cluster de varios nodos. [PENDIENTE AWS] Ejecución en el cluster de Amazon EC2.
+La implementación se desarrolló en la ruta on-premise, utilizando Debian 12 y Ubuntu 24.04 como sistemas operativos, Hadoop HDFS para el almacenamiento de datos, Apache Spark/PySpark para la limpieza, transformación, integración y el modelo predictivo, PostgreSQL para publicar los resultados y Grafana para el tablero. El desarrollo se realizó en un solo equipo, con Spark en modo local. Como los scripts no fijan el modo de ejecución, el mismo código se ejecutó después sobre YARN en un cluster de 4 instancias de Amazon EC2 (1 master y 3 workers), con los resultados de las secciones 3.2 y 3.7.
 
 Limitaciones
 
@@ -716,7 +719,7 @@ a decisiones. La plataforma buscará facilitar la identificación de productos, 
 
 <!-- ACTUALIZADO -->
 
-Respecto a la pregunta “¿los datos caben y rinden en una sola máquina, hoy y cuando crezcan?”: hoy sí caben. En la prueba de la sección 3.7, con el volumen real el procesamiento Silver → Gold tarda 4,8 s y con 1 000 veces el volumen, 32,4 s. Sin embargo, con ese volumen el equipo llegó a su límite: pasar de 4 a 8 hilos no redujo el tiempo, porque solo tiene 4 núcleos físicos y un disco. Si los datos siguen creciendo, la forma de mantener el rendimiento es agregar nodos, cada uno con núcleos y disco propios. [PENDIENTE AWS] Esta afirmación se comprobará midiendo el mismo trabajo con 1, 2 y 3 workers.
+Respecto a la pregunta “¿los datos caben y rinden en una sola máquina, hoy y cuando crezcan?”: hoy sí caben. En la prueba de la sección 3.7, con el volumen real el procesamiento Silver → Gold tarda 4,8 s y con 1 000 veces el volumen, 32,4 s. Sin embargo, con ese volumen el equipo llegó a su límite: pasar de 4 a 8 hilos no redujo el tiempo, porque solo tiene 4 núcleos físicos y un disco. Si los datos siguen creciendo, la forma de mantener el rendimiento es agregar nodos, cada uno con núcleos y disco propios. Esto se comprobó en el cluster de AWS: con 1 000 veces el volumen, el mismo trabajo bajó de 56,0 s con 1 worker a 24,0 s con 3 workers, y superó a la mejor configuración local (31,0 s) (sección 3.7).
 
 Por lo tanto, el uso de tecnologías Big Data se plantea no solo para resolver el volumen actual, sino para construir una arquitectura escalable, reproducible y capaz de integrar fuentes heterogéneas, manteniendo su funcionamiento a medida que aumenten los datos disponibles.
 
@@ -891,7 +894,7 @@ La arquitectura propuesta para Danper Trujillo S.A.C. busca garantizar que los d
 
 <!-- ACTUALIZADO -->
 
-La arquitectura utiliza Apache Spark/PySpark para el procesamiento de datos y Hadoop HDFS como sistema de almacenamiento. En la prueba de la sección 3.7, con 1 000 veces el volumen real el tiempo del procesamiento Silver → Gold creció unas 7 veces (de 4,8 a 32,4 s), y pasar de 1 a 4 núcleos lo aceleró 2,6 veces. Más allá de 4 núcleos un solo equipo no mejora, por lo que el crecimiento debe lograrse agregando nodos. [PENDIENTE AWS] Medición con 1, 2 y 3 workers.
+La arquitectura utiliza Apache Spark/PySpark para el procesamiento de datos y Hadoop HDFS como sistema de almacenamiento. En la prueba de la sección 3.7, con 1 000 veces el volumen real el tiempo del procesamiento Silver → Gold creció unas 7 veces (de 4,8 a 32,4 s), y pasar de 1 a 4 núcleos lo aceleró 2,6 veces. Más allá de 4 núcleos un solo equipo no mejora, por lo que el crecimiento debe lograrse agregando nodos. En el cluster de AWS, pasar de 1 a 3 workers aceleró el trabajo 2,34 veces, con una eficiencia del 78 % (Tabla 3.8).
 
 ● | Disponibilidad
 
@@ -935,7 +938,7 @@ principal ventaja es que los cambios podrían concentrarse en componentes identi
 
 La selección de tecnologías para la plataforma de Big Data y Analítica Agrocomercial de Danper Trujillo S.A.C. se fundamenta en las necesidades de almacenamiento, procesamiento e integración de datos institucionales y en la infraestructura disponible durante el curso. <!-- ACTUALIZADO -->
 
-Se seleccionó la ruta on-premise, utilizando Hadoop HDFS para almacenar los datos en las capas Bronze, Silver y Gold, Apache Spark/PySpark para las transformaciones, las consultas analíticas y el modelo predictivo, PostgreSQL y Grafana para la capa de consumo, y JupyterLab para el análisis exploratorio. El procesamiento documentado se realizó en modo local; el despliegue sobre YARN en un cluster se documentará al terminarlo.
+Se seleccionó la ruta on-premise, utilizando Hadoop HDFS para almacenar los datos en las capas Bronze, Silver y Gold, Apache Spark/PySpark para las transformaciones, las consultas analíticas y el modelo predictivo, PostgreSQL y Grafana para la capa de consumo, y JupyterLab para el análisis exploratorio. El desarrollo se realizó en modo local, y el pipeline se desplegó después sobre YARN en un cluster de Amazon EC2 (Tabla 2.5).
 
 Según Chambers y Zaharia (2018), Apache Spark proporciona herramientas para procesar datos mediante DataFrames y consultas SQL, facilitando operaciones de transformación, integración y análisis. Estas características resultan adecuadas para el proyecto, debido a que las fuentes agrocomerciales presentan diferentes estructuras, formatos y niveles de detalle.
 
@@ -961,7 +964,7 @@ Según Chambers y Zaharia (2018), Apache Spark proporciona herramientas para pro
 | Git | 2.39.5 | Control de versiones, gestión de ramas y seguimiento de cambios | Utilizada |
 | JupyterLab | 4.6 | Análisis exploratorio | Utilizada |
 | Apache Parquet | Formato de almacenamiento | Almacenamiento columnar de las capas Silver y Gold | Utilizada |
-| Apache Hadoop YARN | 3.3.6 | Administrador de recursos del cluster | [PENDIENTE AWS] |
+| Apache Hadoop YARN | 3.3.6 | Administrador de recursos del cluster | Implementada en el cluster de AWS |
 | Apache Hadoop MapReduce | 3.3.6 | Alternativa de procesamiento por lotes | No seleccionado como motor principal; su patrón se aplica dentro de Spark (sección 3.6) |
 | Apache Kafka | No aplica | Procesamiento de flujos de eventos | No utilizado |
 
@@ -978,14 +981,22 @@ La solución se desarrolló en infraestructura local y se está desplegando en A
 | Función | Componente en el entorno local | Componente en AWS (región us-east-2, Ohio) | Estado al 26/11/2026 |
 |---|---|---|---|
 | Origen de los datos | Carpeta `datasets/` del equipo | Bucket Amazon S3 `danper-g07-…/datasets/` (181 archivos, 577 MB), con acceso público bloqueado y cifrado SSE-S3 | Creado y cargado |
-| Almacenamiento distribuido | HDFS en una sola máquina | HDFS en 3 workers con replicación 2 | [PENDIENTE AWS] |
-| Procesamiento | Spark en modo local | Spark sobre YARN: 3 executors de 2 núcleos y 4 GB, uno por worker | [PENDIENTE AWS] |
-| Máquinas | Equipo del integrante | 4 instancias Amazon EC2 `m7i-flex.large` (2 vCPU, 8 GB): 1 master y 3 workers | [PENDIENTE AWS] |
+| Almacenamiento distribuido | HDFS en una sola máquina | HDFS en 3 workers con replicación 2 | En funcionamiento (Figura 2.4 a) |
+| Procesamiento | Spark en modo local | Spark sobre YARN: 3 executors de 2 núcleos y 4 GB, uno por worker | En funcionamiento (Figura 2.4 b) |
+| Máquinas | Equipo del integrante | 4 instancias Amazon EC2 `m7i-flex.large` (2 vCPU, 8 GB, disco de 20 GiB): 1 master y 3 workers | En funcionamiento (Figura 2.3) |
 | Base de datos de consumo | PostgreSQL 16 local | Amazon RDS for PostgreSQL 16.16 (`db.t4g.micro`, 20 GB), sin acceso público | Creada |
 | Contraseñas | `~/.pgpass` y `dashboard/.env` | AWS Systems Manager Parameter Store (SecureString, cifradas con KMS) | Creadas |
 | Red | Equipo local | VPC propia con subredes públicas (máquinas) y privadas (base de datos), sin NAT Gateway | Creada |
-| Acceso de administración | Terminal local | AWS Systems Manager Session Manager, sin puertos abiertos a internet | Roles creados; uso [PENDIENTE AWS] |
+| Acceso de administración | Terminal local | AWS Systems Manager Session Manager, sin puertos abiertos a internet | En uso |
 | Tablero | Grafana en Docker | Grafana en Docker en el master, consultado por un túnel de Session Manager | [PENDIENTE AWS] |
+
+> **[FOTO GUARDADA] Figura 2.3.** Archivo `figura_2_3_instancias_ec2.png` (sin la columna de IPv4 pública). Pie: *Figura 2.3. Cluster del proyecto en Amazon EC2: 1 master y 3 workers `m7i-flex.large` en la zona us-east-2a.*
+
+> **[FOTO GUARDADA] Figura 2.4 a)** Archivo `figura_2_4_a_hdfs.png`. Pie: *a) Almacenamiento distribuido: los servicios del master están activos y HDFS tiene 3 DataNodes vivos, uno por worker, con 54,99 GB en total, estado HEALTHY y factor de replicación 2.*
+
+> **[FOTO GUARDADA] Figura 2.4 b)** Archivo `figura_2_4_b_yarn_spark.png`. Pie: *b) Cómputo distribuido: YARN registra 3 NodeManagers con 6 GB y 2 núcleos cada uno, y la prueba Spark Pi reparte sus contenedores entre los 3 workers (un executor por worker más el ApplicationMaster).*
+
+> Título general: **Figura 2.4. Verificación del cluster en AWS con `estado_cluster.sh --prueba`.**
 
 > **[CAPTURA PENDIENTE] Figura 2.2. Diagrama de despliegue en AWS.** Se elabora al terminar el cluster: VPC con las subredes, las 4 instancias EC2, RDS en la subred privada, el bucket S3 y Parameter Store, con las conexiones entre ellos. Es el único diagrama que cambia respecto de la arquitectura de la Figura 2.1.
 
@@ -1034,7 +1045,9 @@ La estimación deberá validarse en AWS Pricing Calculator, utilizando las tarif
 
 La cuenta usada es del plan gratuito de AWS, con US$ 120 de créditos y una alerta de presupuesto de US$ 10 mensuales. Para no consumir créditos en inactividad, las instancias se detienen al terminar cada sesión de trabajo; detenidas solo cobran sus discos.
 
-> **[PENDIENTE AWS]** Agregar el tamaño de los discos de las instancias, las horas de cluster usadas y el costo real del despliegue tomado de la facturación de AWS, y compararlo con la estimación anterior.
+Cada instancia tiene un disco gp3 cifrado de 20 GiB (80 GiB en total), que se cobra también mientras la instancia está detenida.
+
+> **[PENDIENTE AWS]** Agregar las horas de cluster usadas y el costo real del despliegue tomado de la facturación de AWS, y compararlo con la estimación anterior.
 
 El costo calculado representa únicamente una aproximación para el prototipo académico y no el costo de implementar una plataforma empresarial completa en Danper. Una evaluación productiva debería incorporar los requerimientos de disponibilidad, seguridad, actualización de información, mantenimiento y crecimiento futuro.
 
@@ -1474,7 +1487,13 @@ Para incorporar datos nuevos sin reprocesar todo, se implementó una **tabla de 
 
 El orquestador `run_pipeline.py` ejecuta el recorrido completo para los archivos nuevos: Bronze → Silver → Gold → PostgreSQL. Con la opción `--vigilar` revisa la carpeta de datasets cada 60 segundos, de modo que basta copiar un archivo nuevo para que llegue al tablero. En la demostración del 18/11/2026, un reporte GMML nuevo recorrió todas las capas hasta PostgreSQL en 2 minutos y 22 segundos.
 
-> **[CAPTURA PENDIENTE] Figura 3.2-B.** Terminal con `python scripts/run_pipeline.py --vigilar` detectando un PDF GMML nuevo y mostrando el paso por Bronze, Silver, Gold y PostgreSQL con sus tiempos. Al lado, la tabla de control: `hdfs dfs -cat /danper/control/archivos.csv | tail -3`.
+<!-- ACTUALIZADO (26/11/2026): carga incremental en el cluster de AWS -->
+
+En el cluster de AWS los datasets llegan al bucket S3 y el script `infra/aws/sincronizar_datasets.sh` los copia al master. El 26/11/2026 se subió a S3 el reporte GMML del 22/09/2026: la sincronización detectó 1 archivo nuevo entre 182 y `run_pipeline.py` lo llevó por Bronze (18,7 s), Silver (38,4 s, solo la fuente afectada), Gold (86,9 s) y PostgreSQL (55,9 s), en 215,9 s en total. El tiempo es mayor que en local (142 s) porque cada etapa se lanza como una aplicación de YARN y la base de datos está en otra máquina (Amazon RDS).
+
+> **[FOTO GUARDADA] Figura 3.2-B.** Archivo `figura_3_2_b_incremental_aws.png`. Pie: *Figura 3.2-B. Carga incremental en el cluster: un reporte GMML nuevo (22/09/2026) subido a S3 se sincroniza al master y recorre Bronze, Silver (solo la fuente afectada), Gold y PostgreSQL en 215,9 s.*
+
+> **[FOTO GUARDADA] (opcional, junto a la Figura 3.2-B)** Archivo `figura_3_2_b2_verificacion.png`. Pie: *Verificación en Amazon RDS: el último reporte publicado es el del 22/09/2026 y la tabla tiene 70 registros (35 reportes × 2 productos).*
 
 ## Organización de las capas del data lake
 
@@ -1500,13 +1519,19 @@ Para el procesamiento Gold se utilizaron siete conjuntos Silver principales. A p
 
 ## Evidencia de implementación
 
-La estructura de almacenamiento del data lake se comprobó con consultas desde la terminal, usando `hdfs dfs -ls` y `hdfs dfs -count` sobre las rutas de Bronze, Silver y Gold. A diferencia de la entrega anterior, las tres capas se verificaron en un mismo entorno y después de una corrida completa del pipeline desde los datasets originales (17/11/2026).
+La estructura de almacenamiento del data lake se comprobó con consultas desde la terminal, usando `hdfs dfs -ls` y `hdfs dfs -count` sobre las rutas de Bronze, Silver y Gold. A diferencia de la entrega anterior, las tres capas se verificaron en un mismo entorno y después de una corrida completa del pipeline desde los datasets originales: primero en local (17/11/2026) y luego en el cluster de AWS (26/11/2026), de donde provienen las Figuras 3.2 a 3.4.
 
-> **[CAPTURA PENDIENTE] Figuras 3.2, 3.3 y 3.4.** Reemplazar las tres capturas anteriores (eran de usuarios distintos) por capturas del mismo entorno:
-> - Figura 3.2: `hdfs dfs -count /danper/bronze` (181 archivos) y la última línea de `hdfs fsck /danper/bronze` (HEALTHY).
-> - Figura 3.3: `hdfs dfs -ls /danper/silver`.
-> - Figura 3.4: `hdfs dfs -ls /danper/gold` (29 carpetas).
-> Revisar que no aparezcan nombres de usuario ni del equipo en la captura.
+<!-- ACTUALIZADO (26/11/2026): corrida completa en el cluster de AWS -->
+
+La corrida completa en el cluster tardó 1 844 s (30 min 44 s): Bronze 18 min 38 s, Silver 6 min, Gold 2 min 7 s, modelo 2 min 46 s y publicación en RDS 39,9 s (29 tablas). Las métricas del modelo resultaron idénticas a las del entorno local (Tabla 4.3), lo que confirma que el despliegue no altera los resultados.
+
+> **[FOTO GUARDADA] Figura 3.2-C.** Archivo `figura_3_2_c_corrida_aws.png` (recortar la línea incompleta de arriba). Pie: *Figura 3.2-C. Corrida completa del pipeline en el cluster de AWS. Ejecución en el master del cluster (Amazon EC2, us-east-2): Bronze con 181 archivos, Silver, Gold, registro de la tabla de control, modelo con Spark MLlib y publicación auditada de 29 tablas en Amazon RDS, en 1 844 s (30 min 44 s). Las métricas del modelo son idénticas a las obtenidas en el entorno local (Tabla 4.3).*
+
+> **[FOTO GUARDADA] Figura 3.2.** Archivo `figura_3_2_bronze.png`. Reemplaza a la captura anterior. Pie: *Figura 3.2. Capa Bronze en el HDFS del cluster: 181 archivos (577 MB) en 41 carpetas; `hdfs fsck` indica que el sistema de archivos está en estado HEALTHY.*
+
+> **[FOTO GUARDADA] Figura 3.3.** Archivo `figura_3_3_silver.png`. Reemplaza a la captura anterior. Pie: *Figura 3.3. Capa Silver en HDFS: 8 carpetas que contienen las 11 tablas Silver (ENA 2025 agrupa 3 tablas y exportaciones agrupa 2).*
+
+> **[FOTO GUARDADA] Figura 3.4.** Archivo `figura_3_4_gold.png`. Reemplaza a la captura anterior. Pie: *Figura 3.4. Capa Gold en HDFS: 29 tablas, 26 del modelo dimensional y de los indicadores, más 3 del modelo predictivo (`ml_*`).*
 
 En conjunto, la organización del data lake permite separar las fuentes originales de la información procesada y de los productos analíticos. Esta estructura facilita la trazabilidad de los datos, el mantenimiento de los procesos y la ejecución de nuevas transformaciones sin modificar directamente los archivos de origen.
 
@@ -1688,7 +1713,7 @@ El script `publicar_postgres.py` copia las tablas de Gold a PostgreSQL para el t
 
 Así, el tablero ve siempre una versión completa: la anterior o la nueva, nunca una tabla vacía o a medio cargar. En una prueba se hicieron 444 lecturas desde el tablero durante una publicación y ninguna encontró una tabla vacía.
 
-> **[CAPTURA PENDIENTE] Figura 3.9-B.** Salida de `python scripts/publicar_postgres.py`: las líneas "Auditoría: 29 tablas con las mismas filas que Gold", "Publicado en una transacción" y "PUBLICACION COMPLETA". Al lado, `SELECT * FROM gold.control_publicacion ORDER BY publicado_en DESC LIMIT 5;`.
+> **[FOTO GUARDADA] Figura 3.9-B.** Se usa la misma imagen de la Figura 3.2-C (`figura_3_2_c_corrida_aws.png`), que contiene las líneas de la auditoría de 29 tablas y "PUBLICACION COMPLETA". Pie: *Figura 3.9-B. Publicación auditada de las 29 tablas de Gold en Amazon RDS en una sola transacción (39,9 s).* Si no se quiere repetir la imagen, citar en el texto la Figura 3.2-C.
 
 Verificación del almacenamiento
 
@@ -1795,15 +1820,49 @@ La prueba de escalabilidad tiene como finalidad medir cómo cambia el tiempo del
 
 - **Volumen:** con 1 000 veces más datos, el tiempo crece unas 7 veces. Hasta ×10 domina el costo fijo de Spark (planificar, lanzar tareas y escribir archivos). Desde ×100 el trabajo real crece con el volumen, como muestran el tiempo de executors y el shuffle, que crecen casi 10 veces por cada salto.
 - **Paralelismo:** pasar de 1 a 4 núcleos acelera 2,6 veces. De 4 a 8 hilos no hay mejora, porque el equipo tiene 4 núcleos físicos (los otros 4 son hyperthreading) y un solo disco. El tiempo de executors se duplica porque los hilos compiten por los mismos núcleos.
-- **Límite de una sola máquina:** con ×1000, agregar hilos ya no acelera el trabajo. Para seguir escalando hacen falta más máquinas, cada una con núcleos, disco y DataNode propios. Esa es la medición que se hará en el cluster.
+- **Límite de una sola máquina:** con ×1000, agregar hilos ya no acelera el trabajo. Para seguir escalando hacen falta más máquinas, cada una con núcleos, disco y DataNode propios. Esa medición se hizo en el cluster de AWS.
 
 **Medición en el cluster**
 
-> **[PENDIENTE AWS] Tabla 3.8.** El mismo script se ejecutará en el cluster de Amazon EC2 con `--executores 1 2 3 --entorno aws`, es decir, con 1, 2 y 3 workers. Agregar aquí la tabla de tiempos con ×1000 y la captura de la interfaz de YARN y del Spark History Server con los tres escenarios.
+<!-- ACTUALIZADO (26/11/2026): medición en el cluster de AWS -->
+
+El mismo script se ejecutó el 26/11/2026 en el cluster de Amazon EC2 con `--executores 1 2 3 --entorno aws`. Cada executor ocupa un worker completo (2 núcleos y 4 GB), de modo que 1, 2 y 3 executors equivalen a 1, 2 y 3 workers. El método es el mismo de la medición local: escenarios independientes, 1 calentamiento y 3 mediciones, con la mediana.
+
+**Tabla 3.8 Paralelismo creciente en el cluster de AWS (×1000)**
+
+| Workers (executors) | Núcleos | Tiempo (mediana) | Aceleración | Eficiencia |
+|---:|---:|---:|---:|---:|
+| 1 | 2 | 56,0 s | 1,0× | 100 % |
+| 2 | 4 | 33,9 s | 1,65× | 83 % |
+| 3 | 6 | 24,0 s | 2,34× | 78 % |
+
+La eficiencia es la aceleración dividida entre el número de workers.
+
+**Tabla 3.8-B Volumen creciente: entorno local frente al cluster (3 workers)**
+
+| Factor | Filas de salida | Local, 8 hilos (Tabla 3.6) | Cluster, 3 workers |
+|---|---:|---:|---:|
+| ×1 | 11 208 | 4,8 s | 5,5 s |
+| ×10 | 112 080 | 7,2 s | 7,1 s |
+| ×100 | 1 120 800 | 10,3 s | 13,1 s |
+| ×1000 | 11 208 000 | 32,4 s | 24,0 s |
+
+En las cuatro escalas, las filas de salida coincidieron exactamente con las esperadas (F veces las de ×1).
+
+> **[FOTO GUARDADA] Figura 3.13-B.** Archivo `figura_3_13_b_escalabilidad_aws.png`: tabla final del log, desde "factor núcleos" hasta "Tiempo total". Pie: *Figura 3.13-B. Prueba de escalabilidad de volumen (×1, ×10, ×100) sobre el cluster Hadoop/Spark de 3 workers desplegado en Amazon EC2; las filas de salida coinciden con el valor esperado en las tres escalas.*
+
+> **[PENDIENTE AWS]** Captura de la interfaz de YARN y del Spark History Server con los escenarios de la prueba (requiere el túnel de Session Manager de la etapa 7).
+
+**Interpretación de la medición en el cluster**
+
+- **Escalabilidad horizontal:** con ×1000, agregar workers reduce el tiempo de 56,0 a 24,0 s. La aceleración es casi lineal (2,34 veces con 3 workers, eficiencia del 78 %). La pérdida respecto de 3,0× corresponde a la coordinación de YARN y al shuffle por la red entre máquinas.
+- **Cluster frente a una sola máquina:** con 3 workers (6 núcleos), el cluster tarda 24,0 s frente a 31,0 s de la mejor configuración local (4 hilos). Además, a diferencia del equipo local, que dejó de mejorar después de 4 hilos, el cluster sigue mejorando al agregar workers.
+- **Volúmenes pequeños:** con ×1 a ×100, el cluster no es más rápido que el equipo local, porque el costo fijo de lanzar la aplicación en YARN y de mover datos por la red pesa más que el cálculo. El beneficio aparece cuando el volumen crece, que es el caso previsto en la sección 1.7.
+- **Incidente durante la prueba:** en una repetición de ×100, la aplicación esperó unos 700 s sin recursos porque los workers quedaron fuera de servicio con el disco lleno (Tabla 0.4). La mediana de 13,1 s no se ve afectada; por la misma causa, Spark contó 4 executors en ese escenario, uno de ellos de reemplazo, aunque nunca trabajaron más de 3 a la vez.
 
 **Limitaciones**
 
-- La medición local valida el método, pero no la escalabilidad horizontal; esa se medirá variando el número de workers.
+- La medición local valida el método; la escalabilidad horizontal se midió en el cluster con hasta 3 workers, por lo que no se sabe cómo se comporta con más nodos.
 - Se mide la etapa Silver → Gold con un trabajo representativo, no las 26 tablas de `procesamiento_gold.py` ni el recorrido desde Bronze, porque las réplicas romperían las validaciones de unicidad de Gold.
 - Las réplicas reproducen la estructura de los datos reales, no su diversidad.
 
@@ -1859,19 +1918,21 @@ Los controles de red, de acceso y de credenciales del despliegue ya están cread
 >
 > Título general: **Figura 3.14. Controles de seguridad del despliegue en AWS.** Ninguna regla de entrada permite acceso desde internet (0.0.0.0/0).
 
-**Controles que se verificarán al desplegar el cluster**
+<!-- ACTUALIZADO (26/11/2026): controles verificados en el cluster -->
 
-- **Mínimo privilegio en la base:** el script `infra/aws/preparar_rds.sh` creará en RDS el usuario `etl_escritor`, que solo publica en `gold` y `gold_staging`, y `grafana_lector`, que solo lee `gold` en modo de solo lectura. Ningún otro usuario podrá conectarse a la base.
-- **Cifrado en tránsito:** el pipeline y Grafana se conectarán a RDS con SSL obligatorio (`sslmode=require`).
-- **Acceso de administración:** se entrará a las máquinas y al tablero por AWS Systems Manager Session Manager, sin claves SSH ni puertos abiertos.
+**Controles verificados en el cluster**
 
-> **[PENDIENTE AWS] Figura 3.14 g).** Salida de `\dp gold.*` en `psql` conectado a RDS, con los permisos de `etl_escritor` y `grafana_lector`.
+- **Mínimo privilegio en la base:** el script `infra/aws/preparar_rds.sh` creó en RDS el usuario `etl_escritor`, que solo publica en `gold` y `gold_staging`, y `grafana_lector`, que solo lee `gold` en modo de solo lectura (Figura 3.14 g).
+- **Cifrado en tránsito:** el pipeline se conecta a RDS con SSL obligatorio (`sslmode=require`); el script confirmó la conexión cifrada para los dos usuarios. [PENDIENTE AWS] Conexión de Grafana.
+- **Acceso de administración:** se entró a las 4 máquinas solo por AWS Systems Manager Session Manager, sin claves SSH ni puertos abiertos. [PENDIENTE AWS] Acceso al tablero por un túnel de Session Manager.
+
+> **[FOTO GUARDADA] Figura 3.14 g)** Archivo `figura_3_14_g_permisos_gold.png`. Pie: *g) Permisos en RDS de las tablas de indicadores: `etl_escritor` las publica y `grafana_lector` solo tiene permiso de lectura (`r`).*
 
 ![Imagen de la página 55](Danper_G07_imagenes/pagina_55_imagen_19.png)
 
 Figura 3.15 Verificación de permisos y directorios de almacenamiento en Hadoop HDFS.
 
-> **[CAPTURA PENDIENTE]** Si se reemplaza la Figura 3.15 por una captura del entorno actual (`hdfs dfs -ls /danper`), revisar que no aparezcan nombres de usuario.
+> **[FOTO GUARDADA] Figura 3.15.** Archivo `figura_3_15_hdfs_permisos.png`. Reemplaza a la captura anterior. Pie: *Figura 3.15. Permisos de las capas en HDFS: todas pertenecen al usuario de servicio `danper` con permisos 755 (solo el propietario escribe). `yarn-logs` usa 1777 para que YARN guarde los registros de cada aplicación.*
 
 # 4. Análisis, modelado y capa de consumo
 
