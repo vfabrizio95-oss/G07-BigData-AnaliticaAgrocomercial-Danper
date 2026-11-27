@@ -264,6 +264,8 @@ La fila incluye además el plan 2025 por mes, el pronóstico frente al valor rea
 
 **Demostración con el modelo:** `python scripts/generar_demo_agroindustria.py --salida /tmp/demo --factor 1.3` crea Excel **simulados** de ingreso a planta (enero y febrero del año siguiente al último dato, marcados "DEMO"). Al copiarlos a `datasets/agroindustria/` (en AWS: subirlos a `s3://<bucket>/datasets/agroindustria/`), el pipeline los lleva hasta Gold, aplica el modelo guardado y cambian "Último dato de ingreso a planta", el panel "Pronóstico vigente" y el real frente al plan. El script explica cómo retirarlos después. En AWS, la ingesta automática se activa una vez con `sudo bash infra/aws/activar_ingesta.sh`.
 
+**Portal público (AWS):** `sudo bash infra/aws/instalar_portal.sh` publica en una URL fija de CloudFront el tablero (`/`, solo lectura), la página de carga (`/carga`, con contraseña y el botón "Inyectar dato de prueba", que genera cada vez los dos meses siguientes) y el avance del pipeline (`/estado` y `/api/estado`). La prueba para el evaluador está en `docs/guia_evaluador.md`; los datos de prueba se retiran con `sudo bash infra/aws/retirar_demo.sh`.
+
 ## 8. Verificación del almacenamiento HDFS
 
 Antes de procesar los datos es necesario comprobar que HDFS esté disponible y que existan los conjuntos Silver.
