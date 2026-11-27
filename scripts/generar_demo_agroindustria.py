@@ -12,9 +12,15 @@ válidos, multiplicado por --factor. Cada archivo lo indica en su nombre
 ("DEMO") y en su primera fila. No son datos reales y deben retirarse después
 de la demostración.
 
+Cada archivo lleva en el nombre el año y los meses que simula, por ejemplo
+"... ALCACHOFA 2025 DEMO 01-02.xlsx". Con --continuar se generan los dos meses
+siguientes a la última DEMO que ya exista (01-02, luego 03-04, ...): así la
+demostración se puede repetir y cada vez llega un dato nuevo al tablero.
+
 Uso:
     python scripts/generar_demo_agroindustria.py --salida /tmp/demo
     python scripts/generar_demo_agroindustria.py --meses 1 2 --factor 1.3 --salida /tmp/demo
+    python scripts/generar_demo_agroindustria.py --continuar --salida /tmp/demo
 
 Luego se sube a s3://<bucket>/datasets/agroindustria/ (en AWS) o se copia a
 DANPER_DATASETS/agroindustria/ (en local), y el pipeline lo procesa solo.
@@ -33,9 +39,11 @@ Cómo retirarlo después de la demostración (en el master, como danper):
 """
 from pathlib import Path
 import argparse
+import re
 
 import pandas as pd
 
+import config
 from extractor_agroindustria import MESES, extraer_agroindustria
 
 # cultivo -> (cuadro, presentación del ingreso a planta, años faltantes en la fuente)
@@ -43,6 +51,30 @@ SERIES = {
     "ALCACHOFA": (7, "PARA PROCESAR", {2017, 2018}),
     "ESPARRAGO": (64, "NATURAL", {2016, 2024}),
 }
+
+
+PATRON_DEMO = re.compile(r"(\d{4}) DEMO(?: (\d{2})-(\d{2}))?\.xlsx$", re.IGNORECASE)
+
+
+def proximo_bloque(nombres, anio_inicial):
+    """Año y par de meses que siguen a la última DEMO entre `nombres`.
+
+    Sin DEMO previas: enero y febrero de anio_inicial. Los pares no cruzan de
+    año (01-02, 03-04, ..., 11-12, y luego 01-02 del año siguiente).
+    """
+    ultimo = None
+    for nombre in nombres:
+        m = PATRON_DEMO.search(nombre)
+        if m:
+            anio, mes = int(m.group(1)), int(m.group(3) or 2)
+            ultimo = max(ultimo or (0, 0), (anio, mes))
+    if ultimo is None:
+        return anio_inicial, [1, 2]
+    anio, mes = ultimo
+    if mes >= 12:
+        return anio + 1, [1, 2]
+    inicio = mes + 1 if mes % 2 == 0 else mes + 2
+    return anio, [inicio, inicio + 1]
 
 
 def promedio_3a(datos, cultivo, cuadro, faltantes, anio, mes):
@@ -60,17 +92,38 @@ def main():
     ap.add_argument("--factor", type=float, default=1.0,
                     help="multiplica el promedio de 3 años (por ejemplo 1.3 = 30 %% más)")
     ap.add_argument("--cultivos", nargs="+", default=list(SERIES), choices=list(SERIES))
+    ap.add_argument("--continuar", action="store_true",
+                    help="generar los 2 meses siguientes a la última DEMO de DANPER_DATASETS/agroindustria")
     args = ap.parse_args()
+    for archivo in generar(args.salida, anio=args.anio, meses=args.meses, factor=args.factor,
+                           cultivos=args.cultivos, continuar=args.continuar):
+        print(archivo)
 
-    datos, _, _ = extraer_agroindustria()  # Excel originales de DANPER_DATASETS
+
+def generar(salida, anio=None, meses=(1, 2), factor=1.0, cultivos=tuple(SERIES),
+            continuar=False, nombres_previos=None):
+    """Escribe los Excel DEMO en `salida` y devuelve sus rutas con un detalle.
+
+    nombres_previos: nombres de archivos DEMO ya cargados (por ejemplo, los del
+    bucket S3); si no se indica, se usan los de DANPER_DATASETS/agroindustria.
+    """
+    datos, _, _ = extraer_agroindustria()  # Excel de DANPER_DATASETS
     datos = datos[~datos["archivo_origen"].str.upper().str.contains("DEMO")]
-    anio = args.anio or int(datos["anio"].max()) + 1
-    args.salida.mkdir(parents=True, exist_ok=True)
+    anio_real = int(datos["anio"].max()) + 1
+    if continuar:
+        if nombres_previos is None:
+            carpeta = config.DATASETS / "agroindustria"
+            nombres_previos = [p.name for p in carpeta.glob("*DEMO*")] if carpeta.is_dir() else []
+        anio, meses = proximo_bloque(nombres_previos, anio_real)
+    anio = anio or anio_real
+    salida = Path(salida)
+    salida.mkdir(parents=True, exist_ok=True)
+    resultado = []
 
-    for cultivo in args.cultivos:
+    for cultivo in cultivos:
         cuadro, presentacion, faltantes = SERIES[cultivo]
-        valores = {m: round(promedio_3a(datos, cultivo, cuadro, faltantes, anio, m) * args.factor, 3)
-                   for m in args.meses}
+        valores = {m: round(promedio_3a(datos, cultivo, cuadro, faltantes, anio, m) * factor, 3)
+                   for m in meses}
         fila = [anio, round(sum(valores.values()), 3)]
         fila += [valores.get(m) for m in range(1, 13)]
         hoja = pd.DataFrame([
@@ -82,10 +135,12 @@ def main():
             fila,
             ["FUENTE: SIMULADO A PARTIR DEL PROMEDIO DE LOS 3 ULTIMOS AÑOS VALIDOS"] + [None] * 13,
         ])
-        archivo = args.salida / f"LA LIBERTAD AGROINDUSTRIA DE {cultivo} {anio} DEMO.xlsx"
+        sufijo = f"{min(meses):02d}-{max(meses):02d}"
+        archivo = salida / f"LA LIBERTAD AGROINDUSTRIA DE {cultivo} {anio} DEMO {sufijo}.xlsx"
         hoja.to_excel(archivo, sheet_name=cultivo, header=False, index=False)
         detalle = ", ".join(f"{MESES[m - 1]} {v:,.0f} t" for m, v in valores.items())
-        print(f"{archivo}: {detalle}")
+        resultado.append(f"{archivo}: {detalle}")
+    return resultado
 
 
 if __name__ == "__main__":
