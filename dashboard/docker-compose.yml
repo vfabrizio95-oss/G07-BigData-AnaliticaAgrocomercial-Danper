@@ -14,6 +14,9 @@
 #   DANPER_GRAFANA_ADDR         IP donde escucha Grafana (127.0.0.1; también en
 #                               AWS: se entra por un túnel de Session Manager)
 #   DANPER_GRAFANA_ADMIN_PASSWORD  contraseña inicial del usuario admin (admin)
+#   DANPER_GRAFANA_ANONIMO      true: tablero visible sin iniciar sesión, solo
+#                               lectura (portal público en AWS)   (false)
+#   DANPER_GRAFANA_ROOT_URL     URL pública, por ejemplo https://dxxxx.cloudfront.net/
 #
 # En el cluster AWS se levanta con infra/aws/iniciar_grafana.sh, que toma
 # estas variables de Parameter Store.
@@ -31,6 +34,14 @@ services:
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
       GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 5s
+      # El tablero Danper es la página de inicio
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/danper.json
+      # Portal público (AWS): visitantes anónimos con rol de solo lectura (Viewer)
+      # y sin formulario de inicio de sesión. En local quedan desactivados.
+      GF_AUTH_ANONYMOUS_ENABLED: ${DANPER_GRAFANA_ANONIMO:-false}
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: ${DANPER_GRAFANA_ANONIMO:-false}
+      GF_SERVER_ROOT_URL: ${DANPER_GRAFANA_ROOT_URL:-http://localhost:3000/}
       DANPER_GRAFANA_PG_HOST: ${DANPER_GRAFANA_PG_HOST:-localhost:5432}
       DANPER_GRAFANA_PG_DB: ${DANPER_GRAFANA_PG_DB:-danper}
       DANPER_GRAFANA_PG_USER: ${DANPER_GRAFANA_PG_USER:-grafana_lector}

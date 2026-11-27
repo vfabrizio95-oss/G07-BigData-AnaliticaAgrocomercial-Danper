@@ -7,6 +7,7 @@
 #   sudo bash infra/aws/iniciar_grafana.sh --parar  # detener
 #
 # Grafana escucha solo en 127.0.0.1:3000 del master: no se abre ningún puerto.
+# Con el portal público (instalar_portal.sh), nginx lo publica por CloudFront.
 # Para verlo desde tu PC, abre un túnel de Session Manager (AWS CLI y el
 # plugin de Session Manager instalados en tu PC):
 #   aws ssm start-session --target <id-instancia-master> \
@@ -66,6 +67,15 @@ if [[ $DANPER_GRAFANA_PG_PASSWORD == *'$'* ]]; then
 fi
 export DANPER_GRAFANA_PG_SSLMODE=require
 export DANPER_GRAFANA_ADDR=127.0.0.1
+# Portal público (lo crea infra/aws/instalar_portal.sh): tablero anónimo de
+# solo lectura detrás de nginx y CloudFront, con su URL pública.
+if [[ -f /etc/danper/portal.conf ]]; then
+    # shellcheck disable=SC1091
+    . /etc/danper/portal.conf
+    export DANPER_GRAFANA_ANONIMO=true
+    export DANPER_GRAFANA_ROOT_URL=${DOMINIO_PUBLICO:+https://$DOMINIO_PUBLICO/}
+    echo "Modo público: tablero anónimo de solo lectura (${DOMINIO_PUBLICO:-dominio aún no definido})"
+fi
 
 docker compose -f "$COMPOSE" up -d --force-recreate
 
