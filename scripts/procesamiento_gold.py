@@ -310,6 +310,14 @@ def main():
                   ['region','anio','tipo_costo','unidad'],['cultivo','mercado','anio','unidad_medida','equivalencia_kg']]
             ks=[publish(n,lambda df=df:df,keys=k,mandatory=k) for n,df,k in zip(kpi_names,generated,keys)]
         if args.rebuild:
+            # Las tablas del modelo (ml_*) no se calculan aquí: se pasan al Gold
+            # nuevo para no perderlas; modelo_abastecimiento.py --aplicar las
+            # actualiza después (run_pipeline.py lo ejecuta tras esta etapa).
+            if hdfs_fs.exists(Path(gold_final)):
+                for estado in hdfs_fs.listStatus(Path(gold_final)):
+                    nombre = estado.getPath().getName()
+                    if nombre.startswith('ml_') and not hdfs_fs.exists(Path(f'{gold}/{nombre}')):
+                        hdfs_fs.rename(estado.getPath(), Path(f'{gold}/{nombre}'))
             anterior = Path(gold_final + '__anterior')
             if hdfs_fs.exists(anterior):
                 hdfs_fs.delete(anterior, True)

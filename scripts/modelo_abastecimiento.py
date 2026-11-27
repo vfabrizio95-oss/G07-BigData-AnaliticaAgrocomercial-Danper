@@ -40,22 +40,37 @@ Datos faltantes
     es una copia celda a celda de 2023 en el Excel original. Esos meses se
     tratan como faltantes: no se usan como objetivo ni como variable.
 
+Entrenar una vez, aplicar muchas
+    El modo por defecto evalúa los métodos (validación hacia adelante) y
+    luego entrena el Pipeline de MLlib MODELO_GUARDADO con toda la historia
+    válida y lo guarda en HDFS (/danper/modelos). Es el paso caro y se hace
+    pocas veces.
+    Con --aplicar no se entrena nada: se carga el PipelineModel guardado y se
+    aplica .transform() a los datos que haya en Gold. run_pipeline.py lo usa
+    cada vez que llegan datos nuevos, de modo que el resultado del modelo
+    llega a PostgreSQL y al tablero sin reentrenar.
+
 Salidas
     Gold  ml_prediccion_ingreso   pronóstico de cada método por mes de prueba
     Gold  ml_metricas_modelo      métricas por cultivo, método y año
-    Gold  ml_plan_ingreso         plan del año siguiente a los datos con el
-                                  método recomendado (prom_3a) y su banda
+    Gold  ml_plan_ingreso         plan del año en curso (el siguiente al último
+                                  año completo) con prom_3a, su banda y el
+                                  ingreso real de los meses que ya llegaron
+    Gold  ml_pronostico_vigente   los HORIZONTE meses siguientes al último dato:
+                                  prom_3a y el PipelineModel guardado
+    HDFS  /danper/modelos/...     PipelineModel entrenado y su ficha
     reportes/modelo/metricas.csv  copia de las métricas para el informe
 
 Uso:
     python scripts/modelo_abastecimiento.py [--horizonte 3] [--desde 2019]
+    python scripts/modelo_abastecimiento.py --aplicar
 """
 from pathlib import Path
 import argparse
 import csv
 import time
 
-from pyspark.ml import Pipeline
+from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.feature import Imputer, VectorAssembler
 from pyspark.ml.regression import GBTRegressor, LinearRegression, RandomForestRegressor
 from pyspark.sql import SparkSession, functions as F
@@ -68,6 +83,14 @@ FALTANTES = {"ESPARRAGO": [2016, 2024], "ALCACHOFA": [2017, 2018]}
 METODOS = ["naive_anual", "prom_3a", "gbt", "rf", "lineal"]
 SEMILLA = 42
 CSV_LOCAL = Path(__file__).resolve().parent.parent / "reportes" / "modelo" / "metricas.csv"
+# Modelo de MLlib que se guarda y se aplica a los datos nuevos: el de menor
+# WAPE entre los de MLlib (Tabla 4.3). El método recomendado sigue siendo
+# prom_3a; el modelo guardado se muestra a su lado como comparación.
+MODELO_GUARDADO = "lineal"
+
+
+def ruta_modelo(horizonte):
+    return config.hdfs(f"{config.HDFS_BASE}/modelos/ingreso_{MODELO_GUARDADO}_h{horizonte}")
 
 
 def crear_spark():
@@ -100,10 +123,25 @@ def serie_ingreso(spark):
     )
 
 
-def construir_variables(spark, horizonte):
-    """Variables conocidas `horizonte` meses antes del mes a pronosticar."""
+def construir_variables(spark, horizonte, meses_futuros=0):
+    """Variables conocidas `horizonte` meses antes del mes a pronosticar.
+
+    Con meses_futuros > 0 agrega, por cultivo, esa cantidad de meses después
+    del último registrado (real_t nulo, es_futuro verdadero): son los meses
+    que se pronostican con el modelo guardado.
+    """
     gold = config.hdfs(config.GOLD)
-    df = serie_ingreso(spark)
+    df = serie_ingreso(spark).withColumn("es_futuro", F.lit(False))
+    if meses_futuros:
+        futuros = (
+            df.groupBy("cultivo").agg(F.max("periodo").alias("ultimo"))
+            .withColumn("k", F.explode(F.sequence(F.lit(1), F.lit(meses_futuros))))
+            .withColumn("periodo", F.expr("add_months(ultimo, k)"))
+            .select("cultivo", "periodo", F.year("periodo").alias("anio"),
+                    F.month("periodo").alias("mes"), F.lit(None).cast("double").alias("real_t"),
+                    F.lit(True).alias("es_futuro"))
+        )
+        df = df.unionByName(futuros)
     w = Window.partitionBy("cultivo").orderBy("periodo")
 
     def rezago(n):
@@ -264,24 +302,32 @@ def metricas(pred):
 
 
 def plan_siguiente(spark, met):
-    """Plan del año siguiente al último dato, con el método recomendado.
+    """Plan del año en curso con el método recomendado (prom_3a).
 
-    Para cada cultivo y mes: promedio de los 3 últimos años válidos de ese mes
-    (prom_3a). La banda es ± el WAPE histórico de prom_3a en ese cultivo.
+    El año del plan es el del mes siguiente al último registrado: con datos
+    hasta diciembre de 2024 es 2025, y sigue siendo 2025 cuando llegan los
+    primeros meses de 2025. Para cada cultivo y mes: promedio de los 3 últimos
+    años válidos ANTERIORES al año del plan, de modo que el plan no cambia
+    cuando llega el dato real; ese dato se agrega en real_t para comparar.
+    La banda es ± el WAPE histórico de prom_3a en ese cultivo.
     """
     serie = serie_ingreso(spark)
-    anio_plan = serie.agg(F.max("anio")).first()[0] + 1
+    ultimo = serie.agg(F.max("periodo")).first()[0]
+    anio_plan = ultimo.year + (1 if ultimo.month == 12 else 0)
     w = Window.partitionBy("cultivo", "mes").orderBy(F.desc("anio"))
     wape = (met.filter((F.col("metodo") == "prom_3a") & (F.col("anio_prueba") == "TODOS"))
             .select("cultivo", F.col("wape").alias("wape_historico"),
                     F.col("error_anual").alias("sesgo_historico")))
+    reales = (serie.filter((F.col("anio") == anio_plan) & F.col("real_t").isNotNull())
+              .select("cultivo", "mes", "real_t"))
     return (
-        serie.filter(F.col("real_t").isNotNull())
+        serie.filter(F.col("real_t").isNotNull() & (F.col("anio") < anio_plan))
         .withColumn("orden", F.row_number().over(w)).filter(F.col("orden") <= 3)
         .groupBy("cultivo", "mes")
         .agg(F.avg("real_t").alias("plan_t"),
              F.concat_ws(",", F.sort_array(F.collect_list("anio"))).alias("anios_base"))
         .join(wape, "cultivo", "left")
+        .join(reales, ["cultivo", "mes"], "left")
         .withColumn("anio", F.lit(anio_plan))
         .withColumn("periodo", F.make_date(F.lit(anio_plan), "mes", F.lit(1)))
         .withColumn("minimo_t", F.col("plan_t") * (1 - F.col("wape_historico")))
@@ -289,9 +335,93 @@ def plan_siguiente(spark, met):
         .withColumn("metodo", F.lit("prom_3a"))
         .withColumn("generado_en", F.current_timestamp())
         .select("cultivo", "periodo", "anio", "mes", "plan_t", "minimo_t", "maximo_t",
-                "metodo", "anios_base", "wape_historico", "sesgo_historico", "generado_en")
+                "real_t", "metodo", "anios_base", "wape_historico", "sesgo_historico",
+                "generado_en")
         .orderBy("cultivo", "mes")
     )
+
+
+def entrenar_y_guardar(spark, datos, horizonte):
+    """Entrena MODELO_GUARDADO con toda la historia válida y lo guarda (fit una vez)."""
+    entrenamiento = datos.filter(F.col("real_t").isNotNull()
+                                 & F.col("mismo_mes_anterior").isNotNull())
+    estimador = modelos()[MODELO_GUARDADO].setPredictionCol(f"d_{MODELO_GUARDADO}")
+    ajustado = pipeline(estimador).fit(entrenamiento)
+    ruta = ruta_modelo(horizonte)
+    ajustado.write().overwrite().save(ruta)
+    # Ficha del modelo, junto al PipelineModel (PipelineModel.load la ignora)
+    ficha = entrenamiento.agg(F.count("*").alias("meses_entrenamiento"),
+                              F.max("periodo").alias("entrenado_hasta"))
+    (ficha.withColumn("metodo", F.lit(MODELO_GUARDADO))
+     .withColumn("horizonte_meses", F.lit(horizonte))
+     .withColumn("entrenado_en", F.current_timestamp())
+     .coalesce(1).write.mode("overwrite").parquet(f"{ruta}/ficha"))
+    f = spark.read.parquet(f"{ruta}/ficha").first()
+    print(f"\nModelo guardado: {ruta}")
+    print(f"  {MODELO_GUARDADO}, {f['meses_entrenamiento']} meses, datos hasta {f['entrenado_hasta']}")
+
+
+def modelo_guardado_existe(spark, horizonte):
+    jvm = spark._jvm
+    ruta = jvm.org.apache.hadoop.fs.Path(f"{ruta_modelo(horizonte)}/ficha")
+    return ruta.getFileSystem(spark._jsc.hadoopConfiguration()).exists(ruta)
+
+
+def aplicar(spark, horizonte):
+    """Aplica el modelo guardado a los datos actuales de Gold, sin reentrenar.
+
+    Escribe ml_pronostico_vigente (los `horizonte` meses siguientes al último
+    registro de cada cultivo) y recalcula ml_plan_ingreso.
+    """
+    gold = config.hdfs(config.GOLD)
+    ruta = ruta_modelo(horizonte)
+    modelo = PipelineModel.load(ruta)  # transform(): no aprende nada nuevo
+    ficha = spark.read.parquet(f"{ruta}/ficha").first()
+    met = spark.read.parquet(f"{gold}/ml_metricas_modelo").cache()
+
+    datos = construir_variables(spark, horizonte, meses_futuros=horizonte)
+    ultimos = (datos.filter(~F.col("es_futuro")).groupBy("cultivo")
+               .agg(F.max("periodo").alias("ultimo_registro")))
+    wapes = (met.filter((F.col("anio_prueba") == "TODOS")
+                        & F.col("metodo").isin("prom_3a", MODELO_GUARDADO))
+             .groupBy("cultivo")
+             .agg(F.max(F.when(F.col("metodo") == "prom_3a", F.col("wape"))).alias("wape_prom_3a"),
+                  F.max(F.when(F.col("metodo") == MODELO_GUARDADO, F.col("wape")))
+                  .alias(f"wape_{MODELO_GUARDADO}")))
+    pred_ml = f"pred_{MODELO_GUARDADO}"
+    vigente = (
+        modelo.transform(datos.filter(F.col("es_futuro")))
+        .withColumn(pred_ml, F.greatest(
+            F.expm1(F.log1p("referencia") + F.col(f"d_{MODELO_GUARDADO}")), F.lit(0.0)))
+        .join(ultimos, "cultivo").join(wapes, "cultivo", "left")
+        .withColumn("meses_adelante", F.months_between("periodo", "ultimo_registro").cast("int"))
+        .withColumn("minimo_t", F.col("pred_prom_3a") * (1 - F.col("wape_prom_3a")))
+        .withColumn("maximo_t", F.col("pred_prom_3a") * (1 + F.col("wape_prom_3a")))
+        .withColumn("modelo", F.lit(MODELO_GUARDADO))
+        .withColumn("modelo_entrenado_hasta", F.lit(ficha["entrenado_hasta"]))
+        .withColumn("modelo_entrenado_en", F.lit(ficha["entrenado_en"]))
+        .withColumn("generado_en", F.current_timestamp())
+        .select("cultivo", "periodo", "anio", "mes", "meses_adelante", "ultimo_registro",
+                "pred_prom_3a", "minimo_t", "maximo_t", pred_ml, "wape_prom_3a",
+                f"wape_{MODELO_GUARDADO}", "modelo", "modelo_entrenado_hasta",
+                "modelo_entrenado_en", "generado_en")
+        .orderBy("cultivo", "periodo")
+    )
+    vigente.coalesce(1).write.mode("overwrite").parquet(f"{gold}/ml_pronostico_vigente")
+    plan_siguiente(spark, met).coalesce(1).write.mode("overwrite").parquet(f"{gold}/ml_plan_ingreso")
+
+    print(f"Modelo aplicado: {ruta} (entrenado con datos hasta {ficha['entrenado_hasta']})")
+    print(f"{'cultivo':<10} {'mes':<8} {'prom_3a t':>10} {MODELO_GUARDADO + ' t':>10}")
+    for f in spark.read.parquet(f"{gold}/ml_pronostico_vigente").orderBy("cultivo", "periodo").collect():
+        prom = f"{f['pred_prom_3a']:,.0f}" if f["pred_prom_3a"] is not None else "-"
+        ml = f"{f[pred_ml]:,.0f}" if f[pred_ml] is not None else "-"
+        print(f"{f['cultivo']:<10} {f['periodo']:%Y-%m}  {prom:>10} {ml:>10}")
+    for f in (spark.read.parquet(f"{gold}/ml_plan_ingreso")
+              .groupBy("cultivo", "anio", "anios_base")
+              .agg(F.sum("plan_t").alias("t"), F.sum("real_t").alias("real"))
+              .orderBy("cultivo").collect()):
+        real = f", real hasta ahora {f['real']:,.0f} t" if f["real"] else ""
+        print(f"Plan {f['cultivo']} {f['anio']}: {f['t']:,.0f} t (base {f['anios_base']}){real}")
 
 
 def guardar_csv(filas, columnas):
@@ -309,11 +439,20 @@ def main():
                     help="meses de anticipación del pronóstico (por defecto 3)")
     ap.add_argument("--desde", type=int, default=2019, help="primer año de prueba")
     ap.add_argument("--hasta", type=int, default=2024, help="último año de prueba")
+    ap.add_argument("--aplicar", action="store_true",
+                    help="no entrenar: aplicar el modelo guardado a los datos actuales de Gold")
     args = ap.parse_args()
 
     inicio = time.time()
     spark = crear_spark()
     gold = config.hdfs(config.GOLD)
+
+    if args.aplicar:
+        if modelo_guardado_existe(spark, args.horizonte):
+            aplicar(spark, args.horizonte)
+            print(f"Tiempo: {time.time() - inicio:.0f} s")
+            return
+        print("No hay un modelo guardado: se entrena una sola vez y luego se aplica.")
 
     print(f"Horizonte: {args.horizonte} meses. Años de prueba: {args.desde}-{args.hasta}")
     datos = construir_variables(spark, args.horizonte)
@@ -329,8 +468,6 @@ def main():
 
     pred.coalesce(1).write.mode("overwrite").parquet(f"{gold}/ml_prediccion_ingreso")
     met.coalesce(1).write.mode("overwrite").parquet(f"{gold}/ml_metricas_modelo")
-    plan = plan_siguiente(spark, met)
-    plan.coalesce(1).write.mode("overwrite").parquet(f"{gold}/ml_plan_ingreso")
 
     columnas_csv = ["cultivo", "metodo", "anio_prueba", "n_meses", "real_total_t",
                     "pred_total_t", "mae_t", "wape", "error_anual", "horizonte_meses"]
@@ -349,13 +486,12 @@ def main():
         orden = sorted(zip(VARIABLES, valores), key=lambda x: -x[1])
         print(f"  {nombre}: " + ", ".join(f"{v} {i:.2f}" for v, i in orden))
 
-    print("\nPlan del año siguiente (prom_3a):")
-    for f in (spark.read.parquet(f"{gold}/ml_plan_ingreso")
-              .groupBy("cultivo", "anio", "anios_base").agg(F.sum("plan_t").alias("t"))
-              .orderBy("cultivo").collect()):
-        print(f"  {f['cultivo']} {f['anio']}: {f['t']:,.0f} t (base {f['anios_base']})")
+    entrenar_y_guardar(spark, datos, args.horizonte)
+    print()
+    aplicar(spark, args.horizonte)
 
-    print(f"\nGold: {gold}/ml_prediccion_ingreso, {gold}/ml_metricas_modelo, {gold}/ml_plan_ingreso")
+    print(f"\nGold: {gold}/ml_prediccion_ingreso, ml_metricas_modelo, ml_plan_ingreso, "
+          "ml_pronostico_vigente")
     print(f"CSV:  {CSV_LOCAL}")
     print(f"Tiempo: {time.time() - inicio:.0f} s")
     spark.stop()
