@@ -262,6 +262,8 @@ La fila incluye además el plan 2025 por mes, el pronóstico frente al valor rea
 
 **Demostración del pipeline incremental:** con `python scripts/run_pipeline.py --vigilar` en ejecución, copiar un PDF GMML nuevo a `~/proyecto_danper/datasets/abastecimiento/gmml_<año>/`. En unos 3 minutos cambian "Última publicación en PostgreSQL", "Registros de abastecimiento GMML" y "Último reporte GMML".
 
+**Demostración con el modelo:** `python scripts/generar_demo_agroindustria.py --salida /tmp/demo --factor 1.3` crea Excel **simulados** de ingreso a planta (enero y febrero del año siguiente al último dato, marcados "DEMO"). Al copiarlos a `datasets/agroindustria/` (en AWS: subirlos a `s3://<bucket>/datasets/agroindustria/`), el pipeline los lleva hasta Gold, aplica el modelo guardado y cambian "Último dato de ingreso a planta", el panel "Pronóstico vigente" y el real frente al plan. El script explica cómo retirarlos después. En AWS, la ingesta automática se activa una vez con `sudo bash infra/aws/activar_ingesta.sh`.
+
 ## 8. Verificación del almacenamiento HDFS
 
 Antes de procesar los datos es necesario comprobar que HDFS esté disponible y que existan los conjuntos Silver.
@@ -489,14 +491,19 @@ Horizonte 3 meses, años de prueba 2019–2024 (`reportes/modelo/metricas.csv`, 
 ### Ejecución y salidas
 
 ```bash
-python scripts/modelo_abastecimiento.py              # horizonte 3, pruebas 2019-2024 (~2 min)
-python scripts/modelo_abastecimiento.py --horizonte 1
+python scripts/modelo_abastecimiento.py              # evaluar, entrenar y guardar (~3 min)
+python scripts/modelo_abastecimiento.py --aplicar    # solo aplicar el modelo guardado (~30 s)
 ```
+
+**Entrenar una vez, aplicar muchas.** El modo por defecto evalúa los métodos y luego entrena el `Pipeline` de MLlib `lineal` (el mejor de MLlib) con toda la historia y lo guarda con `PipelineModel.save()`. Con `--aplicar` no se entrena nada: se carga el modelo y se aplica `.transform()` a lo que haya en Gold. `run_pipeline.py` ejecuta `--aplicar` después de Gold cada vez que llegan datos nuevos, así que el resultado del modelo llega al tablero sin reentrenar.
 
 | Salida | Contenido |
 |---|---|
 | `/danper/gold/ml_prediccion_ingreso` | Valor real y pronóstico de cada método por mes de prueba |
 | `/danper/gold/ml_metricas_modelo` | MAE, WAPE y error anual por cultivo, método y año |
+| `/danper/gold/ml_plan_ingreso` | Plan del año en curso con `prom_3a`, su banda y el ingreso real de los meses que ya llegaron |
+| `/danper/gold/ml_pronostico_vigente` | Los 3 meses siguientes al último dato: `prom_3a` y el modelo guardado |
+| `/danper/modelos/ingreso_lineal_h3` | `PipelineModel` entrenado y su ficha (fecha y último mes de entrenamiento) |
 | `reportes/modelo/metricas.csv` | Copia de las métricas, versionada en el repositorio |
 
 El primer modelo (`notebooks/Modelo_Base_Danper.ipynb`, scikit-learn sobre producción 2025, R² 0,30) queda como antecedente: usaba un solo año de datos y tampoco superaba a una referencia simple.
