@@ -26,6 +26,10 @@ Actualización del 26/11/2026 (rama feature/aws):
 - Etapas 5 y 6 (26/11/2026): cluster de 4 instancias EC2, corrida completa, carga
   incremental y prueba de escalabilidad en AWS (secciones 0.2, 0.3, 0.4, 1.6, 1.7,
   2.2, 2.4, 3.2, 3.5, 3.7 y 3.8). Queda pendiente la etapa 7 (Grafana en AWS).
+- Etapa 7 (27/11/2026): Grafana en el master por túnel de Session Manager, modelo
+  guardado y aplicado en la carga incremental, ingesta automática desde S3 y ensayo
+  de la demostración (portada, secciones 0.2, 0.4, 1.7, 2.4, 3.2, 3.7, 3.8, 4.3 y 4.4).
+  Se agregaron CRISP-DM, RMSE e importancia de variables en la sección 4.3.
 -->
 
 <!-- Página 1 del PDF -->
@@ -40,9 +44,9 @@ PARA LA EMPRESA «Danper Trujillo S.A.C.»
 
 ASIGNATURA: Big Data y Analítica de Datos PERIODO ACADÉMICO: 2026-20 CICLO: VIII
 
-RUTA DE DESPLIEGUE: X | ☐ | On-premise | ☐ | Nube
+RUTA DE DESPLIEGUE: ☐ | On-premise | X | Nube
 
-<!-- PENDIENTE AWS: al terminar el despliegue en el cluster de Amazon EC2, marcar "Nube". -->
+<!-- ACTUALIZADO (27/11/2026): el proyecto se desarrolló en local y se desplegó en un cluster propio en Amazon EC2 (AWS). -->
 
 DOCENTE: Caballero Alvarado Javier Armando
 
@@ -249,7 +253,7 @@ Con la finalidad de evaluar el avance del proyecto, se realizó un seguimiento d
 | Optimización del procesamiento | 11 | Prueba de caché reproducible con `scripts/prueba_escalabilidad.py`. | Con 1 000 veces el volumen, la caché reduce 90 % el tiempo de las consultas repetidas (sección 3.6). |
 | Evaluación de escalabilidad | No diferenciada en el cronograma original | Prueba local con réplicas ×1 a ×1000 y de 1 a 8 hilos, con métricas de Spark. | Reemplaza a la prueba anterior, que no tenía respaldo en el código (sección 3.7). La medición con 1, 2 y 3 workers se hará en AWS. |
 | Capa de consumo | 12 | Gold publicado en PostgreSQL (29 tablas) y tablero en Grafana con 5 KPI de abastecimiento. | El tablero se actualiza solo cada 5 s (sección 4.4). |
-| Despliegue en la nube | No prevista | Scripts de instalación y configuración del cluster preparados y probados en contenedores. Entre el 25 y el 26/11/2026 se creó en AWS la infraestructura base: red privada, bucket S3 con los 181 archivos, roles de acceso, base de datos RDS PostgreSQL y contraseñas cifradas en Parameter Store (secciones 2.4 y 3.8). El 26/11/2026 se lanzó el cluster de 4 instancias EC2 (1 master y 3 workers) con Hadoop y Spark sobre YARN, se ejecutó la corrida completa (1 844 s), una carga incremental (215,9 s) y la prueba de escalabilidad con 1, 2 y 3 workers (secciones 3.2 y 3.7). | Las métricas del modelo en el cluster son idénticas a las del entorno local. [PENDIENTE AWS] Tablero de Grafana conectado a RDS. |
+| Despliegue en la nube | No prevista | Scripts de instalación y configuración del cluster preparados y probados en contenedores. Entre el 25 y el 26/11/2026 se creó en AWS la infraestructura base: red privada, bucket S3 con los 181 archivos, roles de acceso, base de datos RDS PostgreSQL y contraseñas cifradas en Parameter Store (secciones 2.4 y 3.8). El 26/11/2026 se lanzó el cluster de 4 instancias EC2 (1 master y 3 workers) con Hadoop y Spark sobre YARN, se ejecutó la corrida completa (1 844 s), una carga incremental (215,9 s) y la prueba de escalabilidad con 1, 2 y 3 workers (secciones 3.2 y 3.7). | Las métricas del modelo en el cluster son idénticas a las del entorno local. El 27/11/2026 se levantó Grafana en el master, conectado a RDS y consultado por un túnel de Session Manager, y se ensayó la demostración: un archivo subido a S3 llegó al tablero, pasando por el modelo, en 272,9 s (secciones 3.2 y 4.4). |
 
 ### 0.3. Riesgos y mitigación
 
@@ -512,6 +516,9 @@ Silver | → | Gold.
 | 25/11/2026 | Guardar las contraseñas en SSM Parameter Store (SecureString) | AWS Secrets Manager | El proyecto no requiere rotación automática y Parameter Store no tiene costo | Ninguna contraseña queda en archivos del servidor ni del repositorio. |
 | 26/11/2026 | Desplegar en la región us-east-2 (Ohio) | us-east-1 (N. Virginia), prevista al inicio | El proyecto del plan gratuito de AWS quedó asignado a us-east-2 y no permite otras regiones | Se corrigió la región en la política IAM del master y en los scripts (commit `34192dd`). |
 | 26/11/2026 | Amazon RDS for PostgreSQL 16 en la capa gratuita | Aurora PostgreSQL; PostgreSQL instalado en el master | Aurora no entra en la capa gratuita; RDS separa la base del cluster, que se detiene entre sesiones, y mantiene la versión 16 usada en el proyecto | El tablero y el pipeline se conectan a una base que no se apaga con el cluster. |
+| 27/11/2026 | Guardar el modelo entrenado (`PipelineModel`) y aplicarlo con `transform()` a cada carga nueva | Reentrenar el modelo en cada carga | Entrenar es caro y no debe hacerse en la sustentación; un modelo ya entrenado se aplica en segundos a los datos nuevos | La etapa "Modelo (aplicar)" de `run_pipeline.py` tarda unos 43 s en el cluster y el resultado llega al tablero sin reentrenar. |
+| 27/11/2026 | Ingesta automática desde S3 con el servicio `danper-ingesta` | Ejecutar el pipeline a mano después de cada carga; página web de carga | Subir un archivo al bucket desde la consola no dispara el pipeline por sí solo; un servicio que vigila S3 lo automatiza sin crear recursos nuevos | Basta subir el archivo al bucket: en unos 5 minutos llega al tablero. Una página web de carga queda como trabajo futuro. |
+| 27/11/2026 | Ver Grafana, YARN y el Spark History Server por túneles de Session Manager, con un usuario IAM que solo puede abrir túneles al master | Abrir los puertos 3000, 8088 y 18080 a internet o a la IP del equipo | La API de YARN permite enviar trabajos sin autenticación; con el túnel ningún puerto queda expuesto | Usuario `danper-tunel` con la política `infra/aws/iam/politica_tunel.json`. |
 | 26/11/2026 | Red sin NAT Gateway: máquinas en subredes públicas sin puertos abiertos y base de datos en subredes privadas | Máquinas en subredes privadas con NAT Gateway | El NAT Gateway cobra por hora (unos US$ 32 al mes); con grupos de seguridad sin reglas de entrada desde internet se logra el mismo aislamiento | Las máquinas descargan programas por el Internet Gateway y leen S3 por un endpoint privado sin costo. |
 | 26/11/2026 | Instancias EC2 `m7i-flex.large` (2 vCPU, 8 GB) | `t3.small`, `t3.micro` y `c7i-flex.large` (1 a 4 GB) | Es el único tipo de la capa gratuita con memoria suficiente para un executor de Spark de 4 GB por worker | Se mantiene la configuración de YARN y Spark preparada para el cluster. |
 
@@ -701,7 +708,7 @@ En relación con las cinco V de Big Data, no todas se presentan con la misma int
 
 - | Volumen: se integran datos de producción agrícola de las provincias y distritos de La Libertad, costos, precios, abastecimiento mayorista, agroindustria y exportaciones: 79 498 filas en once conjuntos Silver, de fuentes y niveles de detalle distintos. El volumen actual cabe en un solo equipo. La prueba de escalabilidad muestra que, al crecer 1 000 veces, el procesamiento sigue funcionando en una máquina, pero deja de acelerarse con más hilos; para crecer más allá se necesita repartir el trabajo entre varios nodos.
 
-- | Velocidad: las fuentes presentan diferentes frecuencias de actualización. Existen datos diarios de precios y abastecimiento mayorista, datos mensuales de producción y exportaciones, y fuentes anuales como la ENA. Por ello, el pipeline incorpora los archivos nuevos de forma incremental, sin reconstruir todo el procesamiento: un reporte diario del GMML llega al tablero en unos 2 minutos. El proyecto no presenta un escenario de procesamiento en tiempo real.
+- | Velocidad: las fuentes presentan diferentes frecuencias de actualización. Existen datos diarios de precios y abastecimiento mayorista, datos mensuales de producción y exportaciones, y fuentes anuales como la ENA. Por ello, el pipeline incorpora los archivos nuevos de forma incremental, sin reconstruir todo el procesamiento: un reporte diario del GMML llega al tablero en unos 2 minutos. El proyecto no presenta un escenario de procesamiento en tiempo real. **Por eso se procesa por lotes, con carga incremental, y no con streaming.** Las arquitecturas de tiempo real (Lambda, con una capa por lotes y otra de velocidad, o Kappa, con un solo flujo de eventos sobre Kafka) se justifican cuando esperar tiene un costo, como en la detección de fraude. Aquí las fuentes son archivos que se publican a diario, cada mes o cada año, y la decisión que apoyan, cuánta materia prima asegurar con proveedores, se toma con semanas o meses de anticipación. El pipeline revisa los datos nuevos cada 60 segundos y solo procesa lo que llegó (micro-lotes por archivo), lo que da una latencia de minutos sin mantener un clúster de Kafka ni programar la lógica dos veces.
 
 - | Variedad: constituye una de las principales características del proyecto, debido a que las fuentes se
 
@@ -988,7 +995,7 @@ La solución se desarrolló en infraestructura local y se está desplegando en A
 | Contraseñas | `~/.pgpass` y `dashboard/.env` | AWS Systems Manager Parameter Store (SecureString, cifradas con KMS) | Creadas |
 | Red | Equipo local | VPC propia con subredes públicas (máquinas) y privadas (base de datos), sin NAT Gateway | Creada |
 | Acceso de administración | Terminal local | AWS Systems Manager Session Manager, sin puertos abiertos a internet | En uso |
-| Tablero | Grafana en Docker | Grafana en Docker en el master, consultado por un túnel de Session Manager | [PENDIENTE AWS] |
+| Tablero | Grafana en Docker | Grafana en Docker en el master, consultado por un túnel de Session Manager | En funcionamiento (Figura 4.8) |
 
 > **[FOTO GUARDADA] Figura 2.3.** Archivo `figura_2_3_instancias_ec2.png` (sin la columna de IPv4 pública). Pie: *Figura 2.3. Cluster del proyecto en Amazon EC2: 1 master y 3 workers `m7i-flex.large` en la zona us-east-2a.*
 
@@ -1491,6 +1498,12 @@ El orquestador `run_pipeline.py` ejecuta el recorrido completo para los archivos
 
 En el cluster de AWS los datasets llegan al bucket S3 y el script `infra/aws/sincronizar_datasets.sh` los copia al master. El 26/11/2026 se subió a S3 el reporte GMML del 22/09/2026: la sincronización detectó 1 archivo nuevo entre 182 y `run_pipeline.py` lo llevó por Bronze (18,7 s), Silver (38,4 s, solo la fuente afectada), Gold (86,9 s) y PostgreSQL (55,9 s), en 215,9 s en total. El tiempo es mayor que en local (142 s) porque cada etapa se lanza como una aplicación de YARN y la base de datos está en otra máquina (Amazon RDS).
 
+<!-- ACTUALIZADO (27/11/2026): ingesta automática y etapa del modelo -->
+
+**Ingesta automática.** Desde el 27/11/2026 el master ejecuta el servicio `danper-ingesta` (`infra/aws/activar_ingesta.sh`), que arranca solo al encender la máquina: cada 60 segundos copia de S3 los archivos nuevos y `run_pipeline.py --vigilar` los procesa. El bucket S3 funciona como **zona de llegada**: ahí los archivos se guardan tal como se descargan, y al pasar a Bronze se registran con su metadata (huella SHA-256, fecha y hora de carga y su paso por cada capa, en la tabla de control). Así, basta subir un archivo al bucket desde la consola de AWS para que recorra todo el pipeline sin entrar al master. Además, el recorrido incluye ahora la etapa **Modelo (aplicar)**, entre Gold y PostgreSQL, que aplica el modelo ya entrenado a los datos nuevos (sección 4.3).
+
+En el ensayo de la demostración del 27/11/2026 se subieron a S3 dos Excel con ingreso a planta de enero y febrero de 2025, **simulados** y marcados "DEMO" (`scripts/generar_demo_agroindustria.py`), porque la fuente oficial aún no publica ese año. El servicio los detectó al minuto y el pipeline tardó 272,9 s: Bronze 27,9 s, Silver 41,8 s, Gold 86,4 s, modelo 43,4 s y PostgreSQL 55,3 s. Después del ensayo los archivos se retiraron y el sistema volvió a su estado anterior (Figura 4.9).
+
 > **[FOTO GUARDADA] Figura 3.2-B.** Archivo `figura_3_2_b_incremental_aws.png`. Pie: *Figura 3.2-B. Carga incremental en el cluster: un reporte GMML nuevo (22/09/2026) subido a S3 se sincroniza al master y recorre Bronze, Silver (solo la fuente afectada), Gold y PostgreSQL en 215,9 s.*
 
 > **[FOTO GUARDADA] (opcional, junto a la Figura 3.2-B)** Archivo `figura_3_2_b2_verificacion.png`. Pie: *Verificación en Amazon RDS: el último reporte publicado es el del 22/09/2026 y la tabla tiene 70 registros (35 reportes × 2 productos).*
@@ -1853,7 +1866,13 @@ En las cuatro escalas, las filas de salida coincidieron exactamente con las espe
 
 > **[FOTO GUARDADA] Figura 3.13-B.** Archivo `figura_3_13_b_escalabilidad_aws.png`: tabla final del log, desde "factor núcleos" hasta "Tiempo total". Pie: *Figura 3.13-B. Prueba de escalabilidad de volumen (×1, ×10, ×100) sobre el cluster Hadoop/Spark de 3 workers desplegado en Amazon EC2; las filas de salida coinciden con el valor esperado en las tres escalas.*
 
-> **[PENDIENTE AWS]** Captura de la interfaz de YARN y del Spark History Server con los escenarios de la prueba (requiere el túnel de Session Manager de la etapa 7).
+> **[FOTO GUARDADA] Figura 3.13-C.** Archivo `figura_3_13_c_yarn_nodos.png`. Pie: *c) Interfaz de YARN: 3 NodeManagers activos con 6 GB y 2 vCores cada uno (18 GB y 6 vCores en total), consultada por un túnel de Session Manager.*
+
+> **[FOTO GUARDADA] Figura 3.13-D.** Archivo `figura_3_13_d_history_server.png`. Pie: *d) Spark History Server: cada escenario de la prueba de escalabilidad es una aplicación separada de YARN guardada en HDFS (×1000 con 1, 2 y 3 executors, y ×1, ×10 y ×100 con 3). La aplicación …_0019 fue un primer intento interrumpido por un error en la lectura de métricas, corregido antes de la medición válida.*
+
+> **[FOTO GUARDADA] Figura 3.13-E.** Archivo `figura_3_13_e_executors.png`. Pie: *e) Escenario ×1000 con 3 executors en el Spark History Server: el driver coordina desde el master y cada worker ejecuta un executor (2 núcleos); las 732 tareas y los 1,2 GiB de entrada se reparten casi en partes iguales (233, 260 y 239 tareas; unos 413 MiB cada uno), sin tareas fallidas.*
+
+El reparto de la Figura 3.13-E confirma que la aceleración de la Tabla 3.8 proviene del trabajo en paralelo de los 3 workers: cada uno procesó cerca de un tercio de las tareas, de los datos de entrada y del shuffle.
 
 **Interpretación de la medición en el cluster**
 
@@ -1905,6 +1924,7 @@ Los controles de red, de acceso y de credenciales del despliegue ya están cread
 | Credenciales cifradas | Las cuatro contraseñas (administrador de RDS, `etl_escritor`, `grafana_lector` y administrador de Grafana) se guardan como SecureString en Parameter Store, cifradas con AWS KMS. Los scripts las leen al ejecutarse; no quedan en archivos del servidor ni del repositorio | Figura 3.14 f |
 | Datos en S3 protegidos | El bucket tiene bloqueado todo acceso público y cifra los objetos con SSE-S3 | Configuración del bucket |
 | Cifrado en reposo de la base | El disco de RDS se cifra con la clave `aws/rds` de KMS | Configuración de RDS |
+| Acceso al tablero y a las interfaces web | Grafana escucha solo en `127.0.0.1:3000` del master. Grafana, YARN (8088) y el Spark History Server (18080) se consultan por túneles de Session Manager con el usuario `danper-tunel`, que solo puede abrir túneles hacia el master: no puede abrir una terminal ni acceder a S3, RDS o Parameter Store | Política en `infra/aws/iam/politica_tunel.json`; Figura 3.14 h |
 
 > **[FOTO GUARDADA] Figura 3.14 a)** Archivo `figura_3_14_a_danper_cluster.png`. Pie: *a) Grupo de seguridad `danper-cluster`: solo admite tráfico entre los nodos del cluster.*
 >
@@ -1918,6 +1938,8 @@ Los controles de red, de acceso y de credenciales del despliegue ya están cread
 >
 > **[FOTO GUARDADA] Figura 3.14 f)** Archivo `figura_3_14_f_parameter_store.png`. Pie: *f) Parámetros del proyecto en Parameter Store: las cuatro contraseñas se guardan como SecureString, cifradas con AWS KMS.*
 >
+> **[CAPTURA PENDIENTE, opcional] Figura 3.14 h)** Archivo `figura_3_14_h_politica_tunel.png`: JSON de `danper-tunel-politica` en IAM, tapando el ID de la cuenta. Pie: *h) Usuario `danper-tunel`: solo puede abrir un túnel de reenvío de puerto hacia el master; no puede abrir una terminal ni acceder a S3, RDS o Parameter Store.*
+>
 > Título general: **Figura 3.14. Controles de seguridad del despliegue en AWS.** Ninguna regla de entrada permite acceso desde internet (0.0.0.0/0).
 
 <!-- ACTUALIZADO (26/11/2026): controles verificados en el cluster -->
@@ -1925,8 +1947,8 @@ Los controles de red, de acceso y de credenciales del despliegue ya están cread
 **Controles verificados en el cluster**
 
 - **Mínimo privilegio en la base:** el script `infra/aws/preparar_rds.sh` creó en RDS el usuario `etl_escritor`, que solo publica en `gold` y `gold_staging`, y `grafana_lector`, que solo lee `gold` en modo de solo lectura (Figura 3.14 g).
-- **Cifrado en tránsito:** el pipeline se conecta a RDS con SSL obligatorio (`sslmode=require`); el script confirmó la conexión cifrada para los dos usuarios. [PENDIENTE AWS] Conexión de Grafana.
-- **Acceso de administración:** se entró a las 4 máquinas solo por AWS Systems Manager Session Manager, sin claves SSH ni puertos abiertos. [PENDIENTE AWS] Acceso al tablero por un túnel de Session Manager.
+- **Cifrado en tránsito:** el pipeline se conecta a RDS con SSL obligatorio (`sslmode=require`); el script confirmó la conexión cifrada para los dos usuarios. Grafana se conecta con `grafana_lector` y `sslmode=require`; `infra/aws/iniciar_grafana.sh` comprobó la conexión ("Database Connection OK").
+- **Acceso de administración:** se entró a las 4 máquinas solo por AWS Systems Manager Session Manager, sin claves SSH ni puertos abiertos. El tablero se consulta por un túnel de Session Manager desde el equipo del integrante (`localhost:3001`).
 
 > **[FOTO GUARDADA] Figura 3.14 g)** Archivo `figura_3_14_g_permisos_gold.png`. Pie: *g) Permisos en RDS de las tablas de indicadores: `etl_escritor` las publica y `grafana_lector` solo tiene permiso de lectura (`r`).*
 
@@ -2076,6 +2098,10 @@ Se establece como línea base técnica inicial un MAE de 1 868,54 toneladas, cor
 
 <!-- ACTUALIZADO: reemplaza el texto guía de la plantilla -->
 
+<!-- ACTUALIZADO (27/11/2026): CRISP-DM, RMSE, importancia de variables y modelo guardado -->
+
+**Ciclo de trabajo (CRISP-DM).** El modelo siguió las seis fases de CRISP-DM (Chapman et al., 2000): comprensión del negocio (sección 1.3, la decisión de cuánta materia prima asegurar), comprensión de los datos (secciones 3.1 y 4.1), preparación (secciones 3.3 y 3.4), modelado y evaluación (esta sección) y despliegue (el modelo guardado que el pipeline aplica a cada carga y el tablero de la sección 4.4). El ciclo se recorrió más de una vez: la evaluación del modelo de la Semana 7 mostró que una sola temporada de datos no permitía responder la pregunta, y se volvió a la comprensión del negocio y de los datos para cambiar la variable objetivo.
+
 **Cambio de la variable objetivo.** El modelo base de la Semana 7 (sección 4.2) pronosticaba la producción agrícola de 2025, pero esa serie solo tenía un año con datos válidos, lo que impedía evaluar un patrón estacional. Para el modelo definitivo se eligió una variable más ligada a la decisión de Danper y con historia suficiente: el **ingreso mensual de materia prima a las plantas agroindustriales de La Libertad** (Gold `agroindustria_mensual`, proceso INGRESO: alcachofa "para procesar" y espárrago "natural"; fuente GRLL-OIA, 2010–2024). Es el volumen regional que las empresas del sector, entre ellas Danper, deben asegurar con proveedores. El modelo lo pronostica **con 3 meses de anticipación**, el plazo con que se programa la compra.
 
 **Preparación de los datos**
@@ -2114,7 +2140,11 @@ Se establece como línea base técnica inicial un MAE de 1 868,54 toneladas, cor
 
 Fuente: `reportes/modelo/metricas.csv`, que también contiene el detalle por año.
 
-> **[CAPTURA PENDIENTE] Figura 4.6.** Panel "Pronóstico frente al real" del tablero de Grafana (2019–2024) o gráfico de líneas del valor real y de los pronósticos de `prom_3a` y `gbt` por mes, desde la tabla `ml_prediccion_ingreso`.
+**RMSE.** Con la raíz del error cuadrático medio, que castiga más los errores grandes, el orden es el mismo: `prom_3a` 5 780 t, `gbt` 6 182 t, `rf` 6 185 t, `lineal` 6 216 t y `naive_anual` 6 761 t (132 meses de prueba). Frente a un ingreso medio de 8 877 t por mes, el error típico equivale a unos dos tercios del mes promedio, porque los meses de campaña concentran errores de varias decenas de miles de toneladas. Por la misma razón no se usa el R² como criterio: la referencia que importa para planificar no es el promedio general, sino el método estacional simple que ya se aplicaría sin modelo.
+
+**Importancia de las variables** (último corte de la validación). En `gbt` y `rf` pesan más el tamaño estacional del mes (0,23 y 0,24), el mismo mes del año anterior frente al promedio (0,20) y las tendencias recientes de ingreso y de exportaciones (entre 0,14 y 0,17). En `lineal`, la regularización elastic net dejó solo tres coeficientes distintos de cero: el mismo mes del año anterior (+0,13), la tendencia reciente (+0,06) y el tamaño estacional (−0,06); el cultivo, el mes y las exportaciones quedaron en cero. Esto indica que los modelos solo encuentran señal en la propia historia de la serie, que ya resume `prom_3a`, y explica por qué no lo superan. La importancia mide qué variables ayudan a predecir, no qué las causa.
+
+> **[FOTO GUARDADA] Figura 4.6.** Archivo `figura_4_6_pronostico_real.png`. Pie: *Figura 4.6. Ingreso real a planta frente al pronóstico con 3 meses de anticipación del método recomendado (promedio de 3 años) y del modelo MLlib lineal, 2019–2024.*
 
 **Selección del modelo e interpretación para el negocio.** **Ningún modelo de aprendizaje automático supera a la línea base estacional.** El método seleccionado es `prom_3a`, que obtuvo el menor WAPE total (36,9 %). Los modelos de MLlib se descartan para uso operativo. También se probó modelar las toneladas directamente y con un horizonte de 1 mes, con el mismo resultado.
 
@@ -2123,7 +2153,9 @@ Fuente: `reportes/modelo/metricas.csv`, que también contiene el detalle por añ
 - **Costo de cada tipo de error:** subestimar obliga a comprar a última hora, a precios más altos o en menor calidad, y puede dejar capacidad de planta ociosa. Sobrestimar genera compromisos de compra que no se usan y materia prima perecible en exceso. Para el espárrago y la alcachofa, que se procesan frescos, la operación prefiere evitar la subestimación, por lo que el sesgo anual es un indicador del tablero (sección 4.4).
 - **Contraste con la línea base técnica de la Semana 7:** el modelo base de regresión lineal tampoco superaba a una referencia simple (MAE 1 868,54 t frente a 1 745,51 t de la mediana). La diferencia es que ahora la evaluación es más sólida: 15 años de historia en vez de uno, 6 años de prueba y comparación con dos líneas base.
 
-**Uso del resultado.** Con el método seleccionado se calcula el plan de ingreso del año siguiente al último dato (tabla `ml_plan_ingreso`): para cada mes, el promedio de los 3 últimos años válidos con una banda de ± WAPE histórico. Mejorar el pronóstico requiere variables que anticipen los choques, como intenciones de siembra, superficie instalada o clima, con varios años de historia.
+**Uso del resultado.** Con el método seleccionado se calcula el plan de ingreso del año en curso, el siguiente al último año completo (tabla `ml_plan_ingreso`): para cada mes, el promedio de los 3 últimos años válidos anteriores, con una banda de ± WAPE histórico. Cuando llegan los meses reales del año, se muestran junto al plan para comparar. Mejorar el pronóstico requiere variables que anticipen los choques, como intenciones de siembra, superficie instalada o clima, con varios años de historia.
+
+**Entrenar una vez y aplicar en cada carga.** El modelo de MLlib con menor WAPE (`lineal`) se entrena una vez con toda la historia válida, dentro de un `Pipeline` (Imputer → VectorAssembler → LinearRegression), y se guarda en HDFS con `PipelineModel.save()` (`/danper/modelos/ingreso_lineal_h3`, con una ficha de su fecha y de los meses de entrenamiento). Cuando llegan datos nuevos, el pipeline no reentrena: carga el modelo y aplica `transform()` (`modelo_abastecimiento.py --aplicar`). El resultado es la tabla `ml_pronostico_vigente`, con los 3 meses siguientes al último dato de cada cultivo: el pronóstico de `prom_3a` con su banda, que es el recomendado, y el del modelo guardado como comparación. El Imputer usa las medianas aprendidas en el entrenamiento, no las de los datos nuevos, lo que evita la fuga de datos. En el cluster, el entrenamiento tarda unos 3 minutos (166 s) y la aplicación unos 43 s.
 
 ### 4.4. Modelo dimensional y capa de consumo
 
@@ -2143,7 +2175,7 @@ Fuente: `reportes/modelo/metricas.csv`, que también contiene el detalle por añ
 | `fact_abastecimiento_mayorista` | Mercado, cultivo y día del reporte | Ingreso (t) y precios mayoristas (S/) | `dim_tiempo`, `dim_cultivo`, `dim_mercado` |
 | `fact_precios_mercado_productores` | Mercado, producto y día del reporte | Precios (S/) y variación porcentual | `dim_tiempo`, `dim_mercado` |
 
-Además del modelo en estrella, Gold contiene 6 tablas de indicadores anuales (`kpi_*`) y las 3 tablas del modelo predictivo (`ml_prediccion_ingreso`, `ml_metricas_modelo` y `ml_plan_ingreso`).
+Además del modelo en estrella, Gold contiene 6 tablas de indicadores anuales (`kpi_*`) y las 4 tablas del modelo predictivo (`ml_prediccion_ingreso`, `ml_metricas_modelo`, `ml_plan_ingreso` y `ml_pronostico_vigente`).
 
 > **[CAPTURA PENDIENTE] Figura 4.7.** Diagrama del modelo en estrella: las tablas de hechos al centro y las 6 dimensiones alrededor, con sus claves.
 
@@ -2153,7 +2185,7 @@ Además del modelo en estrella, Gold contiene 6 tablas de indicadores anuales (`
 
 | KPI | Definición y fórmula | Frecuencia de actualización | Responsable de la decisión |
 |---|---|---|---|
-| 1. Plan 2025 (t) | Volumen a asegurar en el año siguiente al último dato: promedio del mismo mes en los 3 últimos años válidos, con banda de ± WAPE histórico | Anual, al cargar datos nuevos | Planeamiento y extensión agrícola |
+| 1. Plan del año (t) | Volumen a asegurar en el año en curso (el siguiente al último año completo; hoy, 2025): promedio del mismo mes en los 3 últimos años válidos, con banda de ± WAPE histórico | Anual, al cargar datos nuevos | Planeamiento y extensión agrícola |
 | 2. Error WAPE | Suma de errores absolutos / suma real del método recomendado, validación 2019–2024 | Anual | Planeamiento |
 | 3. Sesgo | (Pronóstico anual − real) / real. Negativo significa que se planifica menos de lo que llega. Meta: entre −5 % y +5 % | Anual | Planeamiento y compras |
 | 4. Pico agosto–octubre | Ingreso de agosto a octubre / ingreso del año, último año válido de cada cultivo. Indica la capacidad de planta y de compra necesaria en campaña | Anual | Operaciones de planta |
@@ -2161,11 +2193,23 @@ Además del modelo en estrella, Gold contiene 6 tablas de indicadores anuales (`
 
 Cómo se usan: si el sesgo sale negativo, el área de compras debería asegurar un volumen mayor que el plan base; si el pico de agosto a octubre crece, operaciones debe prever más capacidad de planta y de recepción para la campaña.
 
-El tablero incluye además el plan 2025 por mes, el pronóstico frente al valor real de 2019–2024, el error de cada método por año, el estado del pipeline (última publicación, filas y fecha del último reporte GMML), el abastecimiento y los precios del GMML, las exportaciones de Danper y regionales, la producción y el ingreso a planta, los costos agrícolas por región y los precios del Mercado de Productores.
+<!-- ACTUALIZADO (27/11/2026): tablero en AWS y paneles del modelo aplicado -->
 
-> **[CAPTURA PENDIENTE] Figura 4.8.** Tablero de Grafana completo, con la fila de KPI de abastecimiento visible.
+En AWS, el tablero corre en Docker en el master, escucha solo en `127.0.0.1:3000` y se consulta por un túnel de Session Manager. Lee RDS con `grafana_lector` y conexión cifrada.
 
-> **[CAPTURA PENDIENTE] Figura 4.9.** Panel "Estado del pipeline" antes y después de copiar un PDF GMML nuevo con `run_pipeline.py --vigilar` en ejecución: deben cambiar "Última publicación en PostgreSQL", "Registros de abastecimiento GMML" y "Último reporte GMML".
+El tablero incluye además el plan del año por mes con el ingreso real de los meses que ya llegaron, el **pronóstico vigente** de los 3 meses siguientes al último dato, el **último dato de ingreso a planta**, la **fecha hasta la que se entrenó el modelo**, el pronóstico frente al valor real de 2019–2024, el error de cada método por año, el estado del pipeline (última publicación, filas y fecha del último reporte GMML), el abastecimiento y los precios del GMML, las exportaciones de Danper y regionales, la producción y el ingreso a planta, los costos agrícolas por región y los precios del Mercado de Productores.
+
+> **[FOTO GUARDADA] Figura 4.8.** Archivo `figura_4_8_tablero_aws.png`. Pie: *Figura 4.8. Tablero de Grafana en el cluster de AWS, consultado por un túnel de Session Manager: fila de KPI de abastecimiento, plan de ingreso 2025 con su banda de error y pronóstico frente al real 2019–2024.*
+
+**Demostración de punta a punta.** Para comprobar que un dato nuevo llega al tablero pasando por el modelo, se subieron a S3 dos meses simulados de ingreso a planta (sección 3.2). El tablero cambió solo, sin recargar la página: el último dato pasó de 12/2024 a 02/2025, el pronóstico vigente se desplazó de enero–marzo a marzo–mayo de 2025, aparecieron los meses reales junto al plan y `agroindustria_mensual` pasó de 3 134 a 3 138 filas. La fecha de entrenamiento del modelo siguió en 12/2024, lo que muestra que solo se aplicó, sin reentrenar.
+
+> **[FOTO GUARDADA] Figura 4.9 a)** Archivos `figura_4_9_a_antes_modelo.png` y `figura_4_9_a_antes_estado.png`. Pie: *a) Antes de la carga: último dato de ingreso a planta 12/2024, pronóstico vigente de enero a marzo de 2025 y última publicación en RDS a las 08:18.*
+>
+> **[FOTO GUARDADA] Figura 4.9 b)** Archivos `figura_4_9_b_despues_modelo.png`, `figura_4_9_b_despues_plan.png` y `figura_4_9_b_despues_estado.png`. Pie: *b) Después de la carga: el último dato pasa a 02/2025, el pronóstico vigente se desplaza a marzo–mayo de 2025, el plan muestra el ingreso real de enero y febrero, y `agroindustria_mensual` pasa de 3 134 a 3 138 filas; el modelo sigue entrenado hasta 12/2024.*
+>
+> **[FOTO GUARDADA] Figura 4.9 c)** Archivo `figura_4_9_c_ingesta.png`. Pie: *c) Log del servicio danper-ingesta: a los 60 s de subir los archivos a S3, la sincronización los detecta (184 archivos, 2 nuevos) y el pipeline los lleva por Bronze, Silver, Gold, el modelo (aplicar) y PostgreSQL en 272,9 s, sin intervención manual.*
+>
+> Título general: **Figura 4.9. Demostración de la carga incremental en AWS con datos simulados de ingreso a planta (marcados DEMO).**
 
 > **[PENDIENTE OE3]** Agregar aquí la comparación de tiempos de la consulta de línea base (manual frente a plataforma) cuando el equipo la mida.
 
@@ -2397,6 +2441,8 @@ Apache Software Foundation. (s. f.). Apache Hadoop 3.3.6 – HDFS architecture. 
 Bass, L., Clements, P., & Kazman, R. (2021). Software architecture in practice (4th ed.). Addison-Wesley Professional.
 
 Chambers, B., & Zaharia, M. (2018). Spark: The definitive guide: Big data processing made simple. O'Reilly Media.
+
+Chapman, P., Clinton, J., Kerber, R., Khabaza, T., Reinartz, T., Shearer, C., & Wirth, R. (2000). CRISP-DM 1.0: Step-by-step data mining guide. SPSS.
 
 Congreso de la República del Perú. (2011). Ley N.º 29733, Ley de Protección de Datos Personales. https://www.gob.pe/institucion/congreso-de-la-republica/normas-legales/243470-29733
 
