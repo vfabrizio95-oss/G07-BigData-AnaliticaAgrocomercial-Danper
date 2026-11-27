@@ -33,7 +33,8 @@ from procesamiento_gold import EXPECTED
 
 DRIVER = "org.postgresql.Driver"
 # Tablas que escribe scripts/modelo_abastecimiento.py (opcionales).
-TABLAS_MODELO = ["ml_prediccion_ingreso", "ml_metricas_modelo", "ml_plan_ingreso"]
+TABLAS_MODELO = ["ml_prediccion_ingreso", "ml_metricas_modelo", "ml_plan_ingreso",
+                 "ml_pronostico_vigente"]
 
 
 def crear_spark():

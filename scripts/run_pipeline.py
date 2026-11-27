@@ -1,4 +1,4 @@
-"""Orquestador del pipeline Danper: Bronze -> Silver -> Gold -> PostgreSQL.
+"""Orquestador del pipeline Danper: Bronze -> Silver -> Gold -> Modelo -> PostgreSQL.
 
 Cada etapa procesa solo lo pendiente según la tabla de control
 (/danper/control/archivos.csv):
@@ -10,7 +10,10 @@ Cada etapa procesa solo lo pendiente según la tabla de control
      - ENA 2025 y sostenibilidad: fuentes cerradas; un archivo nuevo se informa
        y requiere reproceso manual.
 3. Gold: --rebuild (recalcula desde Silver y reemplaza sin perder lo anterior).
-4. PostgreSQL: publica Gold para el dashboard.
+4. Modelo: aplica el PipelineModel ya entrenado y guardado en HDFS a los datos
+   actuales de Gold (modelo_abastecimiento.py --aplicar). No reentrena: el
+   entrenamiento se hace aparte, una vez, con modelo_abastecimiento.py.
+5. PostgreSQL: publica Gold (incluidas las tablas del modelo) para el dashboard.
 
 Uso:
     python scripts/run_pipeline.py               # una pasada
@@ -116,6 +119,8 @@ def una_pasada(con_postgres=True):
     gold_pendientes = [r for r in registros.values() if r["silver_ok"] and not r["gold_ok"]]
     if gold_pendientes:
         tiempos["gold"] = ejecutar("Gold", spark_submit("procesamiento_gold.py", "--rebuild"))
+        tiempos["modelo"] = ejecutar("Modelo (aplicar)",
+                                     spark_submit("modelo_abastecimiento.py", "--aplicar"))
         control.marcar(registros, gold_pendientes, "gold_ok")
         control.guardar(registros)
     else:
