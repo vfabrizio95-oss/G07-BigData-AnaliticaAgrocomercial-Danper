@@ -7,14 +7,14 @@ La plataforma está desplegada en AWS (cluster de 1 master y 3 workers en Amazon
 | Qué | Dirección | Acceso |
 |---|---|---|
 | Tablero (Grafana) | `<URL>/` | Libre, solo lectura |
-| Carga de datos nuevos | `<URL>/carga` | Usuario `evaluador` y `<CONTRASEÑA>` |
+| Carga de datos nuevos | `<URL>/carga` | Usuario `admin` y `<CONTRASEÑA>` |
 | Estado del pipeline | `<URL>/estado` | Libre; se actualiza sola cada 10 s |
 | Estado en JSON | `<URL>/api/estado` | Libre |
 
 **Prueba de punta a punta (unos 6 minutos):**
 
 1. En `<URL>/estado`, anotar el **último dato de ingreso a planta** (por ejemplo, `2024-12`), los meses del **pronóstico vigente** y la fecha **«entrenado con datos hasta»** del modelo.
-2. En `<URL>/carga`, ingresar con `evaluador` y la contraseña, y pulsar **«Inyectar dato de prueba»**. Se cargan dos meses **simulados** de ingreso de materia prima a planta (alcachofa y espárrago), con el formato de la fuente oficial y marcados `DEMO`.
+2. En `<URL>/carga`, ingresar con `admin` y la contraseña, y pulsar **«Inyectar dato de prueba»**. Se cargan dos meses **simulados** de ingreso de materia prima a planta (alcachofa y espárrago), con el formato de la fuente oficial y marcados `DEMO`.
 3. En `<URL>/estado`, la fase pasa de «esperando la sincronización con S3» a «procesando», con cada etapa (Bronze → Silver → Gold → Modelo (aplicar) → PostgreSQL) y sus segundos, y a «terminado» unos 5 minutos después.
 4. Comprobar el resultado: el último dato y el pronóstico vigente avanzaron dos meses, y la fecha de entrenamiento del modelo **no cambió** (el modelo ya entrenado se aplica con `transform()`, no se reentrena). En el tablero, sin recargar la página, cambian «Último dato de ingreso a planta», el panel «Pronóstico vigente» y el ingreso real frente al plan anual.
 

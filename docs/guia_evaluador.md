@@ -14,7 +14,7 @@ asistente automático (IA) que siga los pasos.
 | Qué | Dirección | Acceso |
 |---|---|---|
 | Tablero (Grafana) | `<URL>/` | Libre, solo lectura |
-| Carga de datos nuevos | `<URL>/carga` | Usuario `evaluador` y `<CONTRASEÑA>` |
+| Carga de datos nuevos | `<URL>/carga` | Usuario `admin` y `<CONTRASEÑA>` |
 | Estado del pipeline | `<URL>/estado` | Libre; se actualiza sola cada 10 s |
 | Estado en JSON | `<URL>/api/estado` | Libre |
 
@@ -24,7 +24,7 @@ asistente automático (IA) que siga los pasos.
    - **Último dato de ingreso a planta** (por ejemplo, `ALCACHOFA 2024-12`).
    - Los meses del **pronóstico vigente** (por ejemplo, `2025-01` a `2025-03`).
    - La **fecha de entrenamiento del modelo** (`modelo_entrenado_hasta`).
-2. Abrir `<URL>/carga`, ingresar con el usuario `evaluador` y la contraseña.
+2. Abrir `<URL>/carga`, ingresar con el usuario `admin` y la contraseña.
 3. Pulsar **«Inyectar dato de prueba»**. La página genera y carga dos meses
    **simulados** de ingreso de materia prima a planta (alcachofa y espárrago),
    con el formato de la fuente oficial y marcados como `DEMO`, y lleva a la

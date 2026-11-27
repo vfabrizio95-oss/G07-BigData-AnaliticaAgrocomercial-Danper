@@ -45,7 +45,7 @@ from extractor_agroindustria import extraer_agroindustria  # noqa: E402
 from generar_demo_agroindustria import generar  # noqa: E402
 
 MODO = os.environ.get("DANPER_PORTAL_MODO", "aws")
-USUARIO = "evaluador"
+USUARIO = "admin"
 MAX_MB = 20
 GMML = re.compile(r"mercado-mayorista-de-lima-(\d{2})-(\d{2})-(\d{4})\.pdf$", re.IGNORECASE)
 
