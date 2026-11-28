@@ -51,6 +51,8 @@ MAX_ARCHIVOS = 10    # por carga
 MAX_TOTAL_MB = 60    # por carga (nginx admite hasta 65 MB)
 MESES_PRUEBA = (2, 4, 6)
 GMML = re.compile(r"mercado-mayorista-de-lima-(\d{2})-(\d{2})-(\d{4})\.pdf$", re.IGNORECASE)
+PRODUCTORES = re.compile(r"mercado-mayorista-de-productores-(\d{2})-(\d{2})-(\d{4})\.pdf$",
+                         re.IGNORECASE)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(32)  # un solo proceso (gunicorn -w 1): las sesiones no se pierden
@@ -156,13 +158,19 @@ def validar(fuente, ruta, nombre):
         raise ValueError(f"El archivo supera {MAX_MB} MB.")
     cabecera = ruta.read_bytes()[:4]
     if fuente == "abastecimiento":
-        m = GMML.search(nombre)
         if not nombre.lower().endswith(".pdf") or cabecera != b"%PDF":
-            raise ValueError("Para el GMML se espera un PDF.")
-        if not m:
-            raise ValueError("El nombre del PDF debe terminar como el de MIDAGRI: "
-                             "'...-mercado-mayorista-de-lima-DD-MM-AAAA.pdf'.")
-        return f"abastecimiento/gmml_{m.group(3)}/{nombre}", "Reporte diario del GMML"
+            raise ValueError("se espera un PDF de MIDAGRI.")
+        m = GMML.search(nombre)
+        if m:
+            return f"abastecimiento/gmml_{m.group(3)}/{nombre}", "Reporte diario del GMML"
+        m = PRODUCTORES.search(nombre)
+        if m:
+            return (f"abastecimiento/mercado_productores/{m.group(3)}/{nombre}",
+                    "Reporte del Mercado de Productores de Santa Anita")
+        raise ValueError("el nombre del PDF debe ser el que publica MIDAGRI, terminado en "
+                         "'...-mercado-mayorista-de-lima-DD-MM-AAAA.pdf' (GMML) o "
+                         "'...-mercado-mayorista-de-productores-DD-MM-AAAA.pdf' "
+                         "(Mercado de Productores).")
     if fuente == "agroindustria":
         if not nombre.lower().endswith(".xlsx") or cabecera != b"PK\x03\x04":
             raise ValueError("Para el ingreso a planta se espera un Excel .xlsx.")
@@ -287,7 +295,7 @@ def inyectar_prueba():
     if cantidad not in MESES_PRUEBA:
         cantidad = 2
     with TemporaryDirectory() as carpeta:
-        lineas = generar(carpeta, factor=1.3, continuar=True, nombres_previos=nombres_demo(),
+        lineas = generar(carpeta, factor=1.1, continuar=True, nombres_previos=nombres_demo(),
                          cantidad=cantidad)
         archivos = []
         for linea in lineas:
@@ -309,7 +317,7 @@ def ejemplo(cultivo):
     if cultivo not in ("ALCACHOFA", "ESPARRAGO"):
         return "Cultivo no válido", 404
     carpeta = TemporaryDirectory()
-    linea = generar(carpeta.name, factor=1.3, cultivos=[cultivo], continuar=True,
+    linea = generar(carpeta.name, factor=1.1, cultivos=[cultivo], continuar=True,
                     nombres_previos=nombres_demo())[0]
     ruta = Path(linea.partition(": ")[0])
     respuesta = send_file(ruta, as_attachment=True, download_name=ruta.name)
