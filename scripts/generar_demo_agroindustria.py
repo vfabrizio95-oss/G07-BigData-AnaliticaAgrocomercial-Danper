@@ -8,7 +8,9 @@ que los originales (cuadro 7 para alcachofa y cuadro 64 para espárrago), con
 unos pocos meses del año siguiente al último dato.
 
 Los valores son simulados: el promedio del mismo mes en los 3 últimos años
-válidos, multiplicado por --factor. Cada archivo lo indica en su nombre
+válidos, multiplicado por --factor y por una variación propia de cada mes
+(entre −25 % y +25 %, siempre la misma para un mismo cultivo y mes), para que
+algunos meses caigan dentro de la banda del plan y otros fuera. Cada archivo lo indica en su nombre
 ("DEMO") y en su primera fila. No son datos reales y deben retirarse después
 de la demostración.
 
@@ -39,6 +41,7 @@ Cómo retirarlo después de la demostración (en el master, como danper):
 """
 from pathlib import Path
 import argparse
+import random
 import re
 
 import pandas as pd
@@ -126,7 +129,8 @@ def generar(salida, anio=None, meses=(1, 2), factor=1.0, cultivos=tuple(SERIES),
 
     for cultivo in cultivos:
         cuadro, presentacion, faltantes = SERIES[cultivo]
-        valores = {m: round(promedio_3a(datos, cultivo, cuadro, faltantes, anio, m) * factor, 3)
+        valores = {m: round(promedio_3a(datos, cultivo, cuadro, faltantes, anio, m) * factor
+                            * random.Random(f"{cultivo}-{anio}-{m}").uniform(0.75, 1.25), 3)
                    for m in meses}
         fila = [anio, round(sum(valores.values()), 3)]
         fila += [valores.get(m) for m in range(1, 13)]
