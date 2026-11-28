@@ -1291,7 +1291,7 @@
           "sort": "desc"
         }
       },
-      "timeFrom": "3y"
+      "timeFrom": "6M"
     },
     {
       "id": 10,
@@ -1346,7 +1346,7 @@
           "sort": "desc"
         }
       },
-      "timeFrom": "3y"
+      "timeFrom": "6M"
     },
     {
       "id": 11,
