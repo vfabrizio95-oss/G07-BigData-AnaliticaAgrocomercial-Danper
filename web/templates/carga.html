@@ -55,7 +55,8 @@ Sigue el avance en <a href="/estado">Estado del pipeline</a>.</p>
     .lista { list-style: none; padding: 0; margin: 12px 0 0; }
     .lista li { display: flex; gap: 8px; align-items: center; justify-content: space-between;
                 padding: 6px 8px; border: 1px solid var(--borde); border-radius: 6px; margin-top: 6px; overflow-wrap: anywhere; }
-    .lista button { margin: 0; padding: 4px 10px; background: transparent; color: var(--error); border: 1px solid var(--borde); }
+    .lista button { margin: 0; padding: 2px 9px; background: transparent; color: var(--error); border: 1px solid var(--borde);
+                    font-size: 16px; line-height: 1.4; cursor: pointer; }
   </style>
   <script>
   (function () {
@@ -79,7 +80,9 @@ Sigue el avance en <a href="/estado">Estado del pipeline</a>.</p>
         nombre.textContent = f.name + " (" + (f.size / 1048576).toFixed(1) + " MB)";
         const quitar = document.createElement("button");
         quitar.type = "button";
-        quitar.textContent = "Quitar";
+        quitar.textContent = "✕";
+        quitar.title = "Quitar " + f.name;
+        quitar.setAttribute("aria-label", "Quitar " + f.name);
         quitar.addEventListener("click", function () { elegidos.splice(i, 1); mostrarAviso(""); sincronizar(); });
         li.append(nombre, quitar);
         lista.appendChild(li);
