@@ -40,11 +40,8 @@ asistente automático (IA) que siga los pasos.
      **fecha de entrenamiento del modelo no cambió** (el modelo se aplica, no se
      reentrena).
    - En el tablero (`<URL>/`), sin recargar la página: «Último dato de ingreso a
-     planta», el panel «Pronóstico vigente», las líneas de ingreso real del
-     panel del plan anual y la fila **«Seguimiento del plan»**: cada mes
-     recibido se evalúa contra el plan (desviación acumulada, meses dentro de
-     la banda, WAPE de los meses observados y una tabla mes a mes). La métrica
-     de validación del modelo (WAPE 2019–2024) no cambia.
+     planta», el panel «Pronóstico vigente» y las líneas de ingreso real del
+     panel del plan anual.
 
 La prueba se puede repetir: cada vez se cargan los meses siguientes a la
 última prueba (se puede elegir 2, 4 o 6). Con más meses, el cambio en el
