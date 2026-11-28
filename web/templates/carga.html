@@ -37,11 +37,94 @@ Sigue el avance en <a href="/estado">Estado del pipeline</a>.</p>
       Ejemplos con el formato correcto (meses siguientes, simulados):
       <a href="/carga/ejemplo/alcachofa">alcachofa</a> · <a href="/carga/ejemplo/esparrago">espárrago</a>.</li>
   </ul>
-  <form method="post" action="/carga/archivo" enctype="multipart/form-data">
-    <label for="archivos">Archivos (hasta {{ max_archivos }}, máximo {{ max_mb }} MB cada uno y {{ max_total_mb }} MB en total)</label>
-    <input id="archivos" name="archivos" type="file" accept=".xlsx,.pdf" multiple required>
-    <button type="submit">Subir archivos</button>
+  <form id="form-archivos" method="post" action="/carga/archivo" enctype="multipart/form-data">
+    <p><strong>Archivos</strong> (hasta {{ max_archivos }}, máximo {{ max_mb }} MB cada uno y {{ max_total_mb }} MB en total)</p>
+    <div id="zona" class="zona" tabindex="0" role="button" aria-describedby="zona-ayuda">
+      <p><strong>Arrastra y suelta aquí los archivos</strong></p>
+      <p id="zona-ayuda" class="suave">o haz clic para elegirlos. Puedes agregarlos de a uno o varios a la vez: se van sumando a la lista.</p>
+    </div>
+    <input id="archivos" name="archivos" type="file" accept=".xlsx,.pdf" multiple hidden>
+    <ul id="lista" class="lista"></ul>
+    <p id="aviso" class="aviso error" hidden></p>
+    <button id="enviar" type="submit" disabled>Subir archivos</button>
   </form>
+  <style>
+    .zona { border: 2px dashed var(--borde); border-radius: 8px; padding: 24px 16px; text-align: center; cursor: pointer; }
+    .zona p { margin: 4px 0; }
+    .zona.encima { border-color: var(--acento); background: rgba(31, 111, 74, .08); }
+    .lista { list-style: none; padding: 0; margin: 12px 0 0; }
+    .lista li { display: flex; gap: 8px; align-items: center; justify-content: space-between;
+                padding: 6px 8px; border: 1px solid var(--borde); border-radius: 6px; margin-top: 6px; overflow-wrap: anywhere; }
+    .lista button { margin: 0; padding: 4px 10px; background: transparent; color: var(--error); border: 1px solid var(--borde); }
+  </style>
+  <script>
+  (function () {
+    const MAX_ARCHIVOS = {{ max_archivos }}, MAX_MB = {{ max_mb }}, MAX_TOTAL_MB = {{ max_total_mb }};
+    const zona = document.getElementById("zona"), entrada = document.getElementById("archivos");
+    const lista = document.getElementById("lista"), aviso = document.getElementById("aviso");
+    const enviar = document.getElementById("enviar");
+    let elegidos = [];
+
+    function mostrarAviso(texto) { aviso.textContent = texto; aviso.hidden = !texto; }
+
+    function sincronizar() {
+      // El formulario envía lo que haya en el campo de archivos: se rearma con la lista acumulada
+      const dt = new DataTransfer();
+      elegidos.forEach(function (f) { dt.items.add(f); });
+      entrada.files = dt.files;
+      lista.innerHTML = "";
+      elegidos.forEach(function (f, i) {
+        const li = document.createElement("li");
+        const nombre = document.createElement("span");
+        nombre.textContent = f.name + " (" + (f.size / 1048576).toFixed(1) + " MB)";
+        const quitar = document.createElement("button");
+        quitar.type = "button";
+        quitar.textContent = "Quitar";
+        quitar.addEventListener("click", function () { elegidos.splice(i, 1); mostrarAviso(""); sincronizar(); });
+        li.append(nombre, quitar);
+        lista.appendChild(li);
+      });
+      const totalMb = elegidos.reduce(function (s, f) { return s + f.size; }, 0) / 1048576;
+      enviar.disabled = elegidos.length === 0 || totalMb > MAX_TOTAL_MB;
+      enviar.textContent = elegidos.length ? "Subir " + elegidos.length + " archivo(s)" : "Subir archivos";
+      if (totalMb > MAX_TOTAL_MB) mostrarAviso("Entre todos superan " + MAX_TOTAL_MB + " MB: quita alguno.");
+    }
+
+    function agregar(archivos) {
+      const rechazados = [];
+      Array.from(archivos).forEach(function (f) {
+        if (!/\.(pdf|xlsx)$/i.test(f.name)) { rechazados.push(f.name + ": solo PDF o Excel .xlsx"); return; }
+        if (f.size > MAX_MB * 1048576) { rechazados.push(f.name + ": supera " + MAX_MB + " MB"); return; }
+        if (elegidos.some(function (e) { return e.name === f.name && e.size === f.size; })) return;
+        if (elegidos.length >= MAX_ARCHIVOS) { rechazados.push(f.name + ": máximo " + MAX_ARCHIVOS + " archivos por carga"); return; }
+        elegidos.push(f);
+      });
+      mostrarAviso(rechazados.length ? "No se agregaron: " + rechazados.join(" · ") : "");
+      sincronizar();
+    }
+
+    zona.addEventListener("click", function () { entrada.click(); });
+    zona.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); entrada.click(); } });
+    entrada.addEventListener("change", function () {
+      const nuevos = Array.from(entrada.files);
+      agregar(nuevos);
+    });
+    ["dragenter", "dragover"].forEach(function (tipo) {
+      zona.addEventListener(tipo, function (e) { e.preventDefault(); zona.classList.add("encima"); });
+    });
+    ["dragleave", "drop"].forEach(function (tipo) {
+      zona.addEventListener(tipo, function (e) { e.preventDefault(); zona.classList.remove("encima"); });
+    });
+    zona.addEventListener("drop", function (e) { agregar(e.dataTransfer.files); });
+    // Evita que el navegador abra el archivo si se suelta fuera de la zona
+    window.addEventListener("dragover", function (e) { e.preventDefault(); });
+    window.addEventListener("drop", function (e) { e.preventDefault(); });
+    document.getElementById("form-archivos").addEventListener("submit", function () {
+      sincronizar();  // por si el selector se cerró sin elegir y vació el campo
+      enviar.disabled = true; enviar.textContent = "Subiendo…";
+    });
+  })();
+  </script>
   <p class="suave">Un archivo idéntico a uno ya cargado no se procesa de nuevo (se reconoce por su huella SHA-256).</p>
 </section>
 
