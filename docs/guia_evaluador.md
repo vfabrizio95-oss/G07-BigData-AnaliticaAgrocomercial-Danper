@@ -25,7 +25,7 @@ asistente automático (IA) que siga los pasos.
    - Los meses del **pronóstico vigente** (por ejemplo, `2025-01` a `2025-03`).
    - La **fecha de entrenamiento del modelo** (`modelo_entrenado_hasta`).
 2. Abrir `<URL>/carga`, ingresar con el usuario `admin` y la contraseña.
-3. Pulsar **«Inyectar dato de prueba»**. La página genera y carga dos meses
+3. Elegir **6 meses** y pulsar **«Inyectar dato de prueba»**. La página genera y carga seis meses
    **simulados** de ingreso de materia prima a planta (alcachofa y espárrago),
    con el formato de la fuente oficial y marcados como `DEMO`, y lleva a la
    página de estado.
@@ -36,18 +36,24 @@ asistente automático (IA) que siga los pasos.
    - «terminado», unos 4 minutos después (unos 6 en total desde la carga).
 5. Comprobar el resultado:
    - En `/estado` (o `/api/estado`): el **último dato de ingreso a planta**
-     avanzó dos meses, el **pronóstico vigente** se desplazó dos meses y la
+     avanzó seis meses, el **pronóstico vigente** se desplazó seis meses y la
      **fecha de entrenamiento del modelo no cambió** (el modelo se aplica, no se
      reentrena).
    - En el tablero (`<URL>/`), sin recargar la página: «Último dato de ingreso a
      planta», el panel «Pronóstico vigente» y las líneas de ingreso real del
      panel del plan anual.
 
-La prueba se puede repetir: cada vez se cargan los dos meses siguientes.
+La prueba se puede repetir: cada vez se cargan los meses siguientes a la
+última prueba (se puede elegir 2, 4 o 6). Con más meses, el cambio en el
+tablero es más visible.
 
-## 3. Prueba con un archivo propio (opcional)
+## 3. Prueba con archivos propios (opcional)
 
-En `<URL>/carga`, sección «Subir un archivo»:
+En `<URL>/carga`, sección «Subir uno o varios archivos». Se pueden elegir hasta
+10 archivos a la vez (20 MB cada uno, 60 MB en total); la fuente se reconoce
+por el tipo de archivo y todos se procesan juntos en una sola corrida. Por
+ejemplo, varios reportes diarios del GMML agregan varios puntos seguidos en
+los gráficos de ingreso y precio del GMML.
 
 | Fuente | Formato aceptado |
 |---|---|
