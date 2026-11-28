@@ -2,7 +2,7 @@
 {% block titulo %}Cargar datos{% endblock %}
 {% block contenido %}
 <h1>Carga de datos nuevos</h1>
-<p>Cada archivo que se carga aquí recorre todo el pipeline en unos 5 minutos:
+<p>Cada archivo que se carga aquí recorre todo el pipeline en unos 6 minutos (hasta 2 para detectarlo y unos 4 de proceso):
 Bronze → Silver → Gold → modelo ya entrenado (solo se aplica, no se reentrena) → PostgreSQL → tablero.
 Sigue el avance en <a href="/estado">Estado del pipeline</a>.</p>
 

@@ -131,7 +131,7 @@ def resumen_estado():
         inicio = fecha(pipeline.get("inicio"))
         recibido = fecha(ultima_carga["recibido"])
         if recibido and (inicio is None or recibido > inicio):
-            fase = "esperando la sincronización con S3 (hasta 60 s)"
+            fase = "esperando la sincronización con S3 (hasta 2 min)"
 
     return {
         "consultado": ahora.isoformat(timespec="seconds"),
@@ -141,8 +141,8 @@ def resumen_estado():
         "pipeline": pipeline,
         "modelo": modelo,
         "tablero": "/",
-        "ayuda": ("Tras subir un archivo, la fase pasa a 'procesando' en menos de 60 s y a "
-                  "'terminado' unos 5 minutos después; entonces el tablero (/) ya muestra el dato nuevo."),
+        "ayuda": ("Tras subir un archivo, la fase pasa a 'procesando' en menos de 2 minutos y a "
+                  "'terminado' unos 4 minutos después; entonces el tablero (/) ya muestra el dato nuevo."),
     }
 
 

@@ -30,10 +30,10 @@ asistente automático (IA) que siga los pasos.
    con el formato de la fuente oficial y marcados como `DEMO`, y lleva a la
    página de estado.
 4. En `<URL>/estado`, la **fase** pasa por:
-   - «esperando la sincronización con S3 (hasta 60 s)»,
+   - «esperando la sincronización con S3 (hasta 2 min)»,
    - «procesando», con cada etapa (Bronze, Silver agroindustria, Gold,
      Modelo (aplicar) y PostgreSQL) y sus segundos,
-   - «terminado», unos 5 minutos después.
+   - «terminado», unos 4 minutos después (unos 6 en total desde la carga).
 5. Comprobar el resultado:
    - En `/estado` (o `/api/estado`): el **último dato de ingreso a planta**
      avanzó dos meses, el **pronóstico vigente** se desplazó dos meses y la
