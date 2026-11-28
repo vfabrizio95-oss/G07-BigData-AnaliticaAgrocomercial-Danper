@@ -40,8 +40,11 @@ asistente automático (IA) que siga los pasos.
      **fecha de entrenamiento del modelo no cambió** (el modelo se aplica, no se
      reentrena).
    - En el tablero (`<URL>/`), sin recargar la página: «Último dato de ingreso a
-     planta», el panel «Pronóstico vigente» y las líneas de ingreso real del
-     panel del plan anual.
+     planta», el panel «Pronóstico vigente», las líneas de ingreso real del
+     panel del plan anual y la fila **«Seguimiento del plan»**: cada mes
+     recibido se evalúa contra el plan (desviación acumulada, meses dentro de
+     la banda, WAPE de los meses observados y una tabla mes a mes). La métrica
+     de validación del modelo (WAPE 2019–2024) no cambia.
 
 La prueba se puede repetir: cada vez se cargan los meses siguientes a la
 última prueba (se puede elegir 2, 4 o 6). Con más meses, el cambio en el
@@ -58,7 +61,8 @@ los gráficos de ingreso y precio del GMML.
 | Fuente | Formato aceptado |
 |---|---|
 | Ingreso a planta agroindustrial | Excel `.xlsx` con el formato de la Gerencia Regional de Agricultura de La Libertad: cuadro N.º 7 (alcachofa) o 64 (espárrago), fila «AÑO TOTAL ENE … DIC». El nombre debe contener `ALCACHOFA` o `ESPARRAGO`. En la misma página hay ejemplos descargables. |
-| Reporte diario del Gran Mercado Mayorista de Lima | PDF de MIDAGRI con su nombre original, terminado en `-DD-MM-AAAA.pdf`. Cambia los paneles del GMML y «Último reporte GMML». |
+| Reporte diario del Gran Mercado Mayorista de Lima | PDF de MIDAGRI con su nombre original, terminado en `-mercado-mayorista-de-lima-DD-MM-AAAA.pdf`. Cambia los paneles del GMML y «Último reporte GMML». |
+| Reporte del Mercado de Productores de Santa Anita | PDF de MIDAGRI con su nombre original, terminado en `-mercado-mayorista-de-productores-DD-MM-AAAA.pdf`. Cambia la tabla «Mercado de Productores (último reporte)». |
 
 Un archivo con otro formato se rechaza con un mensaje que explica el motivo; no
 llega al pipeline. Un archivo idéntico a uno ya cargado no se procesa de nuevo
