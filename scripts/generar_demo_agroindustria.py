@@ -13,8 +13,8 @@ válidos, multiplicado por --factor. Cada archivo lo indica en su nombre
 de la demostración.
 
 Cada archivo lleva en el nombre el año y los meses que simula, por ejemplo
-"... ALCACHOFA 2025 DEMO 01-02.xlsx". Con --continuar se generan los dos meses
-siguientes a la última DEMO que ya exista (01-02, luego 03-04, ...): así la
+"... ALCACHOFA 2025 DEMO 01-02.xlsx". Con --continuar se generan los N meses
+siguientes a la última DEMO que ya exista (--cantidad, 2 por defecto: 01-02, luego 03-04, ...): así la
 demostración se puede repetir y cada vez llega un dato nuevo al tablero.
 
 Uso:
@@ -56,11 +56,12 @@ SERIES = {
 PATRON_DEMO = re.compile(r"(\d{4}) DEMO(?: (\d{2})-(\d{2}))?\.xlsx$", re.IGNORECASE)
 
 
-def proximo_bloque(nombres, anio_inicial):
-    """Año y par de meses que siguen a la última DEMO entre `nombres`.
+def proximo_bloque(nombres, anio_inicial, cantidad=2):
+    """Año y meses (hasta `cantidad`) que siguen a la última DEMO entre `nombres`.
 
-    Sin DEMO previas: enero y febrero de anio_inicial. Los pares no cruzan de
-    año (01-02, 03-04, ..., 11-12, y luego 01-02 del año siguiente).
+    Sin DEMO previas se empieza en enero de anio_inicial. Un bloque no cruza
+    de año: si quedan menos meses en el año, se generan solo los que quedan, y
+    el bloque siguiente empieza en enero del año siguiente.
     """
     ultimo = None
     for nombre in nombres:
@@ -69,12 +70,12 @@ def proximo_bloque(nombres, anio_inicial):
             anio, mes = int(m.group(1)), int(m.group(3) or 2)
             ultimo = max(ultimo or (0, 0), (anio, mes))
     if ultimo is None:
-        return anio_inicial, [1, 2]
-    anio, mes = ultimo
-    if mes >= 12:
-        return anio + 1, [1, 2]
-    inicio = mes + 1 if mes % 2 == 0 else mes + 2
-    return anio, [inicio, inicio + 1]
+        anio, inicio = anio_inicial, 1
+    elif ultimo[1] >= 12:
+        anio, inicio = ultimo[0] + 1, 1
+    else:
+        anio, inicio = ultimo[0], ultimo[1] + 1
+    return anio, list(range(inicio, min(inicio + cantidad - 1, 12) + 1))
 
 
 def promedio_3a(datos, cultivo, cuadro, faltantes, anio, mes):
@@ -92,16 +93,19 @@ def main():
     ap.add_argument("--factor", type=float, default=1.0,
                     help="multiplica el promedio de 3 años (por ejemplo 1.3 = 30 %% más)")
     ap.add_argument("--cultivos", nargs="+", default=list(SERIES), choices=list(SERIES))
+    ap.add_argument("--cantidad", type=int, default=2, choices=range(1, 13), metavar="N",
+                    help="con --continuar: cuántos meses generar (por defecto 2)")
     ap.add_argument("--continuar", action="store_true",
                     help="generar los 2 meses siguientes a la última DEMO de DANPER_DATASETS/agroindustria")
     args = ap.parse_args()
     for archivo in generar(args.salida, anio=args.anio, meses=args.meses, factor=args.factor,
-                           cultivos=args.cultivos, continuar=args.continuar):
+                           cultivos=args.cultivos, continuar=args.continuar,
+                           cantidad=args.cantidad):
         print(archivo)
 
 
 def generar(salida, anio=None, meses=(1, 2), factor=1.0, cultivos=tuple(SERIES),
-            continuar=False, nombres_previos=None):
+            continuar=False, nombres_previos=None, cantidad=2):
     """Escribe los Excel DEMO en `salida` y devuelve sus rutas con un detalle.
 
     nombres_previos: nombres de archivos DEMO ya cargados (por ejemplo, los del
@@ -114,7 +118,7 @@ def generar(salida, anio=None, meses=(1, 2), factor=1.0, cultivos=tuple(SERIES),
         if nombres_previos is None:
             carpeta = config.DATASETS / "agroindustria"
             nombres_previos = [p.name for p in carpeta.glob("*DEMO*")] if carpeta.is_dir() else []
-        anio, meses = proximo_bloque(nombres_previos, anio_real)
+        anio, meses = proximo_bloque(nombres_previos, anio_real, cantidad)
     anio = anio or anio_real
     salida = Path(salida)
     salida.mkdir(parents=True, exist_ok=True)
