@@ -46,12 +46,15 @@ from generar_demo_agroindustria import generar  # noqa: E402
 
 MODO = os.environ.get("DANPER_PORTAL_MODO", "aws")
 USUARIO = "admin"
-MAX_MB = 20
+MAX_MB = 20          # por archivo
+MAX_ARCHIVOS = 10    # por carga
+MAX_TOTAL_MB = 60    # por carga (nginx admite hasta 65 MB)
+MESES_PRUEBA = (2, 4, 6)
 GMML = re.compile(r"mercado-mayorista-de-lima-(\d{2})-(\d{2})-(\d{4})\.pdf$", re.IGNORECASE)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(32)  # un solo proceso (gunicorn -w 1): las sesiones no se pierden
-app.config["MAX_CONTENT_LENGTH"] = (MAX_MB + 1) * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = (MAX_TOTAL_MB + 1) * 1024 * 1024
 
 
 # ------------------------------------------------------------------ AWS
@@ -202,7 +205,9 @@ def salud():
 def carga():
     if not requiere_sesion():
         return render_template("ingresar.html")
-    return render_template("carga.html", max_mb=MAX_MB, demos=sorted(nombres_demo()))
+    return render_template("carga.html", max_mb=MAX_MB, max_archivos=MAX_ARCHIVOS,
+                           max_total_mb=MAX_TOTAL_MB, meses_prueba=MESES_PRUEBA,
+                           demos=sorted(nombres_demo()))
 
 
 @app.post("/carga/ingresar")
@@ -227,22 +232,47 @@ def salir():
 def subir_archivo():
     if not requiere_sesion():
         return redirect(url_for("carga"))
-    fuente = request.form.get("fuente", "")
-    archivo = request.files.get("archivo")
-    try:
-        if archivo is None or not archivo.filename:
-            raise ValueError("Elige un archivo.")
-        nombre = limpiar_nombre(archivo.filename)
-        with TemporaryDirectory() as carpeta:
-            ruta = Path(carpeta) / nombre
-            archivo.save(ruta)
-            relativo, detalle = validar(fuente, ruta, nombre)
-            destino = guardar(ruta, relativo)
-    except ValueError as error:
-        flash(str(error), "error")
+    archivos = [a for a in request.files.getlist("archivos") if a and a.filename]
+    if not archivos:
+        flash("Elige al menos un archivo.", "error")
         return redirect(url_for("carga"))
-    registrar_carga([{"archivo": relativo, "detalle": detalle, "destino": destino}], "archivo subido")
-    flash(f"Archivo recibido: {relativo}. Sigue su avance en esta página.", "ok")
+    if len(archivos) > MAX_ARCHIVOS:
+        flash(f"Se pueden subir hasta {MAX_ARCHIVOS} archivos por carga.", "error")
+        return redirect(url_for("carga"))
+
+    aceptados, rechazados = [], []
+    with TemporaryDirectory() as carpeta:
+        # Primero se validan todos; solo después se suben los válidos.
+        validos = []
+        for archivo in archivos:
+            try:
+                nombre = limpiar_nombre(archivo.filename)
+                ruta = Path(carpeta) / nombre
+                archivo.save(ruta)
+                # La fuente se reconoce por el tipo de archivo
+                if nombre.lower().endswith(".pdf"):
+                    fuente = "abastecimiento"
+                elif nombre.lower().endswith(".xlsx"):
+                    fuente = "agroindustria"
+                else:
+                    raise ValueError("tipo no admitido: solo PDF del GMML o Excel .xlsx "
+                                     "de ingreso a planta.")
+                relativo, detalle = validar(fuente, ruta, nombre)
+                validos.append((ruta, relativo, detalle))
+            except ValueError as error:
+                rechazados.append(f"{archivo.filename}: {error}")
+        for ruta, relativo, detalle in validos:
+            aceptados.append({"archivo": relativo, "detalle": detalle,
+                              "destino": guardar(ruta, relativo)})
+
+    for motivo in rechazados:
+        flash(f"Rechazado: {motivo}", "error")
+    if not aceptados:
+        return redirect(url_for("carga"))
+    registrar_carga(aceptados, f"{len(aceptados)} archivo(s) subido(s)")
+    flash(f"{len(aceptados)} archivo(s) recibido(s): "
+          + ", ".join(a["archivo"].rsplit("/", 1)[-1] for a in aceptados)
+          + ". Se procesan juntos en una sola corrida; sigue su avance en esta página.", "ok")
     return redirect(url_for("pagina_estado"))
 
 
@@ -250,15 +280,22 @@ def subir_archivo():
 def inyectar_prueba():
     if not requiere_sesion():
         return redirect(url_for("carga"))
+    try:
+        cantidad = int(request.form.get("meses", "2"))
+    except ValueError:
+        cantidad = 2
+    if cantidad not in MESES_PRUEBA:
+        cantidad = 2
     with TemporaryDirectory() as carpeta:
-        lineas = generar(carpeta, factor=1.3, continuar=True, nombres_previos=nombres_demo())
+        lineas = generar(carpeta, factor=1.3, continuar=True, nombres_previos=nombres_demo(),
+                         cantidad=cantidad)
         archivos = []
         for linea in lineas:
             ruta, _, detalle = linea.partition(": ")
             relativo = f"agroindustria/{Path(ruta).name}"
             archivos.append({"archivo": relativo, "detalle": f"Simulado (DEMO): {detalle}",
                              "destino": guardar(Path(ruta), relativo)})
-    registrar_carga(archivos, "dato de prueba (simulado)")
+    registrar_carga(archivos, f"dato de prueba simulado ({cantidad} meses)")
     flash("Dato de prueba enviado: " + ", ".join(a["archivo"] for a in archivos), "ok")
     return redirect(url_for("pagina_estado"))
 
@@ -292,5 +329,5 @@ def api_estado():
 
 @app.errorhandler(413)
 def demasiado_grande(_):
-    flash(f"El archivo supera {MAX_MB} MB.", "error")
+    flash(f"La carga supera {MAX_TOTAL_MB} MB en total.", "error")
     return redirect(url_for("carga"))

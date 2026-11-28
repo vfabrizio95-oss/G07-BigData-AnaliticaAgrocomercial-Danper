@@ -2,37 +2,43 @@
 {% block titulo %}Cargar datos{% endblock %}
 {% block contenido %}
 <h1>Carga de datos nuevos</h1>
-<p>Cada archivo que se carga aquí recorre todo el pipeline en unos 6 minutos (hasta 2 para detectarlo y unos 4 de proceso):
+<p>Lo que se carga aquí recorre todo el pipeline en unos 6 minutos (hasta 2 para detectarlo y unos 4 de proceso):
 Bronze → Silver → Gold → modelo ya entrenado (solo se aplica, no se reentrena) → PostgreSQL → tablero.
 Sigue el avance en <a href="/estado">Estado del pipeline</a>.</p>
 
 <section>
   <h2>Opción 1. Inyectar un dato de prueba (recomendada)</h2>
-  <p>Genera y carga dos meses <strong>simulados</strong> de ingreso de materia prima a planta (alcachofa y espárrago),
-  con el formato de la fuente oficial y marcados como DEMO. Cada vez se usan los dos meses siguientes,
-  así que se puede repetir. En el tablero cambian «Último dato de ingreso a planta», el «Pronóstico vigente»
-  y el ingreso real frente al plan.</p>
+  <p>Genera y carga meses <strong>simulados</strong> de ingreso de materia prima a planta (alcachofa y espárrago),
+  con el formato de la fuente oficial y marcados como DEMO. Cada vez se usan los meses siguientes a la última
+  prueba, así que se puede repetir. En el tablero cambian «Último dato de ingreso a planta», el «Pronóstico vigente»
+  y el ingreso real frente al plan anual; con más meses, el cambio se ve más.</p>
   <form method="post" action="/carga/prueba">
+    <label for="meses">Meses a simular</label>
+    <select id="meses" name="meses">
+      {% for n in meses_prueba %}<option value="{{ n }}"{% if n == 6 %} selected{% endif %}>{{ n }} meses</option>{% endfor %}
+    </select>
     <button type="submit">Inyectar dato de prueba</button>
   </form>
 </section>
 
 <section>
-  <h2>Opción 2. Subir un archivo</h2>
+  <h2>Opción 2. Subir uno o varios archivos</h2>
+  <p>Se aceptan archivos de las dos fuentes que se actualizan con el tiempo; la fuente se reconoce por el tipo de archivo.
+  Si se suben varios, todos se procesan juntos en una sola corrida del pipeline.</p>
+  <ul>
+    <li><strong>PDF</strong>: reporte diario del Gran Mercado Mayorista de Lima (MIDAGRI), con su nombre original,
+      que termina en «-DD-MM-AAAA.pdf». Cambia los paneles del GMML.</li>
+    <li><strong>Excel .xlsx</strong>: ingreso a planta agroindustrial (cuadro 7 de alcachofa o 64 de espárrago);
+      el nombre debe contener ALCACHOFA o ESPARRAGO. Pasa por el modelo.
+      Ejemplos con el formato correcto (meses siguientes, simulados):
+      <a href="/carga/ejemplo/alcachofa">alcachofa</a> · <a href="/carga/ejemplo/esparrago">espárrago</a>.</li>
+  </ul>
   <form method="post" action="/carga/archivo" enctype="multipart/form-data">
-    <label for="fuente">Fuente</label>
-    <select id="fuente" name="fuente">
-      <option value="agroindustria">Ingreso a planta agroindustrial (Excel .xlsx, cuadros 7 o 64)</option>
-      <option value="abastecimiento">Reporte diario del Gran Mercado Mayorista de Lima (PDF de MIDAGRI)</option>
-    </select>
-    <label for="archivo">Archivo (máximo {{ max_mb }} MB)</label>
-    <input id="archivo" name="archivo" type="file" accept=".xlsx,.pdf" required>
-    <button type="submit">Subir archivo</button>
+    <label for="archivos">Archivos (hasta {{ max_archivos }}, máximo {{ max_mb }} MB cada uno y {{ max_total_mb }} MB en total)</label>
+    <input id="archivos" name="archivos" type="file" accept=".xlsx,.pdf" multiple required>
+    <button type="submit">Subir archivos</button>
   </form>
-  <p class="suave">Ejemplos con el formato correcto (meses siguientes, simulados):
-    <a href="/carga/ejemplo/alcachofa">Excel de alcachofa</a> ·
-    <a href="/carga/ejemplo/esparrago">Excel de espárrago</a>.
-    Un PDF del GMML debe conservar el nombre con que lo publica MIDAGRI (termina en «-DD-MM-AAAA.pdf»).</p>
+  <p class="suave">Un archivo idéntico a uno ya cargado no se procesa de nuevo (se reconoce por su huella SHA-256).</p>
 </section>
 
 {% if demos %}
