@@ -65,4 +65,8 @@ _danper_cargar() {
 }
 
 _danper_cargar
+_danper_estado=$?
 unset -f _danper_cargar _parametro
+# Devolver el resultado real: si algo falló (AWS CLI aún no disponible,
+# Parameter Store sin respuesta), quien hizo "source" debe enterarse.
+return "$_danper_estado"

@@ -17,8 +17,15 @@ export PATH=$PATH:/opt/hadoop/bin:/opt/spark/bin:/snap/bin:/usr/local/bin
 PYTHON=${PYSPARK_PYTHON:-python3}
 cd "$REPO"
 
-# Variables de RDS y del bucket, leídas de Parameter Store con el rol del master
-source infra/aws/entorno_aws.sh || exit 1
+# Variables de RDS y del bucket, leídas de Parameter Store con el rol del master.
+# Al encender la máquina, la AWS CLI (snap) y el servicio de metadatos pueden
+# tardar en estar listos: se reintenta hasta 5 minutos antes de rendirse.
+for intento in $(seq 1 30); do
+    source infra/aws/entorno_aws.sh && [[ -n ${DANPER_BUCKET:-} ]] && break
+    echo "Entorno AWS aún no disponible (intento $intento/30); reintento en 10 s"
+    sleep 10
+done
+[[ -n ${DANPER_BUCKET:-} ]] || { echo "ERROR: no se pudo cargar el entorno AWS" >&2; exit 1; }
 
 # Sincronización con S3 en segundo plano
 (
