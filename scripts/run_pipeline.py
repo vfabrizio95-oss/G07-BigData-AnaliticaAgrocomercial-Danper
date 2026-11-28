@@ -178,6 +178,36 @@ def archivos_locales():
     }
 
 
+def esperar_lote(conocidos, maximo_s=180):
+    """Si el portal acaba de recibir varios archivos, espera a que lleguen todos.
+
+    La sincronización con S3 corre cada minuto y podría traer solo una parte
+    de una carga; sin esta espera, el resto se procesaría en una segunda
+    corrida. El portal (web/portal.py) anota en ESTADO/cargas.json los
+    archivos de cada carga; aquí se espera, hasta `maximo_s`, a que estén todos
+    en la carpeta local.
+    """
+    cargas = estado.leer("cargas") or []
+    if not cargas:
+        return
+    try:
+        recibido = datetime.fromisoformat(cargas[0]["recibido"])
+    except (KeyError, TypeError, ValueError):
+        return
+    if (datetime.now(recibido.tzinfo) - recibido).total_seconds() > 600:
+        return  # carga antigua: no hay nada que esperar
+    esperados = {a["archivo"] for a in cargas[0].get("archivos", [])} - conocidos
+    limite = time.time() + maximo_s
+    while True:
+        faltan = esperados - archivos_locales()
+        if not faltan or time.time() > limite:
+            break
+        log(f"Esperando {len(faltan)} archivo(s) más de la misma carga")
+        time.sleep(10)
+    if faltan:
+        log(f"AVISO: {len(faltan)} archivo(s) de la carga no llegaron; se procesa lo disponible")
+
+
 def vigilar(intervalo, con_postgres):
     log(f"Vigilando {config.DATASETS} cada {intervalo} s (Ctrl+C para salir)")
     capas = ("silver_ok", "gold_ok", "postgres_ok") if con_postgres else ("silver_ok", "gold_ok")
@@ -205,6 +235,8 @@ def vigilar(intervalo, con_postgres):
                 log(f"Archivo nuevo detectado: {ruta}")
             if nuevos:
                 time.sleep(2)  # dar tiempo a que termine de copiarse
+                esperar_lote(conocidos)
+                nuevos = sorted(archivos_locales() - conocidos)
             try:
                 una_pasada(con_postgres, nuevos)
             except ErrorEtapa as error:
