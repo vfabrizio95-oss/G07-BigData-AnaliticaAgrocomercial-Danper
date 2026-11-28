@@ -23,7 +23,7 @@ import config
 BRONZE = f"{config.BRONZE}/abastecimiento/mercado_productores"
 SILVER = f"{config.SILVER}/mercado_productores"
 
-ANIOS = (2024, 2025)
+ANIOS = (2024, 2025)  # años de la carga base; los nuevos se detectan en Bronze
 PDF_ESPERADOS = 24
 REGISTROS_REFERENCIA = 756
 
@@ -194,10 +194,23 @@ def extraer_pdf(archivo, ruta_bronze):
 # DESCARGAR ARCHIVOS DESDE BRONZE
 # ==========================================
 
+def anios_en_bronze():
+    """Carpetas de año en Bronze (2024, 2025 y las que lleguen después)."""
+    salida = subprocess.run(
+        ["hdfs", "dfs", "-ls", "-C", BRONZE],
+        check=True, capture_output=True, text=True
+    ).stdout
+    encontrados = {
+        int(Path(linea).name) for linea in salida.split()
+        if re.fullmatch(r"\d{4}", Path(linea).name)
+    }
+    return sorted(encontrados | set(ANIOS))
+
+
 def descargar_pdf(directorio):
     archivos = []
 
-    for anio in ANIOS:
+    for anio in anios_en_bronze():
         destino = Path(directorio) / str(anio)
         destino.mkdir(
             parents=True,
